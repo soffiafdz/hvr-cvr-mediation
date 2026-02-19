@@ -506,18 +506,29 @@ grViz_obj <- render_consort_diagram(
   ukb_age_range = cc$ukb_age_range
 )
 
-# Convert grViz widget to static PNG
+# Convert grViz widget to static PNG for PDF output
 if (requireNamespace(
   "DiagrammeRsvg", quietly = TRUE
-) && requireNamespace(
-  "rsvg", quietly = TRUE
 )) {
   svg_str <- DiagrammeRsvg::export_svg(grViz_obj)
+  tmp_svg <- tempfile(fileext = ".svg")
   tmp_png <- tempfile(fileext = ".png")
-  rsvg::rsvg_png(
-    charToRaw(svg_str), tmp_png, width = 2400
-  )
-  knitr::include_graphics(tmp_png)
+  writeLines(svg_str, tmp_svg)
+  if (requireNamespace("rsvg", quietly = TRUE)) {
+    rsvg::rsvg_png(
+      charToRaw(svg_str), tmp_png, width = 2400
+    )
+  } else if (nzchar(Sys.which("rsvg-convert"))) {
+    system2("rsvg-convert", c(
+      "-w", "2400", "-f", "png",
+      "-o", tmp_png, tmp_svg
+    ))
+  }
+  if (file.exists(tmp_png)) {
+    knitr::include_graphics(tmp_png)
+  } else {
+    grViz_obj
+  }
 } else {
   grViz_obj
 }
