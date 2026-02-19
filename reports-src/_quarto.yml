@@ -1,0 +1,27 @@
+project:
+  type: default
+  output-dir: ../outputs/reports
+  execute-dir: project
+  render:
+    - "manuscript_ad_submission.qmd"
+
+# Common format options
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    embed-resources: true
+    theme: cosmo
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: article
+    geometry: margin=1in
+
+execute:
+  echo: false
+  warning: false
+  message: false

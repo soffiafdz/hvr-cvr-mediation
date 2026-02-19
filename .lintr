@@ -1,0 +1,1 @@
+linters: lintr::linters_with_defaults(object_name_linter = lintr::object_name_linter(regex = "^([a-z][a-z0-9_]*(\\.df|\\.dt|\\.fct|\\.fit|\\.fn|\\.lst|\\.mat|\\.mod|\\.path|\\.plt|\\.subdt|\\.res|\\.tbl|\\.v)?|[A-Z][A-Z0-9_]*)$"))

@@ -1,0 +1,14 @@
+% title.tex — Quarto template partial for author + affiliation rendering
+\title{$title$}
+
+$for(by-author)$
+\author[$for(by-author.affiliations)$$it.number$$sep$,$endfor$]{$by-author.name.literal$$if(by-author.attributes.corresponding)$\thanks{Corresponding author: $by-author.email$}$endif$}
+$endfor$
+
+$for(by-affiliation)$
+\affil[$it.number$]{$if(it.department)$$it.department$, $endif$$it.name$$if(it.city)$, $it.city$$endif$$if(it.region)$, $it.region$$endif$$if(it.country)$, $it.country$$endif$}
+$endfor$
+
+$if(date)$
+\date{$date$}
+$endif$
