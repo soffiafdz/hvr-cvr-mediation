@@ -44,3 +44,6 @@ _freeze/
 # Environment overrides
 .envrc
 .Renviron
+
+# Claude Code instructions (local only)
+CLAUDE.md
