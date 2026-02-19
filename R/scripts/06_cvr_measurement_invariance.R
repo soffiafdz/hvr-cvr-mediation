@@ -61,6 +61,21 @@ log_script_start("06_cvr_measurement_invariance.R")
 config <- load_config()
 validate_config(config)
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "cvr_invariance", default = FALSE
+)
+output.path <- get_data_path(
+  "models", "cvr_measurement_invariance"
+)
+if (!FORCE_REGENERATE && file.exists(output.path)) {
+  log_info("Output exists and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end(
+    "06_cvr_measurement_invariance.R", success = TRUE
+  )
+  quit(status = 0)
+}
 
 # ============================================================
 # PART 1: PREPARE DATA

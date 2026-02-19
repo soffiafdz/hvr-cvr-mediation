@@ -103,6 +103,18 @@ validate_config(config)
 validate_packages(c("lme4", "lmerTest", "data.table"))
 set_seed()
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "lme_hvr", default = FALSE
+)
+output.path <- get_data_path("models", "lme_hvr_z")
+if (!FORCE_REGENERATE && file.exists(output.path)) {
+  log_info("Output exists and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("08_lme_hvr_z.R", success = TRUE)
+  quit(status = 0)
+}
+
 # -----------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------

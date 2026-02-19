@@ -58,6 +58,20 @@ validate_config(config)
 validate_packages(c("lme4", "lmerTest", "data.table"))
 set_seed()
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "lme_sensitivity", default = FALSE
+)
+output.path <- get_data_path(
+  "models", "lme_raw_sensitivity"
+)
+if (!FORCE_REGENERATE && file.exists(output.path)) {
+  log_info("Output exists and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("10_lme_sensitivity.R", success = TRUE)
+  quit(status = 0)
+}
+
 # ------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------

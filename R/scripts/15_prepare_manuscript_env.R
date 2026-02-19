@@ -1,11 +1,11 @@
 # =========================================================
-# 15b: Prepare Manuscript Environment
+# 15: Prepare Manuscript Environment
 # =========================================================
 # Loads all pipeline outputs, computes summary statistics
 # and adapter objects, and saves a single
 # outputs/manuscript_env.rds for the QMD to load.
 #
-# Usage: Rscript R/scripts/15b_prepare_manuscript_env.R
+# Usage: Rscript R/scripts/15_prepare_manuscript_env.R
 # =========================================================
 
 library(here)

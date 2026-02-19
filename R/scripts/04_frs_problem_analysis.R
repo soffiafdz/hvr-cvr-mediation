@@ -35,6 +35,20 @@ log_script_start("04_frs_problem_analysis.R")
 config <- load_config()
 validate_config(config)
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "frs_analysis", default = FALSE
+)
+output_1.path <- get_data_path("models", "frs_problem_analysis")
+output_2.path <- get_data_path("models", "frs_validity_stats")
+if (!FORCE_REGENERATE &&
+    file.exists(output_1.path) &&
+    file.exists(output_2.path)) {
+  log_info("Outputs exist and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("04_frs_problem_analysis.R", success = TRUE)
+  quit(status = 0)
+}
 
 # ============================================================
 # PART 1: FRS PROBLEMS IN AGING SAMPLES

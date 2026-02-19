@@ -39,7 +39,7 @@ set_seed()
 
 # --- Configuration ---
 FORCE_REGENERATE <- get_script_setting(
-  "force_regenerate", "prepare_data_edt", default = TRUE
+  "force_regenerate", "prepare_lgcm", default = FALSE
 )
 
 output_dir <- get_data_path("derivatives", "lgcm_dir")

@@ -133,6 +133,18 @@ log_script_start("13_lgcm_mediation.R")
 config <- load_config()
 set_seed()
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "lgcm_mediation", default = FALSE
+)
+output.path <- get_data_path("models", "lgcm_mediation")
+if (!FORCE_REGENERATE && file.exists(output.path)) {
+  log_info("Output exists and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("13_lgcm_mediation.R", success = TRUE)
+  quit(status = 0)
+}
+
 mxOption(
   key = "Number of Threads",
   value = parallel::detectCores()

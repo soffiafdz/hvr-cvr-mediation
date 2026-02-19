@@ -77,6 +77,26 @@ log_script_start("07_cvr_score_extraction.R")
 config <- load_config()
 validate_config(config)
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "cvr_scores", default = FALSE
+)
+output_1.path <- get_data_path(
+  "models", "cvr_mimic_scores"
+)
+output_2.path <- get_data_path(
+  "derivatives", "lme_cohort_hvr"
+)
+if (!FORCE_REGENERATE &&
+    file.exists(output_1.path) &&
+    file.exists(output_2.path)) {
+  log_info("Outputs exist and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end(
+    "07_cvr_score_extraction.R", success = TRUE
+  )
+  quit(status = 0)
+}
 
 # ============================================================
 # PART 1: PREPARE DATA

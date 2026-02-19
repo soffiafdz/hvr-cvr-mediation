@@ -358,20 +358,20 @@ output:
 scripts:
   force_regenerate:
     preprocess_volumes: false # 01_preprocess_volumes.R
-    compute_zscores: true     # 02_compute_zscores.R
-    prepare_data: true        # 03_prepare_analysis_data.R
-    frs_analysis: true        # 04_frs_problem_analysis.R
-    cvr_mimic: true           # 05_cvr_mimic_model.R
-    cvr_invariance: true      # 06_cvr_measurement_invariance.R
-    cvr_scores: true          # 07_cvr_score_extraction.R
-    lme_hvr: true             # 08_lme_hvr_z.R
-    lme_hc: true              # 09_lme_hc_z.R
-    lme_sensitivity: true     # 10_lme_sensitivity.R
-    prepare_lgcm: true        # 11_prepare_lgcm_data.R
-    lgcm_models: true         # 12_lgcm_parallel.R
-    lgcm_mediation: true      # 13_lgcm_mediation.R
+    compute_zscores: false    # 02_compute_zscores.R
+    prepare_data: false       # 03_prepare_analysis_data.R
+    frs_analysis: false       # 04_frs_problem_analysis.R
+    cvr_mimic: false          # 05_cvr_mimic_model.R
+    cvr_invariance: false     # 06_cvr_measurement_invariance.R
+    cvr_scores: false         # 07_cvr_score_extraction.R
+    lme_hvr: false            # 08_lme_hvr_z.R
+    lme_hc: false             # 09_lme_hc_z.R
+    lme_sensitivity: false    # 10_lme_sensitivity.R
+    prepare_lgcm: false       # 11_prepare_lgcm_data.R
+    lgcm_models: false        # 12_lgcm_parallel.R
+    lgcm_mediation: false     # 13_lgcm_mediation.R
     simulation_study: false   # 14_lgcm_simulation.R
-    figures_tables: true      # 15_generate_outputs.R
+    figures_tables: false     # 15_prepare_manuscript_env.R
 
 # -----------------------------------------------------------------------------
 # Required Packages

@@ -94,6 +94,18 @@ validate_config(config)
 validate_packages(c("OpenMx", "data.table"))
 set_seed()
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "lgcm_models", default = FALSE
+)
+output.path <- get_data_path("models", "lgcm_parallel")
+if (!FORCE_REGENERATE && file.exists(output.path)) {
+  log_info("Output exists and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("12_lgcm_parallel.R", success = TRUE)
+  quit(status = 0)
+}
+
 # --- Configuration ---
 COGNITIVE_DOMAINS <- get_parameter("cognitive_domains")
 VALID_TIMEPOINTS <- get_valid_timepoints()

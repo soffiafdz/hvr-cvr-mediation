@@ -70,6 +70,22 @@ log_script_start("05_cvr_mimic_model.R")
 config <- load_config()
 validate_config(config)
 
+# --- Cache check ---
+FORCE_REGENERATE <- get_script_setting(
+  "force_regenerate", "cvr_mimic", default = FALSE
+)
+output_1.path <- get_data_path("models", "cvr_mimic_model")
+output_2.path <- get_data_path(
+  "models", "cvr_mimic_specification"
+)
+if (!FORCE_REGENERATE &&
+    file.exists(output_1.path) &&
+    file.exists(output_2.path)) {
+  log_info("Outputs exist and force_regenerate=FALSE")
+  log_info("Skipping. Set force_regenerate=TRUE to rerun.")
+  log_script_end("05_cvr_mimic_model.R", success = TRUE)
+  quit(status = 0)
+}
 
 # ============================================================
 # PART 1: PREPARE INDICATOR DATA

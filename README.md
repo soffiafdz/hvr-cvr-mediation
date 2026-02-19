@@ -34,7 +34,7 @@ obtaining access.
 
 ```
 ├── R/
-│   ├── scripts/          # Numbered pipeline scripts (01–15b)
+│   ├── scripts/          # Numbered pipeline scripts (01–15)
 │   └── utils/            # Shared utility functions
 ├── config/
 │   └── pipeline_config.yaml
@@ -90,10 +90,10 @@ Scripts are numbered by execution order. Run them sequentially:
 12  lgcm_parallel.R                Parallel-process LGCM
 13  lgcm_mediation.R               Mediation bootstrap
 14  lgcm_simulation.R              Power / simulation
-15b prepare_manuscript_env.R       Assemble manuscript data
+15  prepare_manuscript_env.R        Assemble manuscript data
 ```
 
-Dependency chain: `01 → 02 → 03 → 04 → 05 → 06 → 07 → {08, 09, 10} → 11 → {12, 13} → 14 → 15b`
+Dependency chain: `01 → 02 → 03 → 04 → 05 → 06 → 07 → {08, 09, 10} → 11 → {12, 13} → 14 → 15`
 
 ## Rendering the Manuscript
 
