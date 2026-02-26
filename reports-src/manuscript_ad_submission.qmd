@@ -354,12 +354,12 @@ disease, MIMIC model, age-confounding
 The Framingham Risk Score (FRS) has been linked to
 reduced brain volumes and accelerated cognitive
 decline in multiple cohorts
-[@Dufouil2017; @Debette2018; @Weinstein2013;
-@Schultz2019]. However, FRS includes age as a
+[@pelcher_revised_2020; @bangen_baseline_2018; @weinstein_brain_2013;
+@meusel_cardiovascular_2019]. However, FRS includes age as a
 heavily weighted component
-[@DAgiostino2008; @Koller2012], and age accounts for
+[@dagostino_general_2008; @koller_development_2012], and age accounts for
 the majority of FRS predictive performance in older
-adults [@Navar2018; @Echouffo-Tcheugui2020], raising
+adults [@pencina_quantifying_2019; @ko_calibration_2020], raising
 the concern that apparent FRS-brain associations in
 elderly samples may reflect age-driven confounding.
 No prior study has directly compared an
@@ -397,17 +397,17 @@ using age-adjusted CVR endpoints rather than FRS.
 
 - Cardiovascular risk factors are increasingly recognized as
   modifiable contributors to cognitive decline and dementia risk
-  [@OBrien2010; @Luchsinger2009; @Gorelick2011; @Iadecola2019]
+  [@ouldred_vascular_2010; @viswanathan_vascular_2009; @gorelick_vascular_2011; @iadecola_neurovascular_2019]
 - The Framingham Risk Score (FRS), a composite measure of 10-year
-  cardiovascular event probability [@DAgiostino2008], has been
+  cardiovascular event probability [@dagostino_general_2008], has been
   associated with reduced brain volumes, white matter integrity, and
-  accelerated cognitive decline [@Dufouil2017; @Debette2018;
-  @Weinstein2013]
+  accelerated cognitive decline [@pelcher_revised_2020; @bangen_baseline_2018;
+  @weinstein_brain_2013]
 - FRS is heavily weighted by age, with coefficients of 3.11 (men)
-  and 2.72 (women) in the log-hazard scale [@DAgiostino2008]
+  and 2.72 (women) in the log-hazard scale [@dagostino_general_2008]
 - In older samples where age variance is restricted, this creates
   substantial confounding between FRS and any age-related outcome
-  [@Koller2012; @DAgiostino2012]
+  [@koller_development_2012; @rodondi_framingham_2012]
 
 ## The FRS Problem in Aging Samples
 
@@ -427,10 +427,10 @@ using age-adjusted CVR endpoints rather than FRS.
 ## MIMIC Model Approach
 
 - The Multiple Indicators Multiple Causes (MIMIC) model treats age
-  as a *cause* of CVR rather than an indicator [@Joreskog1975;
-  @Muthen1984]
+  as a *cause* of CVR rather than an indicator [@joreskog_estimation_1975;
+  @muthen_general_1984]
 - This allows extraction of CVR factor scores representing residual
-  cardiovascular risk after accounting for age [@vanErp2023]
+  cardiovascular risk after accounting for age [@zhang_bayesian_2024]
 - The resulting CVR~mimic~ measure is orthogonal to age by
   construction (r ≈ 0)
 - Structural model: CVR = γ × Age~z~ + ζ (age predicts CVR)
@@ -455,7 +455,7 @@ using age-adjusted CVR endpoints rather than FRS.
 - All analyses are sex-stratified, given established
   sex differences in cardiovascular risk profiles,
   brain aging trajectories, and AD pathophysiology
-  [@Ferretti2018; @Mielke2022]
+  [@ferretti_sex_2018; @mielke_consideration_2022]
 
 ---
 
@@ -468,9 +468,9 @@ using age-adjusted CVR endpoints rather than FRS.
   ADNI-2, ADNI-3
 - Inclusion criteria:
   - Amyloid-positive status (PET Centiloid > 25
-    [@Klunk2015] across FBP/FBB/PIB tracers, or CSF
+    [@klunk_centiloid_2015] across FBP/FBB/PIB tracers, or CSF
     A+ via Gaussian Mixture Model classification
-    [@Timsina2024])
+    [@timsina_harmonization_2024])
   - Available MRI-derived hippocampal and ventricular volumes
   - Available cardiovascular risk factor data (FRS components)
   - At least one cognitive assessment with Alzheimer's
@@ -507,25 +507,30 @@ grViz_obj <- render_consort_diagram(
 )
 
 # Convert grViz widget to static PNG for PDF output
-if (requireNamespace(
-  "DiagrammeRsvg", quietly = TRUE
-)) {
+if (knitr::is_latex_output() &&
+    requireNamespace(
+      "DiagrammeRsvg", quietly = TRUE
+    )) {
   svg_str <- DiagrammeRsvg::export_svg(grViz_obj)
+  consort_png <- here("outputs", "consort_diagram.png")
+  ensure_directory(dirname(consort_png))
   tmp_svg <- tempfile(fileext = ".svg")
-  tmp_png <- tempfile(fileext = ".png")
   writeLines(svg_str, tmp_svg)
-  if (requireNamespace("rsvg", quietly = TRUE)) {
-    rsvg::rsvg_png(
-      charToRaw(svg_str), tmp_png, width = 2400
-    )
-  } else if (nzchar(Sys.which("rsvg-convert"))) {
+  if (nzchar(Sys.which("rsvg-convert"))) {
     system2("rsvg-convert", c(
       "-w", "2400", "-f", "png",
-      "-o", tmp_png, tmp_svg
+      "-o", consort_png, tmp_svg
     ))
+  } else if (
+    requireNamespace("rsvg", quietly = TRUE)
+  ) {
+    rsvg::rsvg_png(
+      charToRaw(svg_str), consort_png,
+      width = 2400
+    )
   }
-  if (file.exists(tmp_png)) {
-    knitr::include_graphics(tmp_png)
+  if (file.exists(consort_png)) {
+    knitr::include_graphics(consort_png)
   } else {
     grViz_obj
   }
@@ -543,13 +548,13 @@ if (requireNamespace(
   and temporal horn of the lateral ventricle (VC)
   volumes using a convolutional neural network (CNN)
   trained on manual labels from the same research
-  group [@FernandezLozano2025]. Volumes are provided
+  group [@fernandez-lozano_enhanced_2025]. Volumes are provided
   in stereotaxic space (mm³) and converted to native
   space via subject-specific scale factors
 - We defined the hippocampal-to-ventricle ratio
   (HVR) as HVR = (HC~L~ + HC~R~) / (HC~L~ + HC~R~
   + VC~L~ + VC~R~), computed on bilateral summed
-  native-space volumes [@Schoemaker2019]. This ratio
+  native-space volumes [@schoemaker_hippocampal-ventricle_2019]. This ratio
   captures hippocampal integrity relative to surrounding
   cerebrospinal fluid (CSF)-filled spaces, where
   hippocampal atrophy is accompanied by compensatory
@@ -564,7 +569,7 @@ if (requireNamespace(
     with head size
   - The CNN demonstrated low failure rates in ADNI
     compared to multi-atlas and patch-based alternatives
-    [@FernandezLozano2025]
+    [@fernandez-lozano_enhanced_2025]
 - Normative z-scoring: we derived HVR z-scores from
   Generalized Additive Models for Location, Scale, and
   Shape (GAMLSS) fit on UKB data
@@ -614,14 +619,14 @@ if (requireNamespace(
 - We obtained FRS values from the Alzheimer's Disease
   Sequencing Project Phenotype Harmonization Consortium
   (ADSP-PHC) Cardiovascular Risk Factor dataset
-  [@Lee2022; @Lee2023]
+  [@lee_fmnl2_2022; @lee_reliability_2023]
 - The ADSP-PHC computed FRS with the Framingham 2008
   simple office-based 10-year CVD risk score via the
   `ascvd_10y_frs_simple` function from the CVrisk R
-  package [@CVrisk]. Despite the function name, this
+  package [@castro_cvrisk_2026]. Despite the function name, this
   implements the Framingham general cardiovascular
   risk algorithm
-  [@DAgiostino2008], not the ACC/AHA Pooled Cohort
+  [@dagostino_general_2008], not the ACC/AHA Pooled Cohort
   Equations (ASCVD). The score estimates 10-year
   cardiovascular disease risk based on: sex, age
   (≥ 30 years), body mass index (BMI, kg/m²),
@@ -630,7 +635,7 @@ if (requireNamespace(
   diabetes status
 - This is the "simple" FRS variant that uses BMI in place
   of the lipid panel (total and HDL cholesterol) required
-  by the general FRS [@DAgiostino2008]
+  by the general FRS [@dagostino_general_2008]
 - Age coefficients in the log-hazard scale: 3.11 (men),
   2.72 (women) — age is the dominant component in older
   adults
@@ -642,10 +647,10 @@ if (requireNamespace(
 
 We specified the CVR~mimic~ latent factor as a
 Multiple Indicators Multiple Causes (MIMIC) model
-[@Joreskog1975; @Muthen1984], in which age is an
+[@joreskog_estimation_1975; @muthen_general_1984], in which age is an
 exogenous cause of the latent cardiovascular risk
 factor and the disturbance ζ captures residual CVR
-independent of age [@vanErp2023].
+independent of age [@zhang_bayesian_2024].
 
 #### Model Specification
 
@@ -744,7 +749,7 @@ substantive interpretability at each step.
 - This latent-level residualization operates on the
   measurement-error-free latent variable, and is
   equivalent to extracting the disturbance term of the
-  MIMIC structural equation [@Bollen1989]
+  MIMIC structural equation [@bollen_structural_1989]
 - By construction: correlation(CVR~mimic~, Age) ≈ 0
 
 #### Measurement Invariance
@@ -758,7 +763,7 @@ substantive interpretability at each step.
   which is required before interpreting sex-stratified
   analyses
 - We evaluated MI with the Satorra-Bentler scaled
-  chi-square difference test [@Satorra2001], which
+  chi-square difference test [@satorra_scaled_2001], which
   correctly handles the non-subtractable nature of
   MLR-scaled test statistics, and with change in fit
   indices (|ΔCFI| ≤ 0.01, ΔRMSEA ≤ 0.015). When the
@@ -812,11 +817,11 @@ substantive interpretability at each step.
 - Estimated Disease Time (EDT) aligns participants on
   a common disease timeline by estimating each
   individual's position along an underlying progression
-  curve [@Raket2020]
+  curve [@raket_statistical_2020]
 - We computed EDT using the progmod R package with a
   simultaneous multivariate model fitting ADAS-Cog 13
   and MMSE jointly, sharing a common disease time
-  random effect across scales [@Kuhnel2021]
+  random effect across scales [@kuhnel_simultaneous_2021]
 - The simultaneous approach provides more stable
   individual time estimates than univariate models by
   leveraging concordant information across cognitive
@@ -834,7 +839,7 @@ substantive interpretability at each step.
 
 ## Cognitive Assessment
 
-- ADSP-PHC composite scores [@Gandal2023]
+- ADSP-PHC composite scores [@kang_genome-wide_2023]
 - Three domains assessed:
   - Memory: episodic memory composite (WMS-R
     Logical Memory, Rey AVLT, ADAS-Cog word recall,
@@ -875,12 +880,12 @@ substantive interpretability at each step.
   answer depend on how CVR is measured?
 - All models sex-stratified (no pooled sample),
   following the NIH policy on Sex as a Biological
-  Variable (SABV; @Clayton2014)
+  Variable (SABV; @clayton_policy_2014)
   - Sex differences in AD pathophysiology,
     cardiovascular risk profiles, and brain aging
     trajectories motivate stratification rather than
     inclusion of sex as a covariate
-    [@Ferretti2018; @Mielke2022]
+    [@ferretti_sex_2018; @mielke_consideration_2022]
   - Stratification allows effect sizes, variance
     components, and covariate relationships to differ
     freely between sexes; sex is omitted from
@@ -889,7 +894,7 @@ substantive interpretability at each step.
   (years), APOE ε4 carrier status
 - Primary inferences based on uncorrected per-test
   p-values given the pre-specified, hypothesis-driven
-  nature of the analyses [@Rothman1990; @Perneger1998].
+  nature of the analyses [@rothman_no_1990; @perneger_whats_1998].
   As a supplementary check, we applied FDR
   correction (Benjamini-Hochberg) within each CVR
   measure across the 6 LME tests (3 domains × 2
@@ -900,7 +905,7 @@ substantive interpretability at each step.
   comparison (a-path FRS vs a-path CVR~mimic~) is
   inherently directional and does not require
   correction across independent model comparisons
-  [@Perneger1998].
+  [@perneger_whats_1998].
   For the LGCM mediation models (12 tests: 2
   sexes × 3 domains × 2 predictors), no FDR
   correction: inference rests on the
@@ -1032,7 +1037,7 @@ $$
 ### LGCM Parallel Process Models
 
 - LGCM with parallel HVR and cognitive trajectories
-  [@Bollen2006; @King2017] tested whether CVR
+  [@bollen_latent_2006; @muniz-terrera_latent_2017] tested whether CVR
   affects the hippocampal-cognitive relationship
   via mediation (CVR → HVR slope → Cognitive slope)
 
@@ -1103,7 +1108,7 @@ $$
   covariance structure, standard fit indices (CFI,
   TLI, RMSEA) that require a common saturated
   reference model cannot be computed
-  [@Grimm2017; @Mehta2000]
+  [@grimm_growth_2016; @mehta_putting_2000]
 
 #### Covariates and Predictors
 
@@ -1140,7 +1145,7 @@ $$
   reported. BC intervals adjust for bias in the
   bootstrap distribution and are recommended for
   products of coefficients, which typically have
-  skewed sampling distributions [@Efron1993].
+  skewed sampling distributions [@efron_introduction_1994].
   A path is significant when its BC 95% CI
   excludes zero. This is the primary inference
   method for all mediation paths
@@ -1174,7 +1179,7 @@ $$
   the coupling model uses a free covariance without
   directional paths instead
 - A significant total effect is not required for valid
-  mediation inference [@Bollen2006]
+  mediation inference [@bollen_latent_2006]
 
 ### Sensitivity Analyses
 
@@ -1208,16 +1213,16 @@ $$
 ## Software
 
 - R (version 4.x) with the following packages:
-  - lavaan [@Rosseel2012]: MIMIC model specification,
+  - lavaan [@rosseel_lavaan_2012]: MIMIC model specification,
     estimation (MLR + FIML), measurement invariance
     testing, and factor score extraction
-  - lme4 [@Bates2015]: LME growth models with bobyqa
+  - lme4 [@bates_fitting_2015]: LME growth models with bobyqa
     optimizer and REML estimation
-  - OpenMx [@Neale2016]: LGCM parallel process and
+  - OpenMx [@neale_openmx_2016]: LGCM parallel process and
     mediation models with SLSQP optimizer
     (convergence criterion: gradient < $10^{-5}$)
-  - progmod [@Raket2020]: EDT computation
-  - CVrisk [@CVrisk]: FRS computation (via ADSP-PHC)
+  - progmod [@raket_statistical_2020]: EDT computation
+  - CVrisk [@castro_cvrisk_2026]: FRS computation (via ADSP-PHC)
 
 ---
 
@@ -2339,7 +2344,7 @@ LGCM validation — are reported in Appendix C.
   `r abs_stats$cvr_b_sig`/6 CVR~mimic~; bootstrap
   CIs excluding zero), confirming consistent
   hippocampal-cognitive coupling
-  [@Kramer2007; @Oschwald2020; @Staff2018]
+  [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018]
 - FRS indirect effects (a × b) significant in
   `r abs_stats$frs_ind_sig`/6 models (bootstrap
   CIs excluding zero); CVR~mimic~ in
@@ -2374,9 +2379,9 @@ LGCM validation — are reported in Appendix C.
   age-confounded, one age-orthogonal
 - FRS formula explicitly includes age with large
   coefficients (3.11 men, 2.72 women in log-hazard
-  scale) [@DAgiostino2008]. In older samples, age
+  scale) [@dagostino_general_2008]. In older samples, age
   dominates the FRS score
-  [@Koller2012; @Navar2018]
+  [@koller_development_2012; @pencina_quantifying_2019]
 - FRS values in ADNI are compressed into the upper
   range (see @fig-cvr-validation, panels A–B), limiting score
   variance and statistical sensitivity, particularly
@@ -2403,7 +2408,7 @@ LGCM validation — are reported in Appendix C.
   substantive predictor properties
 - Implication: studies reporting FRS-brain
   relationships in elderly samples
-  [@Dufouil2017; @Debette2018; @Schultz2019] may be
+  [@pelcher_revised_2020; @bangen_baseline_2018; @meusel_cardiovascular_2019] may be
   detecting age effects rather than true
   cardiovascular effects
 
@@ -2432,7 +2437,7 @@ LGCM validation — are reported in Appendix C.
   null), yet it may modify how hippocampal integrity
   relates to cognitive performance over time
 - This pattern is consistent with a cognitive reserve
-  framework [@Stern2012; @Walker2018; @Iadecola2020]:
+  framework [@stern_cognitive_2012; @rabin_interactive_2018; @iadecola_framingham_2020]:
   cardiovascular risk may reduce the brain's capacity
   to maintain cognitive function at a given level of
   structural integrity, without directly driving
@@ -2442,7 +2447,7 @@ LGCM validation — are reported in Appendix C.
   should be interpreted cautiously until replicated
 - The HVR-cognition coupling (b-path) was consistent
   across CVR predictors, in line with prior LGCM
-  coupling studies [@King2017; @Bollen2006]
+  coupling studies [@muniz-terrera_latent_2017; @bollen_latent_2006]
 
 ## Sex Differences
 
@@ -2458,7 +2463,7 @@ LGCM validation — are reported in Appendix C.
   statistical sensitivity — the FRS findings in
   females may be primarily driven by age-weighting
 - Sex differences in cardiovascular risk profiles
-  [@Ferretti2018; @Mielke2022], differential APOE ε4
+  [@ferretti_sex_2018; @mielke_consideration_2022], differential APOE ε4
   effects, and hormonal influences on vascular
   regulation may all contribute to the observed
   sex asymmetry in CVR-brain relationships
@@ -2476,7 +2481,7 @@ LGCM validation — are reported in Appendix C.
   and Executive Function for both predictors (4/6
   each; Language non-significant), supporting HVR
   decline as a reliable marker of cognitive decline
-  [@Kramer2007; @Oschwald2020]
+  [@kramer_longitudinal_2007; @oschwald_brain_2020]
 - Parallel process coupling showed a complementary
   pattern: significant in all male models (3/3) but
   only Executive Function in females (1/3). This
@@ -2509,7 +2514,7 @@ LGCM validation — are reported in Appendix C.
 - EDT linearity tests confirmed significant
   non-linear trajectories across all models
   (Appendix B, @tbl-linearity), motivating the
-  fixed-quadratic specification [@Newsom2015].
+  fixed-quadratic specification [@newsom_longitudinal_2015].
   Fully random quadratic parallel process models
   failed to converge due to near-zero quadratic
   variance and insufficient data capacity for
@@ -2550,11 +2555,11 @@ LGCM validation — are reported in Appendix C.
   be used as the sole CVR endpoint in elderly samples
   due to age-related variance compression and
   age-confounding
-  [@Echouffo-Tcheugui2020; @Marrugat2013]
+  [@ko_calibration_2020; @marrugat_adaptation_2003]
 - Age-adjusted CVR measures (via MIMIC models or
   residualization) should be considered when the
   research question concerns cardiovascular effects
-  independent of aging [@vanErp2023]
+  independent of aging [@zhang_bayesian_2024]
 - HVR provides a more sensitive neuroimaging endpoint
   than hippocampal volume alone, and the consistent
   HVR-cognition coupling (b-path) supports its use
