@@ -67,6 +67,8 @@ format:
       - title.tex
     include-in-header:
       text: |
+        \usepackage{tikz}
+        \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
         \usepackage{authblk}
         \renewcommand\Authfont{\normalsize}
         \renewcommand\Affilfont{\small\itshape}
@@ -103,6 +105,9 @@ format:
         \newunicodechar{²}{\textsuperscript{2}}
         \setlength{\LTleft}{0pt}
         \setlength{\LTright}{\fill}
+knitr:
+  opts_chunk:
+    dev: cairo_pdf
 execute:
   echo: false
   warning: false
@@ -339,7 +344,7 @@ showed significant indirect effects in
 
 **DISCUSSION:**
 FRS "effects" on hippocampal-cognitive decline
-are primarily driven by age-weighting rather
+primarily reflect age-related variance rather
 than cardiovascular pathophysiology. Age-adjusted
 CVR measures should be preferred in elderly
 cohorts.
@@ -354,8 +359,8 @@ disease, MIMIC model, age-confounding
 The Framingham Risk Score (FRS) has been linked to
 reduced brain volumes and accelerated cognitive
 decline in multiple cohorts
-[@pelcher_revised_2020; @bangen_baseline_2018; @weinstein_brain_2013;
-@meusel_cardiovascular_2019]. However, FRS includes age as a
+[@zsoldos_association_2020; @seshadri_stroke_2004;
+@song_associations_2020; @meusel_cardiovascular_2019]. However, FRS includes age as a
 heavily weighted component
 [@dagostino_general_2008; @koller_development_2012], and age accounts for
 the majority of FRS predictive performance in older
@@ -369,7 +374,7 @@ mediation and moderation framework.
 
 **Interpretation:**
 FRS indirect effects on cognitive decline through
-hippocampal atrophy are primarily driven by its
+hippocampal atrophy primarily reflect its
 age-weighting. Partialling out age via a MIMIC
 model (CVR~mimic~) nullified the CVR → hippocampal
 atrophy pathway. In contrast, hippocampal-cognitive
@@ -397,14 +402,14 @@ using age-adjusted CVR endpoints rather than FRS.
 
 - Cardiovascular risk factors are increasingly recognized as
   modifiable contributors to cognitive decline and dementia risk
-  [@ouldred_vascular_2010; @viswanathan_vascular_2009; @gorelick_vascular_2011; @iadecola_neurovascular_2019]
+  [@livingston_dementia_2017; @ouldred_vascular_2010; @viswanathan_vascular_2009; @gorelick_vascular_2011; @iadecola_neurovascular_2019]
 - The Framingham Risk Score (FRS), a composite measure of 10-year
   cardiovascular event probability [@dagostino_general_2008], has been
   associated with reduced brain volumes, white matter integrity, and
-  accelerated cognitive decline [@pelcher_revised_2020; @bangen_baseline_2018;
-  @weinstein_brain_2013]
-- FRS is heavily weighted by age, with coefficients of 3.11 (men)
-  and 2.72 (women) in the log-hazard scale [@dagostino_general_2008]
+  accelerated cognitive decline [@zsoldos_association_2020; @seshadri_stroke_2004;
+  @song_associations_2020; @kaffashian_predictive_2011]
+- FRS is heavily weighted by age, with coefficients of 3.06 (men)
+  and 2.33 (women) in the log-hazard scale [@dagostino_general_2008]
 - In older samples where age variance is restricted, this creates
   substantial confounding between FRS and any age-related outcome
   [@koller_development_2012; @rodondi_framingham_2012]
@@ -421,7 +426,8 @@ using age-adjusted CVR endpoints rather than FRS.
   because the confounding is built into FRS construction — age is not
   an external confounder but an internal component of the score
 - In elderly cohorts such as ADNI, the ADSP-PHC-derived FRS
-  variable is capped at 30% 10-year risk, further limiting
+  variable is capped at 30% 10-year risk
+  [@dagostino_general_2008; @lee_fmnl2_2022], further limiting
   sensitivity by compressing variance in the upper range
 
 ## MIMIC Model Approach
@@ -479,7 +485,7 @@ using age-adjusted CVR endpoints rather than FRS.
 - Diagnostic composition: full spectrum of amyloid-positive
   individuals including cognitively unimpaired (CU), mild cognitive
   impairment (MCI), and Alzheimer's disease dementia (AD)
-- Participant flow shown in @fig-consort
+- Participant flow shown in Figure \ref{fig-consort}
 - We used a separate normative comparison sample of
   amyloid-negative, cognitively unimpaired participants
   with MRI within the UK Biobank (UKB) age range
@@ -488,12 +494,10 @@ using age-adjusted CVR endpoints rather than FRS.
   Normative Transfer Validation)
 
 ```{r fig-consort}
-#| fig-cap: "CONSORT flow diagram showing participant selection. Left: amyloid-positive analysis track from LME cohort to LGCM subsample. Right: amyloid-negative, cognitively unimpaired normative comparison sample used to validate UKB z-score transfer. ADSP-PHC = Alzheimer's Disease Sequencing Project Phenotype Harmonization Consortium; CL = Centiloid; CSF = cerebrospinal fluid; CU = cognitively unimpaired; EDT = estimated disease time; MRI = magnetic resonance imaging; UKB = UK Biobank."
-#| fig-height: 8
-#| fig-width: 6.5
+#| output: asis
 
 cc <- consort_counts
-grViz_obj <- render_consort_diagram(
+tikz_code <- generate_consort_tikz(
   n_database = cc$n_database,
   n_with_amyloid = cc$n_with_amyloid,
   n_amyloid_pos = cc$n_amyloid_pos,
@@ -506,37 +510,26 @@ grViz_obj <- render_consort_diagram(
   ukb_age_range = cc$ukb_age_range
 )
 
-# Convert grViz widget to static PNG for PDF output
-if (knitr::is_latex_output() &&
-    requireNamespace(
-      "DiagrammeRsvg", quietly = TRUE
-    )) {
-  svg_str <- DiagrammeRsvg::export_svg(grViz_obj)
-  consort_png <- here("outputs", "consort_diagram.png")
-  ensure_directory(dirname(consort_png))
-  tmp_svg <- tempfile(fileext = ".svg")
-  writeLines(svg_str, tmp_svg)
-  if (nzchar(Sys.which("rsvg-convert"))) {
-    system2("rsvg-convert", c(
-      "-w", "2400", "-f", "png",
-      "-o", consort_png, tmp_svg
-    ))
-  } else if (
-    requireNamespace("rsvg", quietly = TRUE)
-  ) {
-    rsvg::rsvg_png(
-      charToRaw(svg_str), consort_png,
-      width = 2400
-    )
-  }
-  if (file.exists(consort_png)) {
-    knitr::include_graphics(consort_png)
-  } else {
-    grViz_obj
-  }
-} else {
-  grViz_obj
-}
+cat("\\begin{figure}[H]\n")
+cat(tikz_code)
+cap <- paste0(
+  "\\caption{CONSORT flow diagram showing ",
+  "participant selection. Left: amyloid-positive",
+  " analysis track from LME cohort to LGCM ",
+  "subsample. Right: amyloid-negative, ",
+  "cognitively unimpaired normative comparison",
+  " sample used to validate UKB z-score ",
+  "transfer. ADSP-PHC = Alzheimer's Disease ",
+  "Sequencing Project Phenotype Harmonization ",
+  "Consortium; CL = Centiloid; CSF = ",
+  "cerebrospinal fluid; CU = cognitively ",
+  "unimpaired; EDT = estimated disease time; ",
+  "MRI = magnetic resonance imaging; ",
+  "UKB = UK Biobank.}\n"
+)
+cat(cap)
+cat("\\label{fig-consort}\n")
+cat("\\end{figure}\n")
 ```
 
 ## Neuroimaging: Hippocampal-to-Ventricle Ratio (HVR)
@@ -572,7 +565,7 @@ if (knitr::is_latex_output() &&
     [@fernandez-lozano_enhanced_2025]
 - Normative z-scoring: we derived HVR z-scores from
   Generalized Additive Models for Location, Scale, and
-  Shape (GAMLSS) fit on UKB data
+  Shape (GAMLSS; @rigby_generalized_2005) fit on UKB data
   (N = 27,434 cognitively healthy adults, age 45–83)
   - Distribution family: Box-Cox Cole and Green (BCCG),
     which models three distributional parameters —
@@ -636,8 +629,8 @@ if (knitr::is_latex_output() &&
 - This is the "simple" FRS variant that uses BMI in place
   of the lipid panel (total and HDL cholesterol) required
   by the general FRS [@dagostino_general_2008]
-- Age coefficients in the log-hazard scale: 3.11 (men),
-  2.72 (women) — age is the dominant component in older
+- Age coefficients in the log-hazard scale: 3.06 (men),
+  2.33 (women) — age is the dominant component in older
   adults
 - The ADSP-PHC-derived variable is capped at 30%
   10-year risk, creating a ceiling effect in elderly
@@ -1275,7 +1268,7 @@ $$
   `r med_n.lst$Male` males,
   `r med_n.lst$Female` females (complete cases
   required for case-resampling)
-- Participant flow in @fig-consort; baseline
+- Participant flow in Figure \ref{fig-consort}; baseline
   demographics by sex in @tbl-demographics
 
 ```{r tbl-demographics}
@@ -2139,7 +2132,7 @@ cat(sprintf(
     " CVR~mimic~ a-path null in %d/6",
     " models, indicating FRS \"effects\"",
     " on hippocampal decline are largely",
-    " attributable to age-weighting\n\n"
+    " consistent with age-weighting\n\n"
   ),
   frs_a_sig, 6L - cvr_a_sig
 ))
@@ -2378,7 +2371,7 @@ LGCM validation — are reported in Appendix C.
   the measures capture distinct constructs — one
   age-confounded, one age-orthogonal
 - FRS formula explicitly includes age with large
-  coefficients (3.11 men, 2.72 women in log-hazard
+  coefficients (3.06 men, 2.33 women in log-hazard
   scale) [@dagostino_general_2008]. In older samples, age
   dominates the FRS score
   [@koller_development_2012; @pencina_quantifying_2019]
@@ -2408,7 +2401,7 @@ LGCM validation — are reported in Appendix C.
   substantive predictor properties
 - Implication: studies reporting FRS-brain
   relationships in elderly samples
-  [@pelcher_revised_2020; @bangen_baseline_2018; @meusel_cardiovascular_2019] may be
+  [@zsoldos_association_2020; @seshadri_stroke_2004; @song_associations_2020; @meusel_cardiovascular_2019] may be
   detecting age effects rather than true
   cardiovascular effects
 
@@ -2481,7 +2474,12 @@ LGCM validation — are reported in Appendix C.
   and Executive Function for both predictors (4/6
   each; Language non-significant), supporting HVR
   decline as a reliable marker of cognitive decline
-  [@kramer_longitudinal_2007; @oschwald_brain_2020]
+  [@kramer_longitudinal_2007; @oschwald_brain_2020],
+  extending earlier evidence that HVR captures
+  hippocampal integrity more sensitively than raw
+  volume [@schoemaker_hippocampal-ventricle_2019;
+  @fernandez-lozano_enhanced_2025;
+  @bruno_hippocampal_2016]
 - Parallel process coupling showed a complementary
   pattern: significant in all male models (3/3) but
   only Executive Function in females (1/3). This
@@ -2632,8 +2630,8 @@ LGCM validation — are reported in Appendix C.
   significant indirect effects through hippocampal
   decline, while age-adjusted CVR~mimic~ does not
 - This dissociation supports the hypothesis that FRS
-  "effects" on hippocampal decline are primarily
-  driven by age-weighting rather than cardiovascular
+  "effects" on hippocampal decline primarily reflect
+  age-related variance rather than cardiovascular
   pathophysiology
 - Suggestive single-domain evidence (Female Executive
   LME 3-way) hints that age-adjusted CVR may still
