@@ -1,14 +1,13 @@
 # ============================================
 # consort_diagram.R
-# CONSORT Flow Diagram generation (DiagrammeR)
+# CONSORT Flow Diagram generation (TikZ)
 # ============================================
 
-#' Generate CONSORT flow diagram DOT specification
+#' Generate CONSORT flow diagram as TikZ code
 #'
 #' Two-track diagram:
 #' Left:  ADSP-PHC -> A+ -> MRI+Cog -> LME -> LGCM
 #' Right: A-neg -> MRI -> CU -> Age-comparable
-#' Left exclusions branch LEFT; right exclusions RIGHT
 #'
 #' @param n_database    Total in ADSP-PHC
 #' @param n_with_amyloid Subjects with amyloid data
@@ -19,9 +18,9 @@
 #' @param n_aneg_mri     A-neg with MRI (optional)
 #' @param n_aneg_cu_mri  A-neg CU with MRI (optional)
 #' @param n_age_comparable Age-comparable (optional)
-#' @param ukb_age_range  Character label, e.g. "46\u201382"
-#' @return DOT string
-generate_consort_dot <- function(
+#' @param ukb_age_range  Character label, e.g. "46--82"
+#' @return TikZ string for inclusion in LaTeX
+generate_consort_tikz <- function(
     n_database,
     n_with_amyloid,
     n_amyloid_pos,
@@ -33,7 +32,9 @@ generate_consort_dot <- function(
     n_age_comparable = NULL,
     ukb_age_range = NULL) {
 
-  fmt <- function(x) format(x, big.mark = ",")
+  fmt <- function(x) {
+    format(x, big.mark = ",")
+  }
 
   # Derived counts
   n_no_amy <- n_database - n_with_amyloid
@@ -41,238 +42,379 @@ generate_consort_dot <- function(
   exc_mri_l <- n_amyloid_pos - n_with_mri
   exc_temp <- n_with_mri - n_lme
 
-  # --- Style constants ---
-  wh <- ', fillcolor="white"'
-  gr <- paste0(
-    ', fillcolor="#E8F4E8"',
-    ', color="#2E7D32", penwidth=2'
-  )
-  ex <- paste0(
-    ', fillcolor="#F5F5F5"',
-    ', color="#999999"',
-    ', width=2.2, height=0.6',
-    ', fontsize=10'
-  )
-  dash_l <- paste0(
-    ' [style=dashed, color="#999999"',
-    ', constraint=false]'
-  )
-  dash_r <- dash_l
-  invis <- " [style=invis]"
-
-  # ---- Nodes ----
-  nodes <- sprintf(paste0(
-    '  db [label="ADSP-PHC Database\\n',
-    'N = %s"%s]\n',
-    '  with_amy [label=',
-    '"With Amyloid Data\\n',
-    'N = %s"%s]\n',
-    '  exc_amy [label=',
-    '"Excluded:\\n',
-    'No amyloid data\\n',
-    'n = %s"%s]\n',
-    '  apos [label=',
-    '"Amyloid-Positive\\n',
-    '(PET >25 CL or CSF A+)\\n',
-    'N = %s"%s]\n',
-    '  aneg [label=',
-    '"Amyloid-Negative\\n',
-    'N = %s"%s]\n',
-    '  exc_mri_l [label=',
-    '"Excluded:\\n',
-    'No structural MRI\\n',
-    'n = %d"%s]\n',
-    '  mri_l [label=',
-    '"Structural MRI +\\n',
-    'Cognitive Data\\n',
-    'N = %d"%s]\n',
-    '  exc_temp [label=',
-    '"Excluded:\\n',
-    'MRI after cognition\\n',
-    'n = %d"%s]\n',
-    '  lme [label=',
-    '"LME Analysis Cohort\\n',
-    'N = %d"%s]\n'
-  ),
-    fmt(n_database), wh,
-    fmt(n_with_amyloid), wh,
-    fmt(n_no_amy), ex,
-    fmt(n_amyloid_pos), wh,
-    fmt(n_aneg), wh,
-    exc_mri_l, ex,
-    n_with_mri, wh,
-    exc_temp, ex,
-    n_lme, gr
-  )
-
-  # ---- Edges (left track) ----
-  edges <- paste0(
-    '  db -> with_amy\n',
-    '  db -> exc_amy', dash_r, '\n',
-    '  with_amy -> apos\n',
-    '  with_amy -> aneg\n',
-    '  apos -> mri_l\n',
-    '  apos -> exc_mri_l', dash_l, '\n',
-    '  mri_l -> lme\n',
-    '  mri_l -> exc_temp', dash_l, '\n'
-  )
-
-  # ---- Ranks ----
-  ranks <- paste0(
-    '  {rank=same; with_amy; exc_amy}\n',
-    '  {rank=same; apos; aneg}\n',
-    '  {rank=same; exc_mri_l; mri_l}\n',
-    '  {rank=same; exc_temp; lme}\n'
-  )
-
-  # ---- LGCM (optional) ----
-  lgcm_block <- ""
-  if (!is.null(n_lgcm)) {
-    exc_lgcm <- n_lme - n_lgcm
-    lgcm_block <- sprintf(paste0(
-      '  exc_lgcm [label=',
-      '"Excluded:\\n',
-      '< 2 visits or no EDT\\n',
-      'n = %d"%s]\n',
-      '  lgcm [label=',
-      '"LGCM Subsample\\n',
-      '(\u2265 2 visits + EDT)\\n',
-      'N = %d"%s]\n',
-      '  lme -> lgcm\n',
-      '  lme -> exc_lgcm', dash_l, '\n',
-      '  {rank=same; exc_lgcm; lgcm}\n'
-    ),
-      exc_lgcm, ex,
-      n_lgcm, gr
-    )
-  }
-
-  # ---- Right track (optional) ----
-  right_block <- ""
+  has_lgcm <- !is.null(n_lgcm)
   has_right <- !is.null(n_aneg_mri) &&
     !is.null(n_aneg_cu_mri) &&
     !is.null(n_age_comparable)
 
+  if (has_lgcm) {
+    exc_lgcm <- n_lme - n_lgcm
+  }
   if (has_right) {
     exc_mri_r <- n_aneg - n_aneg_mri
     exc_dx <- n_aneg_mri - n_aneg_cu_mri
     exc_age <- n_aneg_cu_mri - n_age_comparable
     age_lbl <- if (!is.null(ukb_age_range)) {
-      sprintf("Age %s", ukb_age_range)
+      paste0("Age ", ukb_age_range)
     } else {
       "Age-Comparable"
     }
-
-    right_block <- sprintf(paste0(
-      '  mri_r [label=',
-      '"With Structural MRI\\n',
-      'N = %d"%s]\n',
-      '  exc_mri_r [label=',
-      '"Excluded:\\n',
-      'No structural MRI\\n',
-      'n = %d"%s]\n',
-      '  cu [label=',
-      '"Cognitively Unimpaired\\n',
-      'N = %d"%s]\n',
-      '  exc_dx [label=',
-      '"Excluded:\\n',
-      'MCI or AD\\n',
-      'n = %d"%s]\n',
-      '  age_comp [label=',
-      '"%s\\n',
-      'Subsample\\n',
-      'N = %d"%s]\n',
-      '  exc_age [label=',
-      '"Excluded:\\n',
-      'Outside UKB age range\\n',
-      'n = %d"%s]\n',
-      '  aneg -> mri_r\n',
-      '  aneg -> exc_mri_r', dash_r, '\n',
-      '  mri_r -> cu\n',
-      '  mri_r -> exc_dx', dash_r, '\n',
-      '  cu -> age_comp\n',
-      '  cu -> exc_age', dash_r, '\n',
-      '  {rank=same; mri_l; mri_r; exc_mri_r}\n',
-      '  {rank=same; lme; cu; exc_dx}\n'
-    ),
-      n_aneg_mri, wh,
-      exc_mri_r, ex,
-      n_aneg_cu_mri, wh,
-      exc_dx, ex,
-      age_lbl,
-      n_age_comparable, gr,
-      exc_age, ex
-    )
-
-    # Full L-R chains for each rank row
-    # Row: exc_mri_l | mri_l | mri_r | exc_mri_r
-    # Row: exc_temp  | lme   | cu    | exc_dx
-    right_block <- paste0(
-      right_block,
-      '  exc_mri_l -> mri_l', invis, '\n',
-      '  mri_l -> mri_r', invis, '\n',
-      '  mri_r -> exc_mri_r', invis, '\n',
-      '  exc_temp -> lme', invis, '\n',
-      '  lme -> cu', invis, '\n',
-      '  cu -> exc_dx', invis, '\n'
-    )
-
-    # LGCM + age-comparable same rank
-    if (!is.null(n_lgcm)) {
-      right_block <- paste0(
-        right_block,
-        '  {rank=same; lgcm; age_comp; exc_age}\n',
-        '  exc_lgcm -> lgcm', invis, '\n',
-        '  lgcm -> age_comp', invis, '\n',
-        '  age_comp -> exc_age', invis, '\n'
-      )
-    } else {
-      right_block <- paste0(
-        right_block,
-        '  {rank=same; age_comp; exc_age}\n',
-        '  age_comp -> exc_age', invis, '\n'
-      )
-    }
   }
 
-  # ---- Assemble ----
-  dot <- paste0(
-    'digraph CONSORT {\n',
-    '  graph [rankdir=TB',
-    ', splines=polyline',
-    ', nodesep=0.5',
-    ', ranksep=0.7]\n',
-    '  node [shape=box',
-    ', style="filled"',
-    ', fontname="Helvetica"',
-    ', fontsize=11',
-    ', width=2.5',
-    ', height=0.8]\n',
-    '  edge [arrowsize=0.8]\n\n',
-    nodes, '\n',
-    edges, '\n',
-    ranks, '\n',
-    lgcm_block,
-    right_block,
-    '}\n'
+  # Helper: build a TikZ node line
+  node.fn <- function(style, id, x, y, label) {
+    paste0(
+      "  \\node[", style, "] (", id,
+      ") at (", x, ",", y, ")\n",
+      "    {", label, "};\n"
+    )
+  }
+
+  # ---- Layout geometry ----
+  # Full text width = 16.5cm (1in margins)
+  # Process boxes: 3.6cm text + ~0.2cm padding = ~3.8cm
+  # Excluded boxes: 2.6cm text + ~0.15cm padding = ~2.75cm
+  # Total: 2.75 + 0.5 + 3.8 + 0.8 + 3.8 + 0.5 + 2.75
+  #      = 14.9cm (centered in 16.5cm)
+  lx <- -2.5   # left track center
+  rx <- 2.5    # right track center
+  cx <- 0      # center (db, with_amy)
+  exl <- -3.8  # left exclusion offset from track
+  exr <- 3.8   # right exclusion offset from track
+
+  # Row y-positions
+  y_db <- 0
+  y_amy <- -2.0
+  y_split <- -4.5
+  y_mri <- -6.5
+  y_lme <- -8.5
+  y_lgcm <- -10.5
+
+  # No-hyphenation directive for nodes
+  nohyph <- paste0(
+    "execute at begin node={",
+    "\\hyphenpenalty=10000 ",
+    "\\exhyphenpenalty=10000}"
   )
 
-  return(dot)
-}
+  # ---- Preamble ----
+  lines.v <- c(
+    "\\centering",
+    "\\begin{tikzpicture}[",
+    paste0(
+      "  every node/.style=",
+      "{font=\\footnotesize},"
+    ),
+    "  process/.style={",
+    "    rectangle, draw=black!70, thick,",
+    paste0(
+      "    text width=3.6cm, inner sep=3pt,"
+    ),
+    paste0(
+      "    minimum height=0.8cm, ",
+      nohyph, ","
+    ),
+    paste0(
+      "    align=center, ",
+      "rounded corners=2pt},"
+    ),
+    "  final/.style={",
+    paste0(
+      "    rectangle, draw=black!70, ",
+      "very thick,"
+    ),
+    paste0(
+      "    text width=3.6cm, inner sep=3pt,"
+    ),
+    paste0(
+      "    minimum height=0.8cm, ",
+      nohyph, ","
+    ),
+    paste0(
+      "    align=center, ",
+      "rounded corners=2pt,"
+    ),
+    "    fill=black!5},",
+    "  excluded/.style={",
+    "    rectangle, draw=black!50, thick,",
+    paste0(
+      "    text width=2.6cm, inner sep=2pt,"
+    ),
+    paste0(
+      "    minimum height=0.5cm, ",
+      nohyph, ","
+    ),
+    paste0(
+      "    align=center, ",
+      "rounded corners=2pt,"
+    ),
+    paste0(
+      "    fill=black!8, text=black!70, ",
+      "font=\\scriptsize},"
+    ),
+    "  arrow/.style={",
+    paste0(
+      "    -{Stealth[length=5pt]}, ",
+      "thick, black!70},"
+    ),
+    "  dasharrow/.style={",
+    paste0(
+      "    -{Stealth[length=4pt]}, ",
+      "dashed, black!50}"
+    ),
+    "]"
+  )
 
-#' Render CONSORT flow diagram
-#'
-#' @param ... Arguments passed to generate_consort_dot()
-#' @return DiagrammeR grViz object
-render_consort_diagram <- function(...) {
-  if (!requireNamespace(
-    "DiagrammeR", quietly = TRUE
-  )) {
-    stop(
-      "DiagrammeR package required",
-      " for CONSORT diagram"
+  tikz <- paste0(
+    paste(lines.v, collapse = "\n"), "\n"
+  )
+
+  # ---- Row 0: Database ----
+  tikz <- paste0(tikz, node.fn(
+    "process", "db", cx, y_db,
+    paste0(
+      "ADSP-PHC Database\\\\[2pt]",
+      "\\textbf{N\\,=\\,", fmt(n_database), "}"
+    )
+  ))
+
+  # ---- Row 1: With amyloid + exclusion ----
+  tikz <- paste0(tikz, node.fn(
+    "process", "with_amy", cx, y_amy,
+    paste0(
+      "With Amyloid Data\\\\[2pt]",
+      "\\textbf{N\\,=\\,",
+      fmt(n_with_amyloid), "}"
+    )
+  ))
+  exc_amy_x <- 4.5
+  tikz <- paste0(tikz, node.fn(
+    "excluded", "exc_amy", exc_amy_x, y_amy,
+    paste0(
+      "Excluded:\\\\No amyloid data\\\\",
+      "n\\,=\\,", fmt(n_no_amy)
+    )
+  ))
+
+  # ---- Row 2: A+ / A- split ----
+  tikz <- paste0(tikz, node.fn(
+    "process", "apos", lx, y_split,
+    paste0(
+      "Amyloid-Positive\\\\",
+      "(PET >25 CL or CSF A+)\\\\[2pt]",
+      "\\textbf{N\\,=\\,",
+      fmt(n_amyloid_pos), "}"
+    )
+  ))
+  tikz <- paste0(tikz, node.fn(
+    "process", "aneg", rx, y_split,
+    paste0(
+      "Amyloid-Negative\\\\[2pt]",
+      "\\textbf{N\\,=\\,", fmt(n_aneg), "}"
+    )
+  ))
+
+  # ---- Row 3: MRI + exclusions ----
+  tikz <- paste0(tikz, node.fn(
+    "process", "mri_l", lx, y_mri,
+    paste0(
+      "Structural MRI +\\\\",
+      "Cognitive Data\\\\[2pt]",
+      "\\textbf{N\\,=\\,",
+      fmt(n_with_mri), "}"
+    )
+  ))
+  tikz <- paste0(tikz, node.fn(
+    "excluded", "exc_mri_l",
+    lx + exl, y_mri,
+    paste0(
+      "Excluded:\\\\No structural MRI\\\\",
+      "n\\,=\\,", fmt(exc_mri_l)
+    )
+  ))
+  if (has_right) {
+    tikz <- paste0(tikz, node.fn(
+      "process", "mri_r", rx, y_mri,
+      paste0(
+        "With Structural MRI\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_aneg_mri), "}"
+      )
+    ))
+    tikz <- paste0(tikz, node.fn(
+      "excluded", "exc_mri_r",
+      rx + exr, y_mri,
+      paste0(
+        "Excluded:\\\\No structural MRI\\\\",
+        "n\\,=\\,", fmt(exc_mri_r)
+      )
+    ))
+  }
+
+  # ---- Row 4: LME / CU + exclusions ----
+  tikz <- paste0(tikz, node.fn(
+    "final", "lme", lx, y_lme,
+    paste0(
+      "\\textbf{LME Analysis Cohort}",
+      "\\\\[2pt]",
+      "\\textbf{N\\,=\\,", fmt(n_lme), "}"
+    )
+  ))
+  tikz <- paste0(tikz, node.fn(
+    "excluded", "exc_temp",
+    lx + exl, y_lme,
+    paste0(
+      "Excluded:\\\\MRI after cognition\\\\",
+      "n\\,=\\,", fmt(exc_temp)
+    )
+  ))
+  if (has_right) {
+    tikz <- paste0(tikz, node.fn(
+      "process", "cu", rx, y_lme,
+      paste0(
+        "Cognitively Unimpaired\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_aneg_cu_mri), "}"
+      )
+    ))
+    tikz <- paste0(tikz, node.fn(
+      "excluded", "exc_dx",
+      rx + exr, y_lme,
+      paste0(
+        "Excluded:\\\\MCI or AD\\\\",
+        "n\\,=\\,", fmt(exc_dx)
+      )
+    ))
+  }
+
+  # ---- Row 5: LGCM / Age-comparable ----
+  if (has_lgcm) {
+    tikz <- paste0(tikz, node.fn(
+      "final", "lgcm", lx, y_lgcm,
+      paste0(
+        "\\textbf{LGCM Subsample}\\\\",
+        "($\\geq$ 2 visits + EDT)",
+        "\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_lgcm), "}"
+      )
+    ))
+    tikz <- paste0(tikz, node.fn(
+      "excluded", "exc_lgcm",
+      lx + exl, y_lgcm,
+      paste0(
+        "Excluded:\\\\",
+        "< 2 visits or no EDT\\\\",
+        "n\\,=\\,", fmt(exc_lgcm)
+      )
+    ))
+  }
+  if (has_right) {
+    tikz <- paste0(tikz, node.fn(
+      "final", "age_comp", rx, y_lgcm,
+      paste0(
+        "\\textbf{", age_lbl,
+        " Subsample}\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_age_comparable), "}"
+      )
+    ))
+    tikz <- paste0(tikz, node.fn(
+      "excluded", "exc_age",
+      rx + exr, y_lgcm,
+      paste0(
+        "Excluded:\\\\",
+        "Outside UKB age range\\\\",
+        "n\\,=\\,", fmt(exc_age)
+      )
+    ))
+  }
+
+  # ---- Arrows ----
+  # Vertical main flow
+  arrows.v <- c(
+    "  % Main vertical flow",
+    "  \\draw[arrow] (db) -- (with_amy);",
+    "  \\draw[arrow] (apos) -- (mri_l);",
+    "  \\draw[arrow] (mri_l) -- (lme);"
+  )
+
+  # T-junction: with_amy splits to apos / aneg
+  # Vertical down, then right-angle to each
+  mid_y <- (y_amy + y_split) / 2
+  arrows.v <- c(
+    arrows.v,
+    "  % T-junction: amyloid split",
+    paste0(
+      "  \\path (with_amy.south)",
+      " -- ++(0,", mid_y - y_amy, ")",
+      " coordinate (split);"
+    ),
+    paste0(
+      "  \\draw[thick, black!70]",
+      " (with_amy.south) -- (split);"
+    ),
+    "  \\draw[arrow] (split) -| (apos.north);",
+    "  \\draw[arrow] (split) -| (aneg.north);"
+  )
+
+  # Exclusion arrows (all horizontal)
+  arrows.v <- c(
+    arrows.v,
+    "  % Exclusion arrows",
+    paste0(
+      "  \\draw[dasharrow]",
+      " (with_amy.east) -- (exc_amy.west);"
+    ),
+    paste0(
+      "  \\draw[dasharrow]",
+      " (mri_l.west) -- (exc_mri_l.east);"
+    ),
+    paste0(
+      "  \\draw[dasharrow]",
+      " (lme.west) -- (exc_temp.east);"
+    )
+  )
+
+  if (has_lgcm) {
+    arrows.v <- c(
+      arrows.v,
+      "  \\draw[arrow] (lme) -- (lgcm);",
+      paste0(
+        "  \\draw[dasharrow]",
+        " (lgcm.west) -- (exc_lgcm.east);"
+      )
     )
   }
-  dot <- generate_consort_dot(...)
-  DiagrammeR::grViz(dot)
+
+  if (has_right) {
+    arrows.v <- c(
+      arrows.v,
+      "  % Right-track vertical flow",
+      "  \\draw[arrow] (aneg) -- (mri_r);",
+      "  \\draw[arrow] (mri_r) -- (cu);",
+      "  \\draw[arrow] (cu) -- (age_comp);",
+      "  % Right-track exclusions",
+      paste0(
+        "  \\draw[dasharrow]",
+        " (mri_r.east) -- (exc_mri_r.west);"
+      ),
+      paste0(
+        "  \\draw[dasharrow]",
+        " (cu.east) -- (exc_dx.west);"
+      ),
+      paste0(
+        "  \\draw[dasharrow]",
+        " (age_comp.east) -- (exc_age.west);"
+      )
+    )
+  }
+
+  tikz <- paste0(
+    tikz,
+    paste(arrows.v, collapse = "\n"), "\n",
+    "\\end{tikzpicture}\n"
+  )
+
+  return(tikz)
 }
