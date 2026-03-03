@@ -45,5 +45,6 @@ _freeze/
 .envrc
 .Renviron
 
-# Claude Code instructions (local only)
+# Local editor/tool config
 CLAUDE.md
+.claude/
