@@ -1292,7 +1292,7 @@ shown in Figure \ref{fig-consort}; baseline
 demographics by sex appear in @tbl-demographics.
 
 ```{r tbl-demographics}
-#| tbl-cap: "Baseline characteristics of the ADNI analysis cohort compared with the UK Biobank normative reference sample. Values are mean (SD) for continuous variables, % for categorical. HC = bilateral hippocampal volume; HVR = hippocampus-to-ventricle ratio; FRS = Framingham Risk Score; APOE ε4+ = carriers of at least one ε4 allele. Z-scores derived from UK Biobank GAMLSS normative models."
+#| tbl-cap: "**Baseline cohort characteristics.** ADNI analysis cohort compared with the UK Biobank normative reference sample. Values are mean (SD) for continuous variables, % for categorical. HC = bilateral hippocampal volume; HVR = hippocampus-to-ventricle ratio; FRS = Framingham Risk Score; APOE ε4+ = carriers of at least one ε4 allele. Z-scores derived from UK Biobank GAMLSS normative models."
 
 require_output(
   create_demographics_table(
@@ -1362,7 +1362,7 @@ age-free. Factor loadings appear in
 @fig-cvr-validation.
 
 ```{r tbl-mimic-loadings}
-#| tbl-cap: "MIMIC model factor loadings for the CVR latent factor. λ = unstandardized factor loading; Std. λ = standardized loading; SE = standard error."
+#| tbl-cap: "**CVR MIMIC model factor loadings.** λ = unstandardized factor loading; Std. λ = standardized loading; SE = standard error."
 
 stopifnot(!is.null(cvr_model.res))
 require_output(
@@ -1461,7 +1461,7 @@ mi_verdict_text <- if (scalar_fail) {
 `r mi_steps_text`. `r mi_verdict_text`
 
 ```{r fig-cvr-validation}
-#| fig-cap: "CVR characterization. (A) FRS distribution by sex; dashed red line marks the 30% risk ceiling. (B) FRS vs Age showing strong positive correlation driven by age-weighting in the FRS formula. (C) CVR~mimic~ vs Age showing near-zero correlation, confirming successful age adjustment; dashed line marks zero."
+#| fig-cap: "**CVR characterization.** (A) FRS distribution by sex; dashed red line marks the 30% risk ceiling. (B) FRS vs Age showing strong positive correlation driven by age-weighting in the FRS formula. (C) CVR~mimic~ vs Age showing near-zero correlation, confirming successful age adjustment; dashed line marks zero."
 #| fig-width: 6.5
 #| fig-height: 4.5
 
@@ -1512,7 +1512,7 @@ simulation validation are reported in Appendix B
 ### 3-Way Interaction (FRS vs CVR~mimic~)
 
 ```{r fig-lme-forest}
-#| fig-cap: "Forest plot comparing FRS vs CVR~mimic~ LME 3-way interaction effects (YRS × CVR × HVR z-score → Cognition) by sex and cognitive domain. Filled points indicate p < 0.05; white-filled points indicate p ≥ 0.05. Error bars show 95% CI."
+#| fig-cap: "**LME 3-way interaction forest plot.** FRS vs CVR~mimic~ effects (YRS × CVR × HVR z-score → Cognition) by sex and cognitive domain. Filled points indicate p < 0.05; white-filled points indicate p ≥ 0.05. Error bars show 95% CI."
 #| fig-width: 6.5
 #| fig-height: 2.5
 
@@ -2055,7 +2055,7 @@ parallel process model confirm this pattern (see
 @fig-coupling).
 
 ```{r fig-coupling}
-#| fig-cap: "Latent slope coupling between HVR and cognitive decline from LGCM parallel process models. Females in red, Males in blue throughout. A. Individual trajectories (random 20% subsample) with population mean curves (bold; including fixed quadratic curvature where selected by LRT). 2x2 facets: HVR, Memory, Language, Executive. B. Latent slope coupling: latent cognitive decline rate (x) vs latent HVR decline rate (y) from factor scores (positive = faster decline); solid lines show linear trends per sex; grey line shows 1:1 reference. Correlation estimates from the SEM (* p < .05, ** p < .01, *** p < .001)."
+#| fig-cap: "**HVR–cognitive latent slope coupling.** Females in red, Males in blue throughout. A. Individual trajectories (random 20% subsample) with population mean curves (bold; including fixed quadratic curvature where selected by LRT). 2×2 facets: HVR, Memory, Language, Executive. B. Latent slope coupling: latent cognitive decline rate (x) vs latent HVR decline rate (y) from factor scores (positive = faster decline); solid lines show linear trends per sex; grey line shows 1:1 reference. Correlation estimates from the SEM (* p < .05, ** p < .01, *** p < .001)."
 #| fig-width: 6.5
 #| fig-height: 7.5
 
@@ -2084,7 +2084,7 @@ atrophy, comparing FRS and CVR~mimic~ as predictors
 (see @fig-mediation).
 
 ```{r tbl-mediation-fit}
-#| tbl-cap: "LGCM mediation model fit indices, sex-stratified. -2LL = -2 log-likelihood; AIC = Akaike information criterion; BIC = Bayesian information criterion."
+#| tbl-cap: "**LGCM mediation model fit indices.** Sex-stratified. -2LL = -2 log-likelihood; AIC = Akaike information criterion; BIC = Bayesian information criterion."
 
 require_output(
   create_mediation_fit_table(
@@ -2102,7 +2102,7 @@ estimates and bootstrap CIs appear in
 
 ```{r fig-mediation}
 #| dev: png
-#| fig-cap: "LGCM mediation path diagrams. Rows: Memory, Language, Executive Function. Columns: FRS, CVR~MIMIC~. Each panel shows Male (blue) and Female (red) path estimates. Solid/bold = significant (bootstrap 95% CI excludes zero); faded = non-significant. Star (\\*) indicates CI excludes zero. 95% bootstrap CIs shown for all paths."
+#| fig-cap: "**LGCM mediation path diagrams.** Rows: Memory, Language, Executive Function. Columns: FRS, CVR~MIMIC~. Each panel shows Male (blue) and Female (red) path estimates. Solid/bold = significant (bootstrap 95% CI excludes zero); faded = non-significant. Star (\\*) indicates CI excludes zero. 95% bootstrap CIs shown for all paths."
 #| fig-width: 6.5
 #| fig-height: 8.0
 #| fig-dpi: 300
@@ -2725,7 +2725,7 @@ increasingly negative offset in older bins,
 consistent with the age mismatch.
 
 ```{r fig-normative-validation}
-#| fig-cap: "Normative transfer validation. (A) Age distributions: UK Biobank normative sample (yellow) vs ADNI comparable subsample (cyan); dashed lines indicate sample means. (B) Forest plot of HVR (purple) and HC (green) z-scores (mean +/- 95% CI) by age bin; reference line at z = 0 indicates perfect calibration; open circles = age bins, filled circles = overall. (C) Z-score distributions for HVR (left) and HC (right) compared to the expected N(0,1) (yellow)."
+#| fig-cap: "**Normative transfer validation.** (A) Age distributions: UK Biobank normative sample (yellow) vs ADNI comparable subsample (cyan); dashed lines indicate sample means. (B) Forest plot of HVR (purple) and HC (green) z-scores (mean ± 95% CI) by age bin; reference line at z = 0 indicates perfect calibration; open circles = age bins, filled circles = overall. (C) Z-score distributions for HVR (left) and HC (right) compared to the expected N(0,1) (yellow)."
 #| fig-width: 6.5
 #| fig-height: 6
 
@@ -2785,7 +2785,7 @@ tested across sex in four steps (configural, metric,
 scalar, strict; @tbl-mi).
 
 ```{r tbl-mi}
-#| tbl-cap: "Measurement invariance of the CVR MIMIC model across sex. Configural = same structure; Metric = equal loadings; Scalar = equal intercepts; Strict = equal residuals. ΔCFI < 0.01 and ΔRMSEA < 0.015 indicate acceptable invariance."
+#| tbl-cap: "**CVR MIMIC measurement invariance.** Configural = same structure; Metric = equal loadings; Scalar = equal intercepts; Strict = equal residuals. ΔCFI < 0.01 and ΔRMSEA < 0.015 indicate acceptable invariance."
 
 stopifnot(!is.null(cvr_mi.res))
 require_output(
@@ -2805,7 +2805,7 @@ EDT across all sex-domain models (see
 @tbl-linearity).
 
 ```{r tbl-linearity}
-#| tbl-cap: "EDT linearity validation: LME models testing linear vs quadratic EDT specification. LRT tests whether adding a quadratic EDT term significantly improves fit. ΔAIC = AIC(linear) - AIC(quadratic); positive values favor quadratic. EDT = Estimated Disease Time."
+#| tbl-cap: "**EDT linearity validation.** LME models testing linear vs quadratic EDT specification. LRT tests whether adding a quadratic EDT term significantly improves fit. ΔAIC = AIC(linear) − AIC(quadratic); positive values favor quadratic. EDT = Estimated Disease Time."
 
 require_output(
   create_linearity_table(
@@ -2931,7 +2931,7 @@ the FRS model (@tbl-lme-covariates) and the
 CVR~mimic~ model (@tbl-cvr-lme-covariates).
 
 ```{r tbl-lme-covariates}
-#| tbl-cap: "Covariate effects from the FRS LME models, sex-stratified. Bold indicates p < 0.05."
+#| tbl-cap: "**FRS LME covariate effects.** Sex-stratified. Bold indicates p < 0.05."
 
 require_output(
   create_lme_covariate_table(
@@ -2943,7 +2943,7 @@ require_output(
 ```
 
 ```{r tbl-cvr-lme-covariates}
-#| tbl-cap: "Covariate effects from the CVR~mimic~ LME models, sex-stratified. Bold indicates p < 0.05."
+#| tbl-cap: "**CVR~mimic~ LME covariate effects.** Sex-stratified. Bold indicates p < 0.05."
 
 require_output(
   create_lme_covariate_table(
@@ -2992,7 +2992,7 @@ appear in @tbl-hc-comparison, with covariate effects
 in @tbl-hc-covariates and @tbl-hc-covariates-cvr.
 
 ```{r tbl-hc-comparison}
-#| tbl-cap: "Sensitivity analysis: LME 3-way interaction effects (YRS × CVR × HC z-score) for total hippocampal volume. FRS and CVR~mimic~ compared side-by-side. Bold indicates p < 0.05."
+#| tbl-cap: "**HC z-score sensitivity analysis.** LME 3-way interaction effects (YRS × CVR × HC z-score) for total hippocampal volume. FRS and CVR~mimic~ compared side-by-side. Bold indicates p < 0.05."
 
 require_output(
   create_lme_comparison_table(
@@ -3004,7 +3004,7 @@ require_output(
 ```
 
 ```{r tbl-hc-covariates}
-#| tbl-cap: "Covariate effects from the FRS HC z-score LME models, sex-stratified. Bold indicates p < 0.05."
+#| tbl-cap: "**FRS HC z-score covariate effects.** Sex-stratified. Bold indicates p < 0.05."
 
 require_output(
   create_lme_covariate_table(
@@ -3016,7 +3016,7 @@ require_output(
 ```
 
 ```{r tbl-hc-covariates-cvr}
-#| tbl-cap: "Covariate effects from the CVR~mimic~ HC z-score LME models, sex-stratified. Bold indicates p < 0.05."
+#| tbl-cap: "**CVR~mimic~ HC z-score covariate effects.** Sex-stratified. Bold indicates p < 0.05."
 
 require_output(
   create_lme_covariate_table(
@@ -3126,7 +3126,7 @@ completers (≥4 visits) and dropouts (<4 visits);
 results appear in @tbl-attrition-baseline.
 
 ```{r tbl-attrition-baseline}
-#| tbl-cap: "Attrition analysis: baseline characteristics of completers (≥4 visits) vs dropouts (<4 visits). Bold rows indicate p < 0.05. Completers = participants with sufficient visits for quadratic trend estimation."
+#| tbl-cap: "**Attrition analysis.** Baseline characteristics of completers (≥4 visits) vs dropouts (<4 visits). Bold rows indicate p < 0.05. Completers = participants with sufficient visits for quadratic trend estimation."
 
 require_output(
   create_attrition_table(attrition_analysis),
