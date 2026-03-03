@@ -330,18 +330,17 @@ models tested CVR effects on hippocampal-cognitive
 coupling.
 
 **RESULTS:**
-FRS predicted hippocampal atrophy
-(CVR → HVR slope significant in
-`r abs_stats$frs_a_sig`/6 LGCM mediation
-models); CVR~mimic~ did not
-(`r abs_stats$cvr_a_sig`/6). HVR-cognitive
-coupling was significant in
-`r abs_stats$frs_b_sig`/6 FRS and
-`r abs_stats$cvr_b_sig`/6 CVR~mimic~ models,
-persisting regardless of CVR measure. FRS
-showed significant indirect effects in
-`r abs_stats$frs_ind_sig`/6 models versus
-`r abs_stats$cvr_ind_sig`/6 for CVR~mimic~.
+FRS predicted hippocampal atrophy (CVR → HVR slope
+significant in
+`r n_of_total.fn(abs_stats$frs_a_sig, 6L)` LGCM
+mediation models); CVR~mimic~ did not (none
+significant). HVR-cognitive coupling was significant
+in `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` models
+for both FRS and CVR~mimic~, persisting regardless
+of CVR measure. FRS showed significant indirect
+effects in
+`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models;
+CVR~mimic~ showed none.
 
 **DISCUSSION:**
 FRS "effects" on hippocampal-cognitive decline
@@ -1626,49 +1625,33 @@ lme_female_detail <- paste0(
   fmt_doms(frs_sig_female)
 )
 
-# Per-sex formatted detail
-lme_sex_text.lst <- list()
-for (sx in c("Male", "Female")) {
-  frs_items <- vapply(
-    c("MEM", "LAN", "EXF"), function(d) {
-      r <- get_lme_result(
-        frs_hvr, sx, d, "FRS"
-      )
-      if (!is.null(r)) {
-        sprintf(
-          "%s β = %.4f, %s",
-          DOMAIN_LABELS[d], r$beta,
-          fmt_p_fdr(r$p, r$p_fdr)
-        )
-      } else ""
-    }, character(1)
-  )
-  cvr_items <- vapply(
-    c("MEM", "LAN", "EXF"), function(d) {
-      r <- get_lme_result(
-        cvr_hvr, sx, d, "CVR_mimic"
-      )
-      if (!is.null(r)) {
-        sprintf(
-          "%s β = %.4f, %s",
-          DOMAIN_LABELS[d], r$beta,
-          fmt_p_fdr(r$p, r$p_fdr)
-        )
-      } else ""
-    }, character(1)
-  )
-  lme_sex_text.lst[[sx]] <- sprintf(
-    paste0(
-      "**%ss.** FRS × HVR × YRS: %s.",
-      " CVR~mimic~ × HVR × YRS: %s."
-    ),
-    sx,
-    paste(frs_items[frs_items != ""],
-      collapse = "; "),
-    paste(cvr_items[cvr_items != ""],
-      collapse = "; ")
-  )
+# Per-sex, per-domain results for inline use
+lme.lst <- list()
+for (sx in c("m", "f")) {
+  sx_full <- ifelse(sx == "m", "Male", "Female")
+  cvr_ps <- c()
+  for (d in c("MEM", "LAN", "EXF")) {
+    rf <- get_lme_result(
+      frs_hvr, sx_full, d, "FRS"
+    )
+    rc <- get_lme_result(
+      cvr_hvr, sx_full, d, "CVR_mimic"
+    )
+    pfx <- paste0(sx, "_", tolower(d))
+    lme.lst[[paste0(pfx, "_frs_b")]] <-
+      sprintf("%.4f", rf$beta)
+    lme.lst[[paste0(pfx, "_frs_p")]] <-
+      fmt_p_fdr(rf$p, rf$p_fdr)
+    lme.lst[[paste0(pfx, "_cvr_b")]] <-
+      sprintf("%.4f", rc$beta)
+    lme.lst[[paste0(pfx, "_cvr_p")]] <-
+      fmt_p_fdr(rc$p, rc$p_fdr)
+    cvr_ps <- c(cvr_ps, rc$p)
+  }
+  lme.lst[[paste0(sx, "_cvr_min_p")]] <-
+    sprintf("%.2f", min(cvr_ps))
 }
+list2env(lme.lst, envir = environment())
 
 # Worked example
 frs_sig <- frs_all[sapply(
@@ -1707,18 +1690,32 @@ if (length(frs_sig) > 0) {
 interactions (YRS × CVR × HVR) in males
 (`r lme_male_detail`) and females
 (`r lme_female_detail`) —
-`r frs_n_sig`/6 total
-(`r fdr_summary.lst$frs_n_fdr`/6 surviving FDR).
-CVR~mimic~ showed `r cvr_n_sig`/6 significant
+`r n_of_total.fn(frs_n_sig, 6L)` models, all
+surviving FDR correction. CVR~mimic~ showed
+`r n_of_total.fn(cvr_n_sig, 6L)` significant
 interactions
-(`r fdr_summary.lst$cvr_n_fdr`/6 surviving FDR),
-consistent with FRS effects being primarily driven
-by age-weighting rather than true cardiovascular
-risk (see @fig-lme-forest).
+(`r n_of_total.fn(fdr_summary.lst$cvr_n_fdr, 6L)`
+surviving FDR), consistent with FRS effects being
+primarily driven by age-weighting rather than true
+cardiovascular risk (see @fig-lme-forest).
 
-`r lme_sex_text.lst$Male`
+**Males.** FRS × HVR × YRS was significant for
+Memory (β = `r m_mem_frs_b`, `r m_mem_frs_p`),
+Language (β = `r m_lan_frs_b`, `r m_lan_frs_p`),
+and Executive Function
+(β = `r m_exf_frs_b`, `r m_exf_frs_p`).
+CVR~mimic~ showed no significant interactions
+(all *p* > `r m_cvr_min_p`).
 
-`r lme_sex_text.lst$Female`
+**Females.** FRS effects were similarly significant
+across all three domains but larger in magnitude:
+Memory (β = `r f_mem_frs_b`, `r f_mem_frs_p`),
+Language (β = `r f_lan_frs_b`, `r f_lan_frs_p`),
+and Executive Function
+(β = `r f_exf_frs_b`, `r f_exf_frs_p`).
+CVR~mimic~ reached significance only for Executive
+Function
+(β = `r f_exf_cvr_b`, `r f_exf_cvr_p`).
 
 FRS β values were on average
 `r sprintf("%.1f", beta_ratio)`-fold larger in
@@ -1755,14 +1752,18 @@ fdr_note_text <- if (
 } else {
   sprintf(
     paste0(
-      "After FDR correction, %d/%d FRS and",
-      " %d/%d CVR~mimic~ uncorrected effects",
+      "After FDR correction, %s FRS and",
+      " %s CVR~mimic~ uncorrected effects",
       " remained significant."
     ),
-    fdr_summary.lst$frs_n_fdr,
-    fdr_summary.lst$frs_n_sig,
-    fdr_summary.lst$cvr_n_fdr,
-    fdr_summary.lst$cvr_n_sig
+    n_of_total.fn(
+      fdr_summary.lst$frs_n_fdr,
+      fdr_summary.lst$frs_n_sig
+    ),
+    n_of_total.fn(
+      fdr_summary.lst$cvr_n_fdr,
+      fdr_summary.lst$cvr_n_sig
+    )
   )
 }
 ```
@@ -1771,52 +1772,53 @@ fdr_note_text <- if (
 
 ### Formal Coefficient Comparison (LME)
 
-Clustered bootstrap Δβ with bias-corrected 95% CI
-compared FRS vs CVR~mimic~ 3-way interaction
-coefficients.
+To formally compare FRS and CVR~mimic~ 3-way
+interaction coefficients, we computed clustered
+bootstrap Δβ with bias-corrected 95% CIs.
 
 ```{r lme-comparison-boot}
 #| include: false
 
 lme_cmp <- lme_hvr_z.res$comparison
-lme_boot_text.lst <- list()
-if (!is.null(lme_cmp) &&
-    length(lme_cmp) > 0) {
-  for (sx in c("Male", "Female")) {
-    items <- vapply(
-      c("MEM", "LAN", "EXF"), function(d) {
-        k <- paste(sx, d, sep = "_")
-        r <- lme_cmp[[k]]
-        if (is.null(r) ||
-            is.na(r$ci_lower)) return("")
-        sig <- if (isTRUE(r$significant)) {
-          "\\*"
-        } else ""
-        sprintf(
-          "%s: Δβ = %.4f [%.4f, %.4f]%s",
-          DOMAIN_LABELS[d], r$delta_beta,
-          r$ci_lower, r$ci_upper, sig
-        )
-      }, character(1)
-    )
-    lme_boot_text.lst[[sx]] <- sprintf(
-      "**%ss.** %s", sx,
-      paste(items[items != ""],
-        collapse = "; ")
-    )
-  }
-} else {
-  lme_boot_text.lst$Male <- paste0(
-    "Bootstrap comparison pending;",
-    " re-run script 08 to generate."
+stopifnot(
+  !is.null(lme_cmp), length(lme_cmp) > 0
+)
+lme_db.lst <- list()
+for (sx in c("m", "f")) {
+  sx_full <- ifelse(
+    sx == "m", "Male", "Female"
   )
-  lme_boot_text.lst$Female <- ""
+  for (d in c("MEM", "LAN", "EXF")) {
+    k <- paste(sx_full, d, sep = "_")
+    r <- lme_cmp[[k]]
+    pfx <- paste0(sx, "_", tolower(d))
+    lme_db.lst[[paste0(pfx, "_db")]] <-
+      sprintf("%.4f", r$delta_beta)
+    lme_db.lst[[paste0(pfx, "_ci")]] <-
+      sprintf(
+        "[%.4f, %.4f]",
+        r$ci_lower, r$ci_upper
+      )
+  }
 }
+list2env(lme_db.lst, envir = environment())
 ```
 
-`r lme_boot_text.lst$Male`
+**Males.** Δβ values were negative across all three
+domains, reaching significance for Language
+(Δβ = `r m_lan_db`, 95% CI `r m_lan_ci`) but not
+Memory (Δβ = `r m_mem_db`, 95% CI `r m_mem_ci`) or
+Executive Function
+(Δβ = `r m_exf_db`, 95% CI `r m_exf_ci`).
 
-`r lme_boot_text.lst$Female`
+**Females.** Δβ values were likewise negative.
+Memory reached significance
+(Δβ = `r f_mem_db`, 95% CI `r f_mem_ci`), whereas
+Language
+(Δβ = `r f_lan_db`, 95% CI `r f_lan_ci`) and
+Executive Function
+(Δβ = `r f_exf_db`, 95% CI `r f_exf_ci`)
+did not.
 
 ## LGCM Results
 
@@ -1891,54 +1893,67 @@ was assessed via −2LL, AIC, BIC, and nested LRTs.
 
 ### Formal a-Path Comparison (LGCM)
 
-Paired bootstrap Δ~a~ (shared-seed resampling)
-compared FRS vs CVR~mimic~ a-path coefficients.
+Paired bootstrap with shared-seed resampling was
+used to compare FRS and CVR~mimic~ a-path
+coefficients.
 
 ```{r lgcm-comparison-boot}
 #| include: false
 
 lgcm_cmp <- lgcm_results$comparisons
-lgcm_boot_text.lst <- list()
-if (!is.null(lgcm_cmp) &&
-    length(lgcm_cmp) > 0) {
-  for (sx in c("Male", "Female")) {
-    items <- vapply(
-      c("MEM", "LAN", "EXF"), function(d) {
-        k <- paste(sx, d, sep = "_")
-        r <- lgcm_cmp[[k]]
-        if (is.null(r) ||
-            is.na(r$delta_a_ci_lower)) {
-          return("")
-        }
-        sig <- if (
-          isTRUE(r$delta_a_significant)
-        ) "\\*" else ""
-        sprintf(
-          "%s: Δa = %.5f [%.5f, %.5f]%s",
-          DOMAIN_LABELS[d], r$delta_a_est,
-          r$delta_a_ci_lower,
-          r$delta_a_ci_upper, sig
-        )
-      }, character(1)
-    )
-    lgcm_boot_text.lst[[sx]] <- sprintf(
-      "**%ss.** %s", sx,
-      paste(items[items != ""],
-        collapse = "; ")
-    )
+stopifnot(
+  !is.null(lgcm_cmp), length(lgcm_cmp) > 0
+)
+lgcm_da.lst <- list()
+for (sx in c("m", "f")) {
+  sx_full <- ifelse(
+    sx == "m", "Male", "Female"
+  )
+  for (d in c("MEM", "LAN", "EXF")) {
+    k <- paste(sx_full, d, sep = "_")
+    r <- lgcm_cmp[[k]]
+    pfx <- paste0(sx, "_", tolower(d))
+    lgcm_da.lst[[paste0(pfx, "_da")]] <-
+      sprintf("%.5f", r$delta_a_est)
+    lgcm_da.lst[[paste0(pfx, "_da_ci")]] <-
+      sprintf(
+        "[%.5f, %.5f]",
+        r$delta_a_ci_lower,
+        r$delta_a_ci_upper
+      )
+    lgcm_da.lst[[paste0(pfx, "_da_sig")]] <-
+      isTRUE(r$delta_a_significant)
   }
 }
+list2env(lgcm_da.lst, envir = environment())
+n_da_sig <- sum(vapply(
+  names(lgcm_cmp), function(k) {
+    isTRUE(lgcm_cmp[[k]]$delta_a_significant)
+  }, logical(1)
+))
 ```
 
-`r lgcm_boot_text.lst$Male`
+**Males.** Δ~a~ was significantly positive across
+all three domains — Memory
+(Δ~a~ = `r m_mem_da`, 95% CI `r m_mem_da_ci`),
+Language
+(Δ~a~ = `r m_lan_da`, 95% CI `r m_lan_da_ci`),
+and Executive Function
+(Δ~a~ = `r m_exf_da`, 95% CI `r m_exf_da_ci`) —
+confirming a consistent FRS advantage.
 
-`r lgcm_boot_text.lst$Female`
-
+**Females.** Δ~a~ was significant for Language
+(Δ~a~ = `r f_lan_da`, 95% CI `r f_lan_da_ci`)
+and Executive Function
+(Δ~a~ = `r f_exf_da`, 95% CI `r f_exf_da_ci`),
+but the Memory CI narrowly included zero
+(Δ~a~ = `r f_mem_da`, 95% CI `r f_mem_da_ci`).
 
 Paired bootstrap confirmed the a-path dissociation
-across all 6 sex × domain models: Δ~a~
-(FRS − CVR~mimic~) was significantly greater than
-zero in every case, with 95% BC CIs excluding zero.
+in `r n_of_total.fn(n_da_sig, 6L)` sex × domain
+models: Δ~a~
+(FRS − CVR~mimic~) was positive in every case, with
+95% BC CIs excluding zero in all but Female Memory.
 Male Δ~a~ estimates were consistent across domains
 (mean = `r sprintf("%.4f", m_da_mean)`), indicating
 a stable FRS advantage regardless of cognitive
@@ -1947,11 +1962,11 @@ outcome. Female Δ~a~ estimates were approximately
 (mean = `r sprintf("%.4f", f_da_mean)`), suggesting
 the FRS-CVR~mimic~ dissociation is more pronounced
 in females. These formal tests upgrade the
-qualitative dissociation (FRS significant in 6/6,
-CVR~mimic~ in 0/6) to a quantitative difference:
-FRS is a significantly stronger predictor of
-hippocampal atrophy rate than CVR~mimic~ within the
-mediation framework.
+qualitative dissociation (FRS a-path significant in
+all six models, CVR~mimic~ in none) to a
+quantitative difference: FRS is a significantly
+stronger predictor of hippocampal atrophy rate than
+CVR~mimic~ within the mediation framework.
 
 ### Slope Coupling
 
@@ -1959,10 +1974,11 @@ LGCM parallel process models tested whether HVR and
 cognitive linear decline rates co-vary (latent slope
 coupling, hvr~s~ ↔ cog~s~) along the EDT disease
 timeline. Positive linear slope correlations were
-observed across all models in males (3/3
+observed across all models in males (all three
 significant) and in females for Executive Function
-(1/3 significant); individuals with faster HVR
-decline showed steeper cognitive decline. This
+(one of three significant); individuals with
+faster HVR decline showed steeper cognitive
+decline. This
 coupling supports the b-path assumption in the
 mediation framework (CVR → HVR slope → cognitive
 slope): HVR decline predicts cognitive decline,
@@ -2161,120 +2177,131 @@ for (sx in c("Male", "Female")) {
   }
 }
 ind_detail <- if (length(ind_sig_labels) > 0) {
-  sprintf(
-    " (%s)", paste(
-      ind_sig_labels, collapse = "; "
-    )
+  paste0(
+    " — ",
+    paste(ind_sig_labels, collapse = ", ")
   )
 } else ""
 
-# Per-sex detail
-med_sex_text.lst <- list()
-for (sx in c("Male", "Female")) {
-  med <- if (sx == "Male") {
+# Per-sex mediation scalars for inline use
+med_inline.lst <- list()
+for (sx in c("m", "f")) {
+  sx_full <- ifelse(
+    sx == "m", "Male", "Female"
+  )
+  med <- if (sx == "m") {
     lgcm_med_male
   } else lgcm_med_female
-  frs_a_betas <- c()
-  cvr_a_betas <- c()
-  frs_b_betas <- c()
-  frs_b_nsig <- 0L
+  frs_a.v <- c()
+  frs_b.v <- c()
   frs_a_nsig <- 0L
   cvr_a_nsig <- 0L
-  frs_ind_sig <- 0L
-  cvr_ind_sig <- 0L
+  frs_b_nsig <- 0L
+  frs_ind_nsig <- 0L
+  cvr_ind_nsig <- 0L
+  cvr_max_abs_a <- 0
   for (d in domains) {
     rf <- med$results[[paste0(d, "_FRS")]]
     rc <- med$results[[paste0(d, "_CVR")]]
     if (!is.null(rf$a)) {
-      frs_a_betas <- c(
-        frs_a_betas, rf$a$est
-      )
-      if (ci_sig_check.fn(rf$a)) {
+      frs_a.v <- c(frs_a.v, rf$a$est)
+      if (ci_sig_check.fn(rf$a))
         frs_a_nsig <- frs_a_nsig + 1L
-      }
     }
     if (!is.null(rc$a)) {
-      cvr_a_betas <- c(
-        cvr_a_betas, abs(rc$a$est)
+      cvr_max_abs_a <- max(
+        cvr_max_abs_a, abs(rc$a$est)
       )
-      if (ci_sig_check.fn(rc$a)) {
+      if (ci_sig_check.fn(rc$a))
         cvr_a_nsig <- cvr_a_nsig + 1L
-      }
     }
     if (!is.null(rf$b)) {
-      frs_b_betas <- c(
-        frs_b_betas, rf$b$est
-      )
-      if (ci_sig_check.fn(rf$b)) {
+      frs_b.v <- c(frs_b.v, rf$b$est)
+      if (ci_sig_check.fn(rf$b))
         frs_b_nsig <- frs_b_nsig + 1L
-      }
     }
     if (!is.null(rf$indirect) &&
-        ci_sig_check.fn(rf$indirect)) {
-      frs_ind_sig <- frs_ind_sig + 1L
-    }
+        ci_sig_check.fn(rf$indirect))
+      frs_ind_nsig <- frs_ind_nsig + 1L
     if (!is.null(rc$indirect) &&
-        ci_sig_check.fn(rc$indirect)) {
-      cvr_ind_sig <- cvr_ind_sig + 1L
-    }
+        ci_sig_check.fn(rc$indirect))
+      cvr_ind_nsig <- cvr_ind_nsig + 1L
   }
-  med_sex_text.lst[[sx]] <- sprintf(
-    paste0(
-      "**%ss.** FRS a-path: β range",
-      " %.4f to %.4f (%d/3 bootstrap",
-      " 95%% CIs excluding zero);",
-      " CVR~mimic~ a-paths: %d/3",
-      " significant (all |β| <",
-      " %.2f). b-path: β range %.3f",
-      " to %.3f (%d/3 bootstrap 95%%",
-      " CIs excluding zero). FRS indirect",
-      " effects significant in %d/3",
-      " domains (bootstrap 95%% CI",
-      " excluding zero); CVR~mimic~",
-      " in %d/3. Direct (c\u2019) and",
-      " total effects in @fig-mediation."
-    ),
-    sx,
-    min(frs_a_betas), max(frs_a_betas),
-    frs_a_nsig, cvr_a_nsig,
-    max(cvr_a_betas) + 0.005,
-    min(frs_b_betas), max(frs_b_betas),
-    frs_b_nsig,
-    frs_ind_sig, cvr_ind_sig
-  )
+  pfx <- sx
+  med_inline.lst[[paste0(pfx, "_frs_a_range")]] <-
+    sprintf("%.4f to %.4f",
+      min(frs_a.v), max(frs_a.v))
+  med_inline.lst[[paste0(pfx, "_frs_a_nsig")]] <-
+    n_of_total.fn(frs_a_nsig, 3L)
+  med_inline.lst[[paste0(pfx, "_cvr_a_nsig")]] <-
+    n_of_total.fn(cvr_a_nsig, 3L)
+  med_inline.lst[[paste0(pfx, "_cvr_max_a")]] <-
+    sprintf("%.2f", cvr_max_abs_a + 0.005)
+  med_inline.lst[[paste0(pfx, "_frs_b_range")]] <-
+    sprintf("%.3f to %.3f",
+      min(frs_b.v), max(frs_b.v))
+  med_inline.lst[[paste0(pfx, "_frs_b_nsig")]] <-
+    n_of_total.fn(frs_b_nsig, 3L)
+  med_inline.lst[[paste0(pfx, "_frs_ind")]] <-
+    n_of_total.fn(frs_ind_nsig, 3L)
+  med_inline.lst[[paste0(pfx, "_cvr_ind")]] <-
+    n_of_total.fn(cvr_ind_nsig, 3L)
 }
+list2env(
+  med_inline.lst, envir = environment()
+)
 ```
 
 **FRS vs CVR~mimic~.** FRS produced significant
 indirect effects (CVR → HVR slope → Cognitive slope)
-with a significant a-path in `r frs_a_sig`/6 models
+with a significant a-path in
+`r n_of_total.fn(frs_a_sig, 6L)` models
 (bootstrap 95% CIs excluding zero); CVR~mimic~
-a-path was null in `r cvr_a_null`/6 models,
+a-path was null in
+`r n_of_total.fn(cvr_a_null, 6L)` models,
 indicating FRS "effects" on hippocampal decline are
 largely consistent with age-weighting.
 
 **Path-level summary across all 12 models (2 sexes ×
 3 domains × 2 predictors).** The *a-path*
 (CVR → HVR slope) was significant for FRS in
-`r frs_a_sig`/6 models and null for CVR~mimic~ in
-all 6. The *b-path* (HVR slope → cognitive slope)
-was significant for
-`r abs_stats$frs_b_sig`/6 FRS and
-`r abs_stats$cvr_b_sig`/6 CVR~mimic~ models
-regardless of predictor. The *indirect effect* was
-significant in
-`r all_ind_sig`/`r all_ind_total``r ind_detail`.
+`r n_of_total.fn(frs_a_sig, 6L)` models and null
+for CVR~mimic~ in all six. The *b-path*
+(HVR slope → cognitive slope) was significant for
+`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS and
+`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
+CVR~mimic~ models regardless of predictor. The
+*indirect effect* was significant in
+`r n_of_total.fn(all_ind_sig, all_ind_total)`
+models`r ind_detail`.
 
 #### Males
 
-`r med_sex_text.lst$Male`
+FRS predicted hippocampal atrophy across
+`r m_frs_a_nsig` domains (a-path β range
+`r m_frs_a_range`, all bootstrap 95% CIs excluding
+zero); CVR~mimic~ did not
+(all |β| < `r m_cvr_max_a`). Hippocampal decline
+in turn predicted cognitive decline (b-path β range
+`r m_frs_b_range`, `r m_frs_b_nsig` CIs excluding
+zero). The FRS indirect effect was significant in
+`r m_frs_ind` domains; no CVR~mimic~ indirect
+effects reached significance.
 
 #### Females
 
-`r med_sex_text.lst$Female`
+The same a-path dissociation held: FRS was
+significant across `r f_frs_a_nsig` domains
+(β range `r f_frs_a_range`), CVR~mimic~ was not
+(all |β| < `r f_cvr_max_a`). The b-path estimates
+were comparable to males (β range
+`r f_frs_b_range`, `r f_frs_b_nsig` CIs excluding
+zero). FRS indirect effects reached significance in
+`r f_frs_ind` domains; CVR~mimic~ reached
+significance in `r f_cvr_ind`.
 
-Complete path estimates and bootstrap CIs appear in
-@fig-mediation.
+Complete path estimates, bootstrap CIs, and direct
+(c') effects appear in @fig-mediation.
 
 
 Sensitivity analyses — including HC z-score
@@ -2289,28 +2316,30 @@ LGCM validation — are reported in Appendix C.
 The apparent impact of cardiovascular risk on
 hippocampal-cognitive trajectories is a function of
 the risk measure employed. We observed a stark
-a-path dissociation: FRS →
-HVR slope was significant in
-`r abs_stats$frs_a_sig`/6 models (all bootstrap
-95% CIs excluding zero; @fig-mediation), whereas
-CVR~mimic~ a-path was null in all 6 (0/6
-significant). The b-path (HVR slope → Cognitive
-slope) was consistently significant regardless of
-predictor
-(`r abs_stats$frs_b_sig`/6 FRS,
-`r abs_stats$cvr_b_sig`/6 CVR~mimic~; bootstrap
-CIs excluding zero), confirming consistent
-hippocampal-cognitive coupling
+a-path dissociation: FRS → HVR slope was significant
+in `r n_of_total.fn(abs_stats$frs_a_sig, 6L)` models
+(all bootstrap 95% CIs excluding zero;
+@fig-mediation), whereas the CVR~mimic~ a-path was
+null in all six. The b-path
+(HVR slope → Cognitive slope) was consistently
+significant regardless of predictor
+(`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS,
+`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
+CVR~mimic~; bootstrap CIs excluding zero),
+confirming consistent hippocampal-cognitive coupling
 [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
 FRS indirect effects (a × b) were significant in
-`r abs_stats$frs_ind_sig`/6 models (bootstrap CIs
-excluding zero), compared with
-`r abs_stats$cvr_ind_sig`/6 for CVR~mimic~. The
-LME 3-way interaction (FRS × HVR × YRS) was
-significant in `r abs_lme$frs_m_sig`/3 male and
-`r abs_lme$frs_f_sig`/3 female domains; CVR~mimic~
-was significant in `r abs_lme$cvr_m_sig`/3 male and
-`r abs_lme$cvr_f_sig`/3 female domains
+`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models
+(bootstrap CIs excluding zero), compared with
+`r n_of_total.fn(abs_stats$cvr_ind_sig, 6L)` for
+CVR~mimic~. The LME 3-way interaction
+(FRS × HVR × YRS) was significant in
+`r n_of_total.fn(abs_lme$frs_m_sig, 3L)` male and
+`r n_of_total.fn(abs_lme$frs_f_sig, 3L)` female
+domains; CVR~mimic~ was significant in
+`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male and
+`r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
+domains
 `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`.
 FDR correction did not change FRS conclusions;
 CVR~mimic~ dropped from
@@ -2379,14 +2408,16 @@ does CVR affect cognition through hippocampal
 decline?
 
 A different pattern emerged for CVR~mimic~: the
-LGCM a-path was null across all 6 models, suggesting
-age-adjusted CVR does not accelerate hippocampal
-atrophy. Yet
-the LME 3-way interaction is significant in
-`r abs_lme$cvr_f_sig`/3 female domains
+LGCM a-path was null across all six models,
+suggesting age-adjusted CVR does not accelerate
+hippocampal atrophy. Yet the LME 3-way interaction
+was significant in
+`r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
+domains
 `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
-only, with `r abs_lme$cvr_m_sig`/3 significant in
-males. This dissociation represents moderation
+only, with
+`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` significant
+in males. This dissociation represents moderation
 without mediation through hippocampal volume:
 CVR~mimic~ does not accelerate hippocampal atrophy
 (a-path null), yet it may modify how hippocampal
@@ -2409,9 +2440,11 @@ coupling studies
 
 ## Sex Differences
 
-Males showed `r abs_lme$cvr_m_sig`/3 significant
-CVR~mimic~ LME effects, while females showed
-`r abs_lme$cvr_f_sig`/3
+CVR~mimic~ LME effects reached significance in
+`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male
+domains and
+`r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
+domains
 `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`.
 The female CVR~mimic~ Executive finding is notable as
 the only CVR~mimic~ LME effect observed in either sex
@@ -2435,7 +2468,8 @@ The HVR slope → Cognitive slope relationship
 (b-path) was consistent regardless of whether FRS or
 CVR~mimic~ was the predictor (@fig-mediation).
 Significant b-path estimates appeared in Memory and
-Executive Function for both predictors (4/6 each;
+Executive Function for both predictors
+(`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` each;
 Language non-significant), supporting HVR decline as
 a reliable marker of cognitive decline
 [@kramer_longitudinal_2007; @oschwald_brain_2020]
@@ -2446,13 +2480,15 @@ volume [@schoemaker_hippocampal-ventricle_2019;
 @bruno_hippocampal_2016].
 
 Parallel process coupling showed a complementary
-pattern: significant in all male models (3/3) but
-only Executive Function in females (1/3). This sex
-asymmetry likely reflects lower statistical power in
-the smaller female subsample rather than a biological
-absence of coupling, given that mediation b-paths
-(which condition on a predictor) were significant in
-4/6 models for both sexes. Language b-paths were
+pattern: significant in all three male models but
+only Executive Function in females (one of three).
+This sex asymmetry likely reflects lower statistical
+power in the smaller female subsample rather than a
+biological absence of coupling, given that mediation
+b-paths (which condition on a predictor) were
+significant in
+`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` models
+for both sexes. Language b-paths were
 non-significant across both analysis frameworks
 (coupling and mediation), consistent with language
 being a later-declining domain with less variance to
@@ -2504,7 +2540,7 @@ provides a more sensitive neuroimaging endpoint than
 hippocampal volume alone, and its consistent
 cognitive coupling supports use as a surrogate
 outcome in intervention studies. The isolated
-CVR~mimic~ Executive Function finding (1/6 tests,
+CVR~mimic~ Executive Function finding (one of six tests,
 non-significant after FDR) requires replication
 before clinical interpretation.
 
@@ -2806,8 +2842,8 @@ if (n_sig == 0) {
   )
   edt_lin_text <- sprintf(
     paste0(
-      "All %d/%d models showed",
-      " significant quadratic EDT terms",
+      "%s models showed significant",
+      " quadratic EDT terms",
       " (%s; max χ² = %.1f).",
       " Large test statistics reflect",
       " substantial power afforded by",
@@ -2819,7 +2855,10 @@ if (n_sig == 0) {
       " parallel process LGCMs",
       " (see Methods)."
     ),
-    n_sig, n_total,
+    sub("^(.)", "\\U\\1",
+      n_of_total.fn(n_sig, n_total),
+      perl = TRUE
+    ),
     paste(
       DOMAIN_LABELS[sig_doms],
       collapse = ", "
@@ -2851,19 +2890,21 @@ fmt_sci <- function(x) {
 }
 sim_text_parts <- vapply(
   seq_len(nrow(sim_conv)), function(i) {
+    n_reps <- simulation.res$config$n_reps
     sprintf(
       paste0(
         "At N = %d, the SE-constrained",
-        " approach converged %d/500",
-        " (free: %d/500) with bias = %s",
+        " approach converged in %d of %d",
+        " replications (free estimation:",
+        " %d of %d) with bias = %s",
         " (free: %s), RMSE = %.3f",
         " (free: %.3f), and 95%% CI",
         " coverage = %.1f%%",
         " (free: %.1f%%)"
       ),
       sim_conv$n[i],
-      sim_conv$n_converged_se[i],
-      sim_conv$n_converged_free[i],
+      sim_conv$n_converged_se[i], n_reps,
+      sim_conv$n_converged_free[i], n_reps,
       fmt_sci(sim_conv$bias_se[i]),
       fmt_sci(sim_conv$bias_free[i]),
       sim_conv$rmse_se[i],
@@ -2995,42 +3036,51 @@ stopifnot(!is.null(hc_summary.dt))
 hc_p <- hc_summary.dt[
   Analysis == "Primary_Stratified"
 ]
-hc_interp_parts <- vapply(
-  c("FRS", "CVR_mimic"), function(cvr_nm) {
-    cvr_rows <- hc_p[CVR_Measure == cvr_nm]
-    sig_rows <- cvr_rows[
-      Significant == TRUE
-    ]
-    cvr_lab <- ifelse(
-      cvr_nm == "CVR_mimic",
-      "CVR~mimic~", cvr_nm
+frs_hc_sig <- hc_p[
+  CVR_Measure == "FRS" & Significant == TRUE
+]
+cvr_hc_sig <- hc_p[
+  CVR_Measure == "CVR_mimic" &
+    Significant == TRUE
+]
+frs_hc_desc <- if (nrow(frs_hc_sig) > 0) {
+  paste(
+    sprintf(
+      "%s %s",
+      frs_hc_sig$Sex,
+      DOMAIN_LABELS[frs_hc_sig$Domain]
+    ),
+    collapse = " and "
+  )
+} else "no sex–domain combination"
+cvr_hc_desc <- if (nrow(cvr_hc_sig) > 0) {
+  paste(
+    sprintf(
+      "%s %s",
+      cvr_hc_sig$Sex,
+      DOMAIN_LABELS[cvr_hc_sig$Domain]
+    ),
+    collapse = " and "
+  )
+} else "any sex–domain combination"
+hc_interp_text <- sprintf(
+  paste0(
+    "The FRS × HC × YRS interaction was",
+    " significant for %s, whereas",
+    " CVR~mimic~ × HC × YRS %s"
+  ),
+  frs_hc_desc,
+  if (nrow(cvr_hc_sig) > 0) {
+    sprintf(
+      "reached significance only for %s",
+      cvr_hc_desc
     )
-    if (nrow(sig_rows) > 0) {
-      sig_desc <- paste(
-        sprintf(
-          "%s %s",
-          sig_rows$Sex,
-          DOMAIN_LABELS[sig_rows$Domain]
-        ),
-        collapse = ", "
-      )
-      sprintf(
-        "%s × HC × YRS: significant for %s",
-        cvr_lab, sig_desc
-      )
-    } else {
-      sprintf(
-        paste0(
-          "%s × HC × YRS: no significant",
-          " effects"
-        ),
-        cvr_lab
-      )
-    }
-  }, character(1)
-)
-hc_interp_text <- paste(
-  hc_interp_parts, collapse = ". "
+  } else {
+    paste0(
+      "did not reach significance for ",
+      cvr_hc_desc
+    )
+  }
 )
 ```
 
@@ -3053,16 +3103,17 @@ n_hvr_sig <- sum(
 )
 hc_synth_text <- sprintf(
   paste0(
-    "HC z-score produced %d/12 significant",
-    " 3-way interactions versus %d/12 for",
-    " HVR z-score — weaker HC effects",
-    " support the specificity of HVR:",
-    " capturing ventricular expansion",
+    "Significant 3-way interactions emerged",
+    " in %s models for HC z-score versus",
+    " %s for HVR z-score. The weaker HC",
+    " effects support the specificity of",
+    " HVR: capturing ventricular expansion",
     " alongside hippocampal atrophy",
     " provides greater sensitivity to",
     " CVR moderation."
   ),
-  n_hc_sig, n_hvr_sig
+  n_of_total.fn(n_hc_sig, 12L),
+  n_of_total.fn(n_hvr_sig, 12L)
 )
 ```
 
@@ -3240,31 +3291,78 @@ hc_raw <- lme_raw_sens.res$results$HC_raw_FRS
 stopifnot(!is.null(hc_raw))
 raw_hc_results <- list(results = hc_raw)
 
-raw_meas_parts <- vapply(
-  c("Raw HVR", "Raw HC (+TIV)"),
-  function(meas_nm) {
-    res <- if (meas_nm == "Raw HVR") {
-      raw_hvr_results
-    } else raw_hc_results
-    items <- c()
-    for (d in c("MEM", "LAN", "EXF")) {
-      r <- res$results[[d]]$interaction
-      if (!is.null(r)) {
-        items <- c(items, sprintf(
-          "%s β = %.4f, %s",
-          DOMAIN_LABELS[d], r$beta,
-          fmt_p_inline(r$p_value)
-        ))
-      }
-    }
-    sprintf(
-      "%s: %s", meas_nm,
-      paste(items, collapse = "; ")
+fmt_raw_sig <- function(res) {
+  sig.v <- c()
+  nonsig.v <- c()
+  for (d in c("MEM", "LAN", "EXF")) {
+    r <- res$results[[d]]$interaction
+    if (is.null(r)) next
+    entry <- sprintf(
+      "%s (β = %.4f, %s)",
+      DOMAIN_LABELS[d], r$beta,
+      fmt_p_inline(r$p_value)
     )
-  }, character(1)
-)
-raw_meas_text <- paste(
-  raw_meas_parts, collapse = ". "
+    if (r$p_value < 0.05) {
+      sig.v <- c(sig.v, entry)
+    } else {
+      nonsig.v <- c(nonsig.v, entry)
+    }
+  }
+  list(sig = sig.v, nonsig = nonsig.v)
+}
+hvr_raw_split <- fmt_raw_sig(raw_hvr_results)
+hc_raw_split <- fmt_raw_sig(raw_hc_results)
+raw_hvr_prose <- if (
+  length(hvr_raw_split$sig) == 3
+) {
+  paste0(
+    "Raw HVR was significant for all three",
+    " domains: ",
+    paste(hvr_raw_split$sig, collapse = ", ")
+  )
+} else if (length(hvr_raw_split$sig) > 0) {
+  paste0(
+    "Raw HVR was significant for ",
+    paste(
+      hvr_raw_split$sig, collapse = " and "
+    ),
+    if (length(hvr_raw_split$nonsig) > 0)
+      paste0(
+        ", but not ",
+        paste(
+          hvr_raw_split$nonsig,
+          collapse = " or "
+        )
+      )
+    else ""
+  )
+} else {
+  "Raw HVR was not significant for any domain"
+}
+raw_hc_prose <- if (
+  length(hc_raw_split$sig) > 0 &&
+    length(hc_raw_split$nonsig) > 0
+) {
+  paste0(
+    "Raw HC (+TIV) reached significance",
+    " only for ",
+    paste(
+      hc_raw_split$sig, collapse = " and "
+    )
+  )
+} else if (length(hc_raw_split$sig) == 0) {
+  paste0(
+    "Raw HC (+TIV) was not significant",
+    " for any domain"
+  )
+} else {
+  paste0(
+    "Raw HC (+TIV) was significant for ",
+    paste(hc_raw_split$sig, collapse = ", ")
+  )
+}
+raw_meas_text <- paste0(
+  raw_hvr_prose, ". ", raw_hc_prose
 )
 
 # Concordance check

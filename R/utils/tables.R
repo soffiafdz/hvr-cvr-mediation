@@ -4710,3 +4710,29 @@ ci_sig_check.fn <- function(r) {
     (r$boot_ci_lower > 0 ||
        r$boot_ci_upper < 0)
 }
+
+#' Convert count/total to English prose
+#'
+#' @param n  Integer count
+#' @param total  Integer total
+#' @return Character string in English
+#' @export
+n_of_total.fn <- function(n, total) {
+  WORDS <- c(
+    "zero", "one", "two", "three",
+    "four", "five", "six", "seven",
+    "eight", "nine", "ten", "eleven",
+    "twelve"
+  )
+  word.fn <- function(x) {
+    if (x >= 0 && x <= 12) WORDS[x + 1L]
+    else as.character(x)
+  }
+  if (n == 0L) {
+    paste("none of the", word.fn(total))
+  } else if (n == total) {
+    paste("all", word.fn(total))
+  } else {
+    paste(word.fn(n), "of", word.fn(total))
+  }
+}
