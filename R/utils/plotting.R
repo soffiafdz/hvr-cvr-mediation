@@ -3711,7 +3711,7 @@ plot_mediation_panel.fn <- function(
     )
   }
 
-  # "c': 0.032 [0.01, 0.05]*"
+  # "c': 0.032\n[0.01, 0.05]*"
   fmt_ci.fn <- function(
       sx, path, est,
       lo, hi, dig = 4L) {
@@ -3729,7 +3729,7 @@ plot_mediation_panel.fn <- function(
       )
     }
     sprintf(
-      "%s: %s [%s, %s]%s",
+      "%s: %s\n[%s, %s]%s",
       path,
       d.fn(est), d.fn(lo), d.fn(hi),
       sig_star.fn(lo, hi)
@@ -3819,14 +3819,12 @@ plot_mediation_panel.fn <- function(
   m_b <- fmt_ci.fn(
     "M", "b", m$b$est,
     m$b$boot_ci_lower,
-    m$b$boot_ci_upper,
-    dig = 3L
+    m$b$boot_ci_upper
   )
   f_b <- fmt_ci.fn(
     "F", "b", f$b$est,
     f$b$boot_ci_lower,
-    f$b$boot_ci_upper,
-    dig = 3L
+    f$b$boot_ci_upper
   )
 
   # Path c' (est + CI + star)
@@ -3845,14 +3843,12 @@ plot_mediation_panel.fn <- function(
   m_ab <- fmt_ci.fn(
     "M", "ab", m$indirect$est,
     m$indirect$boot_ci_lower,
-    m$indirect$boot_ci_upper,
-    dig = 5L
+    m$indirect$boot_ci_upper
   )
   f_ab <- fmt_ci.fn(
     "F", "ab", f$indirect$est,
     f$indirect$boot_ci_lower,
-    f$indirect$boot_ci_upper,
-    dig = 5L
+    f$indirect$boot_ci_upper
   )
 
   # -- build ggplot --
@@ -3893,10 +3889,11 @@ plot_mediation_panel.fn <- function(
       linewidth = 0.5,
       color = alpha("gray30", cp_arr)
     ) +
-    # a text (upper-left, pushed out)
+    # a text (left of a-path)
     annotate(
-      "text", x = -0.45, y = 0.40,
+      "text", x = -0.10, y = 0.42,
       label = m_a, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         m$a$boot_ci_lower,
         m$a$boot_ci_upper
@@ -3907,11 +3904,12 @@ plot_mediation_panel.fn <- function(
           m$a$boot_ci_upper
         )
       ),
-      hjust = 0
+      hjust = 0.5, vjust = 0
     ) +
     annotate(
-      "text", x = -0.45, y = 0.35,
+      "text", x = -0.10, y = 0.30,
       label = f_a, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         f$a$boot_ci_lower,
         f$a$boot_ci_upper
@@ -3922,12 +3920,13 @@ plot_mediation_panel.fn <- function(
           f$a$boot_ci_upper
         )
       ),
-      hjust = 0
+      hjust = 0.5, vjust = 0
     ) +
-    # b text (upper-right, pushed out)
+    # b text (right of b-path)
     annotate(
-      "text", x = 3.45, y = 0.40,
+      "text", x = 3.10, y = 0.42,
       label = m_b, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         m$b$boot_ci_lower,
         m$b$boot_ci_upper
@@ -3938,11 +3937,12 @@ plot_mediation_panel.fn <- function(
           m$b$boot_ci_upper
         )
       ),
-      hjust = 1
+      hjust = 0.5, vjust = 0
     ) +
     annotate(
-      "text", x = 3.45, y = 0.35,
+      "text", x = 3.10, y = 0.30,
       label = f_b, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         f$b$boot_ci_lower,
         f$b$boot_ci_upper
@@ -3953,12 +3953,13 @@ plot_mediation_panel.fn <- function(
           f$b$boot_ci_upper
         )
       ),
-      hjust = 1
+      hjust = 0.5, vjust = 0
     ) +
-    # c' text (below arrow, nudged up)
+    # c' text (below arrow)
     annotate(
-      "text", x = 1.5, y = -0.21,
+      "text", x = 1.5, y = -0.20,
       label = m_cp, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         m$cprime$boot_ci_lower,
         m$cprime$boot_ci_upper
@@ -3969,11 +3970,12 @@ plot_mediation_panel.fn <- function(
           m$cprime$boot_ci_upper
         )
       ),
-      hjust = 0.5
+      hjust = 0.5, vjust = 1
     ) +
     annotate(
-      "text", x = 1.5, y = -0.26,
+      "text", x = 1.5, y = -0.30,
       label = f_cp, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         f$cprime$boot_ci_lower,
         f$cprime$boot_ci_upper
@@ -3984,12 +3986,13 @@ plot_mediation_panel.fn <- function(
           f$cprime$boot_ci_upper
         )
       ),
-      hjust = 0.5
+      hjust = 0.5, vjust = 1
     ) +
-    # ab text (above HVR, nudged down)
+    # ab text (above HVR)
     annotate(
-      "text", x = 1.5, y = 0.73,
+      "text", x = 1.5, y = 0.88,
       label = m_ab, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         m$indirect$boot_ci_lower,
         m$indirect$boot_ci_upper
@@ -4000,11 +4003,12 @@ plot_mediation_panel.fn <- function(
           m$indirect$boot_ci_upper
         )
       ),
-      hjust = 0.5
+      hjust = 0.5, vjust = 1
     ) +
     annotate(
-      "text", x = 1.5, y = 0.68,
+      "text", x = 1.5, y = 0.78,
       label = f_ab, size = SZ,
+      lineheight = 0.85,
       fontface = get_face.fn(
         f$indirect$boot_ci_lower,
         f$indirect$boot_ci_upper
@@ -4015,13 +4019,13 @@ plot_mediation_panel.fn <- function(
           f$indirect$boot_ci_upper
         )
       ),
-      hjust = 0.5
+      hjust = 0.5, vjust = 1
     ) +
     # Nodes
     geom_point(
       data = nodes.dt,
       aes(x = x, y = y),
-      size = 12, shape = 21,
+      size = 14, shape = 21,
       fill = "white", color = "black",
       stroke = 0.8
     ) +
@@ -4030,11 +4034,12 @@ plot_mediation_panel.fn <- function(
       aes(
         x = x, y = y, label = name
       ),
-      size = 2.0, fontface = "bold"
+      size = 2.2, fontface = "bold",
+      lineheight = 0.8
     ) +
     coord_cartesian(
-      xlim = c(-1.4, 4.4),
-      ylim = c(-0.38, 0.82)
+      xlim = c(-1.6, 4.6),
+      ylim = c(-0.48, 0.92)
     ) +
     labs(title = domain_label) +
     theme_void() +

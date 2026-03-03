@@ -18,6 +18,7 @@ author:
       - ref: bbme
     email: louis.collins@mcgill.ca
     corresponding: true
+  - name: for the Alzheimer's Disease Neuroimaging Initiative
 affiliations:
   - id: bic
     name: McConnell Brain Imaging Centre
@@ -188,21 +189,21 @@ knit_print.gt_tbl <- function(x, ...) {
     )
 
     # Fix 3: Unicode symbols to LaTeX math
-    latex_code <- gsub("\u0394", "$\\\\Delta$", latex_code)
-    latex_code <- gsub("\u03B2", "$\\\\beta$", latex_code)
-    latex_code <- gsub("\u03BB", "$\\\\lambda$", latex_code)
-    latex_code <- gsub("\u03C3", "$\\\\sigma$", latex_code)
-    latex_code <- gsub("\u03B7", "$\\\\eta$", latex_code)
-    latex_code <- gsub("\u03C7", "$\\\\chi$", latex_code)
-    latex_code <- gsub("\u03C4", "$\\\\tau$", latex_code)
-    latex_code <- gsub("\u03B3", "$\\\\gamma$", latex_code)
+    latex_code <- gsub("Δ", "$\\\\Delta$", latex_code)
+    latex_code <- gsub("β", "$\\\\beta$", latex_code)
+    latex_code <- gsub("λ", "$\\\\lambda$", latex_code)
+    latex_code <- gsub("σ", "$\\\\sigma$", latex_code)
+    latex_code <- gsub("η", "$\\\\eta$", latex_code)
+    latex_code <- gsub("χ", "$\\\\chi$", latex_code)
+    latex_code <- gsub("τ", "$\\\\tau$", latex_code)
+    latex_code <- gsub("γ", "$\\\\gamma$", latex_code)
     latex_code <- gsub(
-      "\u00B2", "\\\\textsuperscript{2}", latex_code
+      "²", "\\\\textsuperscript{2}", latex_code
     )
     latex_code <- gsub("\u2264", "$\\\\leq$", latex_code)
     latex_code <- gsub("\u2265", "$\\\\geq$", latex_code)
     latex_code <- gsub("\u2260", "$\\\\neq$", latex_code)
-    latex_code <- gsub("\u00D7", "$\\\\times$", latex_code)
+    latex_code <- gsub("×", "$\\\\times$", latex_code)
 
     # Fix 4: Unicode text commands missing {} terminator
     latex_code <- gsub(
@@ -317,7 +318,7 @@ fmt_crossformat <- function(gt_tbl, columns, rows = everything()) {
 **INTRODUCTION:**
 The Framingham Risk Score (FRS) is widely used to
 index cardiovascular risk (CVR) in aging research,
-yet its heavy age-weighting may confound
+yet its age-weighting may confound
 associations with brain and cognitive outcomes.
 
 **METHODS:**
@@ -326,10 +327,10 @@ we compared FRS with an age-adjusted CVR measure
 (CVR~mimic~) from a MIMIC model. Sex-stratified
 LME 3-way interaction models and LGCM mediation
 models tested CVR effects on hippocampal-cognitive
-trajectories.
+coupling.
 
 **RESULTS:**
-FRS predicted hippocampal atrophy rate
+FRS predicted hippocampal atrophy
 (CVR → HVR slope significant in
 `r abs_stats$frs_a_sig`/6 LGCM mediation
 models); CVR~mimic~ did not
@@ -396,72 +397,93 @@ using age-adjusted CVR endpoints rather than FRS.
 
 ---
 
-# Introduction
+# Background
 
-## Background
+Cardiovascular risk factors are increasingly
+recognized as modifiable contributors to cognitive
+decline and dementia risk
+[@livingston_dementia_2017; @ouldred_vascular_2010;
+@viswanathan_vascular_2009;
+@gorelick_vascular_2011;
+@iadecola_neurovascular_2019].
+The Framingham Risk Score (FRS), a widely used
+composite measure of 10-year cardiovascular event
+probability [@dagostino_general_2008], has been
+associated with reduced brain volumes, compromised
+white matter integrity, and accelerated cognitive
+decline across multiple cohorts
+[@zsoldos_association_2020;
+@seshadri_stroke_2004; @song_associations_2020;
+@kaffashian_predictive_2011]. However, the FRS is
+heavily weighted by age, with log-hazard
+coefficients of 3.06 for men and 2.33 for women
+[@dagostino_general_2008], making age the dominant
+predictor in the composite. In older samples where
+age variance is restricted, this creates substantial
+confounding between FRS and any age-related outcome
+[@koller_development_2012;
+@rodondi_framingham_2012].
 
-- Cardiovascular risk factors are increasingly recognized as
-  modifiable contributors to cognitive decline and dementia risk
-  [@livingston_dementia_2017; @ouldred_vascular_2010; @viswanathan_vascular_2009; @gorelick_vascular_2011; @iadecola_neurovascular_2019]
-- The Framingham Risk Score (FRS), a composite measure of 10-year
-  cardiovascular event probability [@dagostino_general_2008], has been
-  associated with reduced brain volumes, white matter integrity, and
-  accelerated cognitive decline [@zsoldos_association_2020; @seshadri_stroke_2004;
-  @song_associations_2020; @kaffashian_predictive_2011]
-- FRS is heavily weighted by age, with coefficients of 3.06 (men)
-  and 2.33 (women) in the log-hazard scale [@dagostino_general_2008]
-- In older samples where age variance is restricted, this creates
-  substantial confounding between FRS and any age-related outcome
-  [@koller_development_2012; @rodondi_framingham_2012]
+This age-weighting poses a fundamental
+interpretive challenge. Because age deterministically
+drives FRS through its formula coefficients and
+independently drives neurodegenerative outcomes
+through biological aging, age acts as a common cause
+of both the predictor and the outcome. The apparent
+pathway from FRS through hippocampal atrophy to
+cognitive decline may therefore be spurious.
+Simply controlling for age in regression
+models does not resolve this confound, because age is
+not an external confounder but an internal component
+of the score itself. In elderly cohorts such as ADNI,
+this problem is compounded by the fact that the
+ADSP-PHC-derived FRS variable is capped at 30%
+10-year risk
+[@dagostino_general_2008; @lee_fmnl2_2022],
+compressing variance in the upper range and further
+limiting sensitivity.
 
-## The FRS Problem in Aging Samples
+To address this, we employed a Multiple Indicators
+Multiple Causes (MIMIC) model
+[@joreskog_estimation_1975; @muthen_general_1984],
+which treats age as a *cause* of cardiovascular risk
+(CVR) rather than an indicator. The structural
+equation
+$\text{CVR} = \gamma \cdot \text{Age}_z + \zeta$
+partitions observed CVR into an age-explained
+component ($\gamma \cdot \text{Age}_z$) and a
+residual ($\zeta$) that captures
+cardiovascular risk independent of age
+[@zhang_bayesian_2024]. The resulting factor scores,
+termed CVR~mimic~, are orthogonal to age by
+construction (r ≈ 0), enabling a direct test of
+whether FRS-brain associations reflect true
+cardiovascular pathophysiology or age-related
+confounding.
 
-- If age drives both FRS (by formula construction) and
-  brain/cognitive outcomes (by biological aging), the apparent
-  FRS → HVR → Cognition pathway may be spurious
-- Age is a common cause of both FRS (deterministically, via formula
-  coefficients) and neurodegenerative outcomes (biologically),
-  creating a confound structure in aging populations
-- Simply controlling for age in regression models is insufficient
-  because the confounding is built into FRS construction — age is not
-  an external confounder but an internal component of the score
-- In elderly cohorts such as ADNI, the ADSP-PHC-derived FRS
-  variable is capped at 30% 10-year risk
-  [@dagostino_general_2008; @lee_fmnl2_2022], further limiting
-  sensitivity by compressing variance in the upper range
-
-## MIMIC Model Approach
-
-- The Multiple Indicators Multiple Causes (MIMIC) model treats age
-  as a *cause* of CVR rather than an indicator [@joreskog_estimation_1975;
-  @muthen_general_1984]
-- This allows extraction of CVR factor scores representing residual
-  cardiovascular risk after accounting for age [@zhang_bayesian_2024]
-- The resulting CVR~mimic~ measure is orthogonal to age by
-  construction (r ≈ 0)
-- Structural model: CVR = γ × Age~z~ + ζ (age predicts CVR)
-- Factor scores represent ζ: residual CVR not explained by age
-
-## Study Objectives
-
-- Primary: Determine whether FRS effects on
-  hippocampal-cognitive coupling reflect true
-  cardiovascular pathophysiology or age-related
-  confounding
-- Hypothesis 1: If FRS effects are driven by
-  age-weighting, CVR~mimic~ should show null or weaker
-  a-path (CVR → HVR slope) in LGCM mediation
-- Hypothesis 2: If FRS mediation effects are
-  age-confounded, CVR~mimic~ indirect effects through
-  HVR should be null or weaker
-- Hypothesis 3: LME 3-way interaction
-  (YRS × CVR × HVR) may persist for CVR~mimic~ if CVR
-  modulates brain-cognition *coupling* independent of
-  accelerating atrophy
-- All analyses are sex-stratified, given established
-  sex differences in cardiovascular risk profiles,
-  brain aging trajectories, and AD pathophysiology
-  [@ferretti_sex_2018; @mielke_consideration_2022]
+The primary objective of this study was to
+determine whether FRS effects on
+hippocampal-cognitive coupling persist when
+age-confounding is removed. We tested three
+hypotheses. First, if FRS effects on hippocampal
+atrophy are driven by age-weighting, CVR~mimic~
+should show a null or attenuated a-path
+(CVR → HVR slope) in latent growth curve mediation
+models (LGCM). Second, if FRS mediation is
+age-confounded, CVR~mimic~ indirect effects through
+HVR decline should likewise be null. Third, even
+when mediation is absent, CVR~mimic~ may still
+moderate the brain-cognition relationship via a
+three-way interaction (Years × CVR × HVR) in linear
+mixed-effects (LME) models, reflecting a
+reserve-like mechanism whereby cardiovascular burden
+modulates the coupling between hippocampal structure
+and cognitive performance without directly
+accelerating atrophy. All analyses were stratified
+by sex, given established sex differences in
+cardiovascular risk profiles, brain aging
+trajectories, and AD pathophysiology
+[@ferretti_sex_2018; @mielke_consideration_2022].
 
 ---
 
@@ -469,29 +491,46 @@ using age-adjusted CVR endpoints rather than FRS.
 
 ## Study Design and Participants
 
-- Data source: Alzheimer's Disease Neuroimaging Initiative (ADNI),
-  multi-site longitudinal study across phases ADNI-1, ADNI-GO,
-  ADNI-2, ADNI-3
-- Inclusion criteria:
-  - Amyloid-positive status (PET Centiloid > 25
-    [@klunk_centiloid_2015] across FBP/FBB/PIB tracers, or CSF
-    A+ via Gaussian Mixture Model classification
-    [@timsina_harmonization_2024])
-  - Available MRI-derived hippocampal and ventricular volumes
-  - Available cardiovascular risk factor data (FRS components)
-  - At least one cognitive assessment with Alzheimer's
-    Disease Sequencing Project Phenotype Harmonization
-    Consortium (ADSP-PHC) harmonized composite scores
-- Diagnostic composition: full spectrum of amyloid-positive
-  individuals including cognitively unimpaired (CU), mild cognitive
-  impairment (MCI), and Alzheimer's disease dementia (AD)
-- Participant flow shown in Figure \ref{fig-consort}
-- We used a separate normative comparison sample of
-  amyloid-negative, cognitively unimpaired participants
-  with MRI within the UK Biobank (UKB) age range
-  (46-82 years) to validate the transfer of
-  UKB-derived z-scores to the ADNI cohort (see
-  Normative Transfer Validation)
+Data were drawn from the Alzheimer's Disease
+Neuroimaging Initiative (ADNI), a multi-site
+longitudinal study spanning phases ADNI-1, ADNI-GO,
+ADNI-2, and ADNI-3. We included amyloid-positive
+participants defined by PET Centiloid > 25
+[@klunk_centiloid_2015] across FBP, FBB, and PIB
+tracers, or CSF amyloid-positive status via Gaussian
+Mixture Model classification
+[@timsina_harmonization_2024]. Additional inclusion
+criteria required available MRI-derived hippocampal
+and ventricular volumes, cardiovascular risk factor
+data (FRS components), and at least one cognitive
+assessment with Alzheimer's Disease Sequencing
+Project Phenotype Harmonization Consortium (ADSP-PHC)
+harmonized composite scores. The resulting sample
+encompassed the full spectrum of amyloid-positive
+individuals, including cognitively unimpaired (CU),
+mild cognitive impairment (MCI), and Alzheimer's
+disease dementia (AD). Participant flow is shown in
+Figure \ref{fig-consort}.
+
+Data used in the preparation of this article were
+obtained from the Alzheimer's Disease Neuroimaging
+Initiative (ADNI) database (adni.loni.usc.edu). The
+ADNI was launched in 2003 as a public-private
+partnership, led by Principal Investigator Michael W.
+Weiner, MD. The primary goal of ADNI has been to test
+whether serial magnetic resonance imaging (MRI),
+positron emission tomography (PET), other biological
+markers, and clinical and neuropsychological
+assessment can be combined to measure the progression
+of mild cognitive impairment (MCI) and early
+Alzheimer's disease (AD).
+
+A separate normative comparison sample of
+amyloid-negative, cognitively unimpaired participants
+with structural MRI within the UK Biobank (UKB) age
+range (46--82 years) was used to validate the
+transfer of UKB-derived z-scores to the ADNI cohort
+(see Normative Transfer Validation).
 
 ```{r fig-consort}
 #| output: asis
@@ -534,107 +573,109 @@ cat("\\end{figure}\n")
 
 ## Neuroimaging: Hippocampal-to-Ventricle Ratio (HVR)
 
-- MRI acquisition: T1-weighted MPRAGE sequences on
-  1.5T and 3T scanners across ADNI sites with
-  standardized acquisition protocols
-- Volume segmentation: we obtained hippocampal (HC)
-  and temporal horn of the lateral ventricle (VC)
-  volumes using a convolutional neural network (CNN)
-  trained on manual labels from the same research
-  group [@fernandez-lozano_enhanced_2025]. Volumes are provided
-  in stereotaxic space (mm³) and converted to native
-  space via subject-specific scale factors
-- We defined the hippocampal-to-ventricle ratio
-  (HVR) as HVR = (HC~L~ + HC~R~) / (HC~L~ + HC~R~
-  + VC~L~ + VC~R~), computed on bilateral summed
-  native-space volumes [@schoemaker_hippocampal-ventricle_2019]. This ratio
-  captures hippocampal integrity relative to surrounding
-  cerebrospinal fluid (CSF)-filled spaces, where
-  hippocampal atrophy is accompanied by compensatory
-  expansion of the temporal horns (ex vacuo dilation)
-  - HVR near 1.0: large hippocampus relative to
-    ventricles (preserved structure)
-  - HVR near 0.0: small hippocampus relative to
-    ventricles (atrophy with ventricular expansion)
-  - The ratio inherently normalizes for head size without
-    requiring intracranial volume (ICV) correction, as
-    both numerator and denominator scale proportionally
-    with head size
-  - The CNN demonstrated low failure rates in ADNI
-    compared to multi-atlas and patch-based alternatives
-    [@fernandez-lozano_enhanced_2025]
-- Normative z-scoring: we derived HVR z-scores from
-  Generalized Additive Models for Location, Scale, and
-  Shape (GAMLSS; @rigby_generalized_2005) fit on UKB data
-  (N = 27,434 cognitively healthy adults, age 45–83)
-  - Distribution family: Box-Cox Cole and Green (BCCG),
-    which models three distributional parameters —
-    location (μ, the conditional median), scale (σ,
-    coefficient of variation), and skewness (ν, Box-Cox
-    power) — as smooth functions of covariates
-  - Covariates: age (penalized cubic spline), education
-    (linear), and intracranial cavity volume (ICC);
-    separate models fit for each sex
-  - The z-score quantifies how many standard deviations
-    an individual's observed HVR deviates from the
-    conditional median predicted by the GAMLSS model
-    given their age, sex, education, and head size. A
-    z-score of zero corresponds to a value at the
-    conditional median; the transformation accounts for
-    age-related heteroscedasticity and distributional
-    skewness through the BCCG parametrization
-  - Negative z-scores indicate smaller HVR than expected
-    for the individual's age, sex, education, and head
-    size — i.e., disproportionate hippocampal volume
-    loss relative to the normative reference population.
-    These are cross-sectional deviation scores, not
-    measures of longitudinal change rate
+T1-weighted MPRAGE sequences were acquired on 1.5T
+and 3T scanners across ADNI sites using standardized
+acquisition protocols. Hippocampal (HC) and temporal
+horn of the lateral ventricle (VC) volumes were
+obtained using a convolutional neural network (CNN)
+trained on manual labels from the same research group
+[@fernandez-lozano_enhanced_2025], which demonstrated
+low failure rates in ADNI compared to multi-atlas
+and patch-based alternatives. Volumes were provided
+in stereotaxic space (mm$^3$) and converted to
+native space via subject-specific scale factors.
+
+We defined the hippocampal-to-ventricle ratio (HVR)
+as:
+
+$$
+\text{HVR} = \frac{
+  \text{HC}_L + \text{HC}_R}{
+  \text{HC}_L + \text{HC}_R +
+  \text{VC}_L + \text{VC}_R}
+$$ {#eq-hvr}
+
+computed on bilateral summed native-space volumes
+[@schoemaker_hippocampal-ventricle_2019]. This ratio
+captures hippocampal integrity relative to
+surrounding cerebrospinal fluid (CSF)-filled spaces,
+where hippocampal atrophy is accompanied by
+compensatory expansion of the temporal horns
+(ex vacuo dilation). HVR approaches 1.0 when
+hippocampal volume is large relative to the
+ventricles (preserved structure) and approaches 0.0
+when the hippocampus is small relative to the
+ventricles (atrophy with ventricular expansion). The
+ratio inherently normalizes for head size without
+requiring intracranial volume (ICV) correction, as
+both numerator and denominator scale proportionally
+with head size.
+
+HVR z-scores were derived from Generalized Additive
+Models for Location, Scale, and Shape
+(GAMLSS; @rigby_generalized_2005) fit on UKB data
+(N = 27,434 cognitively healthy adults, age 45--83).
+The distribution family was Box-Cox Cole and Green
+(BCCG), which models three distributional
+parameters — location ($\mu$, the conditional
+median), scale ($\sigma$, coefficient of variation),
+and skewness ($\nu$, Box-Cox power) — as smooth
+functions of covariates: age (penalized cubic
+spline), education (linear), and intracranial cavity
+volume (ICC), with separate models fit for each sex.
+The resulting z-score quantifies how many standard
+deviations an individual's observed HVR deviates
+from the conditional median predicted by the GAMLSS
+model given their age, sex, education, and head
+size. Negative z-scores indicate disproportionate
+hippocampal volume loss relative to the normative
+reference population. These are cross-sectional
+deviation scores, not measures of longitudinal
+change rate.
 
 ### Normative Transfer Validation
 
-- Valid cross-cohort application of UKB-trained GAMLSS
-  models requires verification that z-scores are
-  calibrated in the target ADNI population
-- We performed validation in a comparable ADNI
-  subsample:
-  amyloid-negative, cognitively unimpaired participants
-  within the UKB age range (46–82 years), where z-scores
-  would be expected to approximate N(0, 1)
-- Descriptive assessment: we compared mean z-scores,
-  standard deviations, and 95% confidence intervals
-  against expected N(0, 1), and visualized
-  age-bin-specific calibration via forest plot
+Valid cross-cohort application of UKB-trained GAMLSS
+models requires verification that z-scores are
+calibrated in the target ADNI population. We
+performed validation in a comparable ADNI subsample
+of amyloid-negative, cognitively unimpaired
+participants within the UKB age range
+(46--82 years), where z-scores would be expected to
+approximate $N(0, 1)$. We compared mean z-scores,
+standard deviations, and 95% confidence intervals
+against expected $N(0, 1)$ and visualized
+age-bin-specific calibration via forest plot.
 
 ## Cardiovascular Risk Assessment
 
 ### Framingham Risk Score (FRS)
 
-- We obtained FRS values from the Alzheimer's Disease
-  Sequencing Project Phenotype Harmonization Consortium
-  (ADSP-PHC) Cardiovascular Risk Factor dataset
-  [@lee_fmnl2_2022; @lee_reliability_2023]
-- The ADSP-PHC computed FRS with the Framingham 2008
-  simple office-based 10-year CVD risk score via the
-  `ascvd_10y_frs_simple` function from the CVrisk R
-  package [@castro_cvrisk_2026]. Despite the function name, this
-  implements the Framingham general cardiovascular
-  risk algorithm
-  [@dagostino_general_2008], not the ACC/AHA Pooled Cohort
-  Equations (ASCVD). The score estimates 10-year
-  cardiovascular disease risk based on: sex, age
-  (≥ 30 years), body mass index (BMI, kg/m²),
-  systolic blood pressure (mmHg), use of blood
-  pressure medication, current smoking status, and
-  diabetes status
-- This is the "simple" FRS variant that uses BMI in place
-  of the lipid panel (total and HDL cholesterol) required
-  by the general FRS [@dagostino_general_2008]
-- Age coefficients in the log-hazard scale: 3.06 (men),
-  2.33 (women) — age is the dominant component in older
-  adults
-- The ADSP-PHC-derived variable is capped at 30%
-  10-year risk, creating a ceiling effect in elderly
-  samples
+We obtained FRS values from the Alzheimer's Disease
+Sequencing Project Phenotype Harmonization Consortium
+(ADSP-PHC) Cardiovascular Risk Factor dataset
+[@lee_fmnl2_2022; @lee_reliability_2023]. The ADSP-PHC
+computed FRS using the Framingham 2008 simple
+office-based 10-year CVD risk score via the
+`ascvd_10y_frs_simple` function from the CVrisk R
+package [@castro_cvrisk_2026]. Despite the function
+name, this implements the Framingham general
+cardiovascular risk algorithm
+[@dagostino_general_2008], not the ACC/AHA Pooled
+Cohort Equations (ASCVD). The score estimates
+10-year cardiovascular disease risk based on sex,
+age (≥ 30 years), body mass index (BMI, kg/m²),
+systolic blood pressure (mmHg), use of blood
+pressure medication, current smoking status, and
+diabetes status. This is the "simple" FRS variant
+that substitutes BMI for the lipid panel (total and
+HDL cholesterol) required by the general FRS
+[@dagostino_general_2008]. Age coefficients in the
+log-hazard scale are 3.06 (men) and 2.33 (women),
+making age the dominant component in older adults.
+The ADSP-PHC-derived variable is capped at 30%
+10-year risk, creating a ceiling effect in elderly
+samples.
 
 ### MIMIC Model for Age-Adjusted CVR (CVR~mimic~)
 
@@ -660,335 +701,318 @@ $$
   \text{Cov}(\delta_{\text{SBP}},
     \delta_{\text{CREAT}}) \neq 0
 \end{aligned}
-$$
+$$ {#eq-mimic}
 
-- Five measurement indicators:
-  - Systolic blood pressure (SBP; z-scored,
-    continuous)
-  - Hypertension (history of hypertension; binary)
-  - Fasting glucose (z-scored, continuous)
-  - Total cholesterol (z-scored, continuous)
-  - Serum creatinine (z-scored, continuous)
-- Two correlated residuals:
-  - SBP ↔ Cholesterol: shared vascular stiffness
-    and lipid metabolism pathways — arterial
-    compliance links blood pressure regulation to
-    lipid profiles beyond the general CVR factor
-  - SBP ↔ Creatinine: renal-cardiovascular axis —
-    kidney function directly influences blood
-    pressure regulation through the
-    renin-angiotensin system, partially independent
-    of overall CVR
-  - Both modification indices and substantive
-    reasoning supported these specifications
+The model includes five measurement indicators:
+systolic blood pressure (SBP; z-scored, continuous),
+hypertension (history of hypertension; binary),
+fasting glucose (z-scored, continuous), total
+cholesterol (z-scored, continuous), and serum
+creatinine (z-scored, continuous). We specified two
+correlated residuals: SBP ↔ Cholesterol, reflecting
+shared vascular stiffness and lipid metabolism
+pathways whereby arterial compliance links blood
+pressure regulation to lipid profiles beyond the
+general CVR factor; and SBP ↔ Creatinine, reflecting
+the renal-cardiovascular axis whereby kidney function
+directly influences blood pressure regulation through
+the renin-angiotensin system, partially independent
+of overall CVR. Both modification indices and
+substantive reasoning supported these
+specifications.
 
 #### Indicator Selection
 
 We determined the final set of five indicators
 through iterative model refinement, evaluating
 factor loadings, modification indices, and
-substantive interpretability at each step.
-
-- Candidate indicators evaluated but excluded:
-  - BMI (body mass index): available in the ADSP-PHC
-    dataset but its factor loading became
-    non-significant (p > 0.20) once specific
-    residual covariances with hypertension, glucose,
-    and cholesterol were modeled — its
-    cardiovascular risk variance is fully captured by
-    the retained indicators through vascular
-    (hypertension), metabolic (glucose), and lipid
-    (cholesterol) pathways
-  - Diabetes, heart disease, and stroke (ADSP-PHC
-    binary medical history flags): near-perfect
-    tetrachoric correlations (φ > 0.90) due to a
-    harmonization artifact in how self-reported
-    conditions were coded across ADNI phases —
-    rendering them empirically indistinguishable and
-    unsuitable as separate indicators
-  - Smoking status: non-significant factor loading
-    (p > 0.20), likely reflecting survivorship bias
-    in an elderly cohort where current smokers are
-    underrepresented
-  - Blood pressure medication: near-complete
-    redundancy with hypertension status (the factor
-    fully explains their shared variance)
+substantive interpretability at each step. Several
+candidate indicators were evaluated but excluded.
+BMI was available in the ADSP-PHC dataset but its
+factor loading became non-significant (*p* > 0.20)
+once specific residual covariances with
+hypertension, glucose, and cholesterol were modeled,
+indicating its cardiovascular risk variance is fully
+captured by the retained indicators through
+vascular, metabolic, and lipid pathways. Diabetes,
+heart disease, and stroke (ADSP-PHC binary medical
+history flags) showed near-perfect tetrachoric
+correlations (φ > 0.90) due to a harmonization
+artifact in how self-reported conditions were coded
+across ADNI phases, rendering them empirically
+indistinguishable and unsuitable as separate
+indicators. Smoking status had a non-significant
+factor loading (*p* > 0.20), likely reflecting
+survivorship bias in an elderly cohort where current
+smokers are underrepresented. Blood pressure
+medication showed near-complete redundancy with
+hypertension status, as the factor fully explains
+their shared variance.
 
 #### Estimation and Fit
 
-- We evaluated model fit with robust (MLR-scaled)
-  comparative fit index (CFI), Tucker-Lewis index
-  (TLI), root mean square error of approximation
-  (RMSEA), and standardized root mean square residual
-  (SRMR)
+We evaluated model fit with the robust (MLR-scaled)
+comparative fit index (CFI), Tucker-Lewis index
+(TLI), root mean square error of approximation
+(RMSEA), and standardized root mean square residual
+(SRMR).
 
 #### Score Extraction and Age Adjustment
 
-- We extracted factor scores in three steps:
-  1. We obtained predicted latent factor scores (η)
-     from the fitted MIMIC model via empirical Bayes
-     modal estimation
-  2. We computed age-adjusted CVR scores (ζ) as:
-     ζ = η − γ × Age~c~, where γ is the estimated
-     regression of CVR on centered age from the
-     structural path. This removes the age-predicted
-     component of the latent variable, ensuring
-     CVR~mimic~ represents residual
-     cardiovascular risk after partialling out age at
-     the latent level rather than at the indicator
-     level
-  3. We z-standardized the resulting ζ scores on the
-     common analysis sample for comparability with FRS
-- This latent-level residualization operates on the
-  measurement-error-free latent variable, and is
-  equivalent to extracting the disturbance term of the
-  MIMIC structural equation [@bollen_structural_1989]
-- By construction: correlation(CVR~mimic~, Age) ≈ 0
+We extracted factor scores in three steps. First,
+we obtained predicted latent factor scores (η)
+from the fitted MIMIC model via empirical Bayes
+modal estimation. Second, we computed age-adjusted
+CVR scores (ζ) as ζ = η − γ × Age~c~, where γ
+is the estimated regression of CVR on centered age
+from the structural path; this removes the
+age-predicted component of the latent variable,
+ensuring CVR~mimic~ represents residual
+cardiovascular risk after partialling out age at the
+latent level rather than at the indicator level.
+Third, we z-standardized the resulting ζ scores on
+the common analysis sample for comparability with
+FRS. This latent-level residualization operates on
+the measurement-error-free latent variable and is
+equivalent to extracting the disturbance term of the
+MIMIC structural equation [@bollen_structural_1989].
+By construction, correlation(CVR~mimic~, Age) ≈ 0.
 
 #### Measurement Invariance
 
-- We tested measurement invariance (MI) across sex
-  in four steps — configural, metric, scalar, and
-  strict — using the CFA measurement model only
-  (without the Age → CVR structural path). MI
-  evaluates whether factor loadings, intercepts, and
-  residual variances are equivalent across groups,
-  which is required before interpreting sex-stratified
-  analyses
-- We evaluated MI with the Satorra-Bentler scaled
-  chi-square difference test [@satorra_scaled_2001], which
-  correctly handles the non-subtractable nature of
-  MLR-scaled test statistics, and with change in fit
-  indices (|ΔCFI| ≤ 0.01, ΔRMSEA ≤ 0.015). When the
-  two criteria disagreed, we adopted the stricter
-  result
+We tested measurement invariance (MI) across sex in
+four steps — configural, metric, scalar, and
+strict — using the CFA measurement model only
+(without the Age → CVR structural path). MI
+evaluates whether factor loadings, intercepts, and
+residual variances are equivalent across groups,
+which is required before interpreting sex-stratified
+analyses. We evaluated MI with the Satorra-Bentler
+scaled chi-square difference test
+[@satorra_scaled_2001], which correctly handles the
+non-subtractable nature of MLR-scaled test
+statistics, and with change in fit indices
+(|ΔCFI| ≤ 0.01, ΔRMSEA ≤ 0.015). When the two
+criteria disagreed, we adopted the stricter result.
 
 ### CVR~mimic~ Validation
 
-- We validated CVR~mimic~ by:
-  - Correlation with age (expected ≈ 0, confirming successful
-    age-partialling)
-  - Correlation with FRS (moderate expected, reflecting shared
-    cardiovascular indicators)
-  - Distribution properties (approximate standard normal)
-  - FRS ceiling analysis (percentage at the 30% risk
-    cap) to document variance compression in the
-    elderly sample
+We validated CVR~mimic~ by examining its correlation
+with age (expected ≈ 0, confirming successful
+age-partialling), correlation with FRS (moderate
+expected, reflecting shared cardiovascular
+indicators), distribution properties (approximate
+standard normal), and FRS ceiling analysis
+(percentage at the 30% risk cap) to document
+variance compression in the elderly sample.
 
 ### CV Risk Stratification
 
-- For trajectory visualizations, we defined CV risk
-  groups by median split of baseline FRS (for FRS
-  analyses) or baseline CVR~mimic~ (for CVR~mimic~
-  analyses)
-- We similarly defined HVR groups by median split of
-  baseline HVR z-score
-- We assigned groups at baseline and held them
-  constant across follow-up
+For trajectory visualizations, we defined CV risk
+groups by median split of baseline FRS (for FRS
+analyses) or baseline CVR~mimic~ (for CVR~mimic~
+analyses), and similarly defined HVR groups by
+median split of baseline HVR z-score. Groups were
+assigned at baseline and held constant across
+follow-up.
 
 ### CVR Predictor Standardization
 
-- We z-scored both FRS and CVR~mimic~ on a common
-  analysis sample — participants with complete data
-  for both FRS components and MIMIC model indicators
-  — prior to all downstream analyses
-- This ensures that regression coefficients from both
-  linear mixed-effects (LME) models and latent growth
-  curve models (LGCM) are on an identical scale
-  (effect per 1 SD change), enabling direct comparison
-  of effect magnitudes between FRS and CVR~mimic~
-- We retained raw (pre-standardized) FRS values for
-  descriptive statistics and ceiling analyses
+We z-scored both FRS and CVR~mimic~ on a common
+analysis sample — participants with complete data
+for both FRS components and MIMIC model indicators
+— prior to all downstream analyses. This ensures
+that regression coefficients from both linear
+mixed-effects (LME) models and latent growth curve
+models (LGCM) are on an identical scale (effect per
+1 SD change), enabling direct comparison of effect
+magnitudes between FRS and CVR~mimic~. We retained
+raw (pre-standardized) FRS values for descriptive
+statistics and ceiling analyses.
 
 ## Disease Time Estimation
 
-- Calendar time (years from baseline) assumes all
-  participants progress at the same rate, which is
-  unrealistic in a heterogeneous AD sample spanning
-  cognitively unimpaired (CU), mild cognitive
-  impairment (MCI), and dementia stages
-- Estimated Disease Time (EDT) aligns participants on
-  a common disease timeline by estimating each
-  individual's position along an underlying progression
-  curve [@raket_statistical_2020]
-- We computed EDT using the progmod R package with a
-  simultaneous multivariate model fitting ADAS-Cog 13
-  and MMSE jointly, sharing a common disease time
-  random effect across scales [@kuhnel_simultaneous_2021]
-- The simultaneous approach provides more stable
-  individual time estimates than univariate models by
-  leveraging concordant information across cognitive
-  instruments
-- EDT values were mean-centered for numerical stability
-  while retaining the years metric; centering does not
-  affect between-subject differences in disease timing
-- For participants with missing EDT at later timepoints
-  (due to dropout), values were extrapolated using a
-  hybrid approach: a linear slope computed from the
-  individual's observed EDT values when at least two
-  were available, or the sex-stratified population
-  mean EDT slope otherwise, to minimize attrition
-  bias from listwise deletion
+Calendar time (years from baseline) assumes all
+participants progress at the same rate, which is
+unrealistic in a heterogeneous AD sample spanning
+cognitively unimpaired (CU), mild cognitive
+impairment (MCI), and dementia stages. Estimated
+Disease Time (EDT) aligns participants on a common
+disease timeline by estimating each individual's
+position along an underlying progression curve
+[@raket_statistical_2020]. We computed EDT using the
+progmod R package with a simultaneous multivariate
+model fitting ADAS-Cog 13 and MMSE jointly, sharing
+a common disease time random effect across scales
+[@kuhnel_simultaneous_2021]. The simultaneous
+approach provides more stable individual time
+estimates than univariate models because it borrows
+concordant information across cognitive instruments.
+EDT values were mean-centered for numerical stability
+while retaining the years metric; centering does not
+affect between-subject differences in disease timing.
+For participants with missing EDT at later timepoints
+(due to dropout), values were extrapolated using a
+hybrid approach: a linear slope computed from the
+individual's observed EDT values when at least two
+were available, or the sex-stratified population mean
+EDT slope otherwise, to minimize attrition bias from
+listwise deletion.
 
 ## Cognitive Assessment
 
-- ADSP-PHC composite scores [@kang_genome-wide_2023]
-- Three domains assessed:
-  - Memory: episodic memory composite (WMS-R
-    Logical Memory, Rey AVLT, ADAS-Cog word recall,
-    MMSE/MoCA memory items)
-  - Language: language/semantic composite (category
-    fluency, Boston Naming Test, ADAS-Cog
-    naming/commands)
-  - Executive Function: executive composite (Trail
-    Making A/B, WAIS-R Digit Span/Symbol, clock
-    drawing)
-- Scores co-calibrated across multiple cohorts via
-  bifactor item banking approach, initially across
-  ADNI, Adult Changes in Thought (ACT), and
-  Religious Orders Study/Memory and Aging Project
-  (ROS/MAP), with subsequent addition of the
-  National Alzheimer's Coordinating Center (NACC)
-- Higher composite scores indicate better cognitive
-  performance across all three domains
-- Each score has an associated standard error (SE) from the CFA
-  scoring model, reflecting measurement precision at each observation
-- In the LGCM, cognitive composites enter as single indicators with
-  residual variances fixed to SE² (the squared standard error),
-  embedding known measurement error directly from the ADSP-PHC model
-  rather than estimating it as a free parameter
+We used ADSP-PHC composite scores
+[@kang_genome-wide_2023] for three cognitive domains:
+memory (episodic memory composite: WMS-R Logical
+Memory, Rey AVLT, ADAS-Cog word recall, MMSE/MoCA
+memory items), language (language/semantic composite:
+category fluency, Boston Naming Test, ADAS-Cog
+naming/commands), and executive function (executive
+composite: Trail Making A/B, WAIS-R Digit
+Span/Symbol, clock drawing). Scores were
+co-calibrated across multiple cohorts via a bifactor
+item banking approach, initially across ADNI, Adult
+Changes in Thought (ACT), and Religious Orders
+Study/Memory and Aging Project (ROS/MAP), with
+subsequent addition of the National Alzheimer's
+Coordinating Center (NACC). Higher composite scores
+indicate better cognitive performance across all
+three domains. Each score has an associated standard
+error (SE) from the CFA scoring model, reflecting
+measurement precision at each observation. In the
+LGCM, cognitive composites enter as single indicators
+with residual variances fixed to SE² (the squared
+standard error), embedding known measurement error
+directly from the ADSP-PHC model rather than
+estimating it as a free parameter.
 
 ## Statistical Analysis
 
 ### Analytical Framework
 
-- All primary analyses (LME and LGCM) run twice: once
-  with FRS, once with CVR~mimic~ as the CVR predictor
-- Key diagnostic: if FRS effects disappear when
-  replaced by age-adjusted CVR~mimic~, this implicates
-  age-confounding rather than true cardiovascular
-  pathophysiology
-- Central question: does CVR influence the
-  hippocampal-cognitive relationship, and does the
-  answer depend on how CVR is measured?
-- All models sex-stratified (no pooled sample),
-  following the NIH policy on Sex as a Biological
-  Variable (SABV; @clayton_policy_2014)
-  - Sex differences in AD pathophysiology,
-    cardiovascular risk profiles, and brain aging
-    trajectories motivate stratification rather than
-    inclusion of sex as a covariate
-    [@ferretti_sex_2018; @mielke_consideration_2022]
-  - Stratification allows effect sizes, variance
-    components, and covariate relationships to differ
-    freely between sexes; sex is omitted from
-    covariates because it defines the strata
-- Covariates in all models: age at baseline, education
-  (years), APOE ε4 carrier status
-- Primary inferences based on uncorrected per-test
-  p-values given the pre-specified, hypothesis-driven
-  nature of the analyses [@rothman_no_1990; @perneger_whats_1998].
-  As a supplementary check, we applied FDR
-  correction (Benjamini-Hochberg) within each CVR
-  measure across the 6 LME tests (3 domains × 2
-  sexes). FRS and CVR~mimic~ corrected separately
-  because they address distinct hypotheses. Whether
-  effects surviving uncorrected thresholds also survive
-  FDR is reported in Results. The key inferential
-  comparison (a-path FRS vs a-path CVR~mimic~) is
-  inherently directional and does not require
-  correction across independent model comparisons
-  [@perneger_whats_1998].
-  For the LGCM mediation models (12 tests: 2
-  sexes × 3 domains × 2 predictors), no FDR
-  correction: inference rests on the
-  consistency of the pattern across models
-  (FRS a-path significant in 6/6 vs CVR~mimic~
-  0/6) rather than on any single test
-- **Analytical roadmap.** The two modelling
-  frameworks address distinct questions:
-  - *LME (moderation)*: does CVR change the
-    HVR–cognition coupling over time? Tested via
-    the 3-way YRS × CVR × HVR interaction
-  - *LGCM (mediation)*: does CVR drive cognitive
-    decline through hippocampal atrophy? Tested
-    via the indirect path CVR → HVR slope →
-    cognitive slope
-  - Comparing FRS and CVR~mimic~ across both
-    frameworks isolates the role of age-weighting
-    in observed CVR–brain associations
-- **Formal predictor comparison.** FRS and
-  CVR~mimic~ fitted on the same participants
-  require a paired test to compare coefficients
-  - *LGCM*: shared-seed bootstrap ensures
-    identical resamples for both predictors;
-    paired $\Delta_a = a_\text{FRS} -
-    a_\text{CVR}$ with bias-corrected 95% CI
-  - *LME*: clustered bootstrap (resampling
-    subjects with replacement); paired
-    $\Delta\beta = \beta_\text{FRS} -
-    \beta_\text{CVR}$ for the 3-way interaction,
-    bias-corrected 95% CI
+All primary analyses (LME and LGCM) were run twice:
+once with FRS and once with CVR~mimic~ as the CVR
+predictor. The key diagnostic is whether FRS effects
+disappear when replaced by age-adjusted CVR~mimic~,
+which would implicate age-confounding rather than
+true cardiovascular pathophysiology. The central
+question is whether CVR influences the
+hippocampal-cognitive relationship, and whether the
+answer depends on how CVR is measured.
+
+All models were sex-stratified (no pooled sample),
+following the NIH policy on Sex as a Biological
+Variable (SABV; @clayton_policy_2014). Sex
+differences in AD pathophysiology, cardiovascular
+risk profiles, and brain aging trajectories motivate
+stratification rather than inclusion of sex as a
+covariate [@ferretti_sex_2018;
+@mielke_consideration_2022]. Stratification allows
+effect sizes, variance components, and covariate
+relationships to differ freely between sexes; sex is
+omitted from covariates because it defines the
+strata. Covariates in all models include age at
+baseline, education (years), and APOE ε4 carrier
+status.
+
+Primary inferences are based on uncorrected per-test
+p-values given the pre-specified, hypothesis-driven
+nature of the analyses
+[@rothman_no_1990; @perneger_whats_1998]. As a
+supplementary check, we applied FDR correction
+(Benjamini-Hochberg) within each CVR measure across
+the 6 LME tests (3 domains × 2 sexes). FRS and
+CVR~mimic~ were corrected separately because they
+address distinct hypotheses. Whether effects
+surviving uncorrected thresholds also survive FDR is
+reported in Results. The key inferential comparison
+(a-path FRS vs a-path CVR~mimic~) is inherently
+directional and does not require correction across
+independent model comparisons
+[@perneger_whats_1998]. For the LGCM mediation
+models (12 tests: 2 sexes × 3 domains ×
+2 predictors), no FDR correction was applied:
+inference rests on the consistency of the pattern
+across models (FRS a-path significant in 6/6 vs
+CVR~mimic~ 0/6) rather than on any single test.
+
+**Analytical roadmap.** The two modelling frameworks
+address distinct questions. The LME tests
+*moderation*: does CVR change the HVR-cognition
+coupling over time, assessed via the 3-way
+YRS × CVR × HVR interaction? The LGCM tests
+*mediation*: does CVR drive cognitive decline through
+hippocampal atrophy, assessed via the indirect path
+CVR → HVR slope → cognitive slope? Comparing FRS
+and CVR~mimic~ across both frameworks isolates the
+role of age-weighting in observed CVR-brain
+associations.
+
+**Formal predictor comparison.** Because FRS and
+CVR~mimic~ were fitted on the same participants,
+paired tests are required to compare coefficients.
+In the LGCM, shared-seed bootstrap ensures identical
+resamples for both predictors, yielding a paired
+$\Delta_a = a_\text{FRS} - a_\text{CVR}$ with
+bias-corrected 95% CI. In the LME, clustered
+bootstrap (resampling subjects with replacement)
+provides a paired
+$\Delta\beta = \beta_\text{FRS} - \beta_\text{CVR}$
+for the 3-way interaction, with bias-corrected
+95% CI.
 
 ### Methodological Validations
 
 #### EDT Linearity Validation
 
-- Likelihood ratio test (LRT) using LME models
-  comparing linear vs quadratic EDT specifications,
-  testing whether adding a quadratic EDT term improves
-  model fit. This complements the LGCM quadratic
-  convergence findings (see below)
+We used likelihood ratio tests (LRT) with LME models
+comparing linear vs quadratic EDT specifications,
+testing whether adding a quadratic EDT term improves
+model fit. This complements the LGCM quadratic
+convergence findings (see below).
 
 #### Simulation Study: SE-Constrained Validation
 
-- A Monte Carlo simulation validated the SE-constrained
-  LGCM specification (residual variance fixed to SE²)
-  against free estimation (residual variance freely
-  estimated). This validates the SE-constrained
-  specification used in the LGCM models described below
-- This is a methodological validation, not a power
-  analysis — it validates the estimation approach under
-  known truth, not detection rates for specific effect
-  sizes
-- The SE-constraint is a key methodological innovation:
-  normative z-scores from GAMLSS models have known SEs,
-  so fixing residual variance to SE² uses this
-  information rather than discarding it
-- Data generated from a univariate latent growth model
-  with known true parameters:
-  - Intercept mean = `r simulation.res$true_params$intercept_mean`,
-    slope mean = `r simulation.res$true_params$slope_mean`
-    per year EDT
-  - Intercept variance =
-    `r simulation.res$true_params$intercept_var`,
-    slope variance =
-    `r simulation.res$true_params$slope_var`
-  - HVR → Slope true effect =
-    `r simulation.res$true_params$hvr_effect`
-  - Measurement SE =
-    `r simulation.res$true_params$se_true`
-    (SD = `r simulation.res$true_params$se_variation`
-    across observations)
-  - EDT: mean =
-    `r simulation.res$true_params$edt_mean` years,
-    SD = `r simulation.res$true_params$edt_sd`,
-    change =
-    `r simulation.res$true_params$edt_change`
-    per visit
-- Two approaches compared across
-  `r simulation.res$config$n_reps`
-  replications at
-  N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`:
-  (a) residual variance fixed to SE² (SE-constrained)
-  (b) residual variance freely estimated
-- Performance metrics: parameter bias (mean difference
-  from truth), RMSE (root mean squared error), and 95%
-  CI coverage probability
+A Monte Carlo simulation validated the
+SE-constrained LGCM specification (residual variance
+fixed to SE²) against free estimation (residual
+variance freely estimated). This is a methodological
+validation, not a power analysis — it validates the
+estimation approach under known truth, not detection
+rates for specific effect sizes. The SE-constraint
+is a key methodological innovation: normative
+z-scores from GAMLSS models have known SEs, so
+fixing residual variance to SE² uses this
+information rather than discarding it.
+
+Data were generated from a univariate latent growth
+model with known true parameters: intercept mean =
+`r simulation.res$true_params$intercept_mean`, slope
+mean = `r simulation.res$true_params$slope_mean` per
+year EDT, intercept variance =
+`r simulation.res$true_params$intercept_var`, slope
+variance = `r simulation.res$true_params$slope_var`,
+HVR → Slope true effect =
+`r simulation.res$true_params$hvr_effect`,
+measurement SE =
+`r simulation.res$true_params$se_true`
+(SD = `r simulation.res$true_params$se_variation`
+across observations), and EDT with mean =
+`r simulation.res$true_params$edt_mean` years,
+SD = `r simulation.res$true_params$edt_sd`, change =
+`r simulation.res$true_params$edt_change` per visit.
+Two approaches were compared across
+`r simulation.res$config$n_reps` replications at
+N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`:
+(a) residual variance fixed to SE² (SE-constrained)
+and (b) residual variance freely estimated.
+Performance metrics include parameter bias (mean
+difference from truth), RMSE (root mean squared
+error), and 95% CI coverage probability.
 
 ### LME Growth Models with 3-Way Interaction
 
-- Model specification (per sex):
+The model specification (per sex) is:
 
 $$
 \begin{aligned}
@@ -1000,39 +1024,38 @@ $$
   \text{HVR}_{zit} \;\text{(all 2- and 3-way terms)} \\
 & + \boldsymbol{X}_i\boldsymbol{\gamma} + \epsilon_{it}
 \end{aligned}
-$$
+$$ {#eq-lme}
 
-  where the linear block ($\text{YRS} \times \text{CVR}
-  \times \text{HVR}$) expands to YRS×CVR, YRS×HVR, and
-  YRS×CVR×HVR, and the quadratic block
-  ($\text{YRS}^2 \times \text{CVR} \times \text{HVR}$)
-  expands to YRS², YRS²×CVR, YRS²×HVR, and
-  YRS²×CVR×HVR. The quadratic interaction terms test
-  whether CVR moderation of the HVR-cognition
-  relationship accelerates (or decelerates) over
-  follow-up.
-
-- Random effects: subject-specific intercepts
-  ($b_{0i}$) and linear slopes ($b_{1i}$)
-- CVR entered as either FRS or CVR~mimic~ in parallel
-  model sets
-- Hypothesis tested: does CVR moderate how the
-  HVR-cognition relationship evolves over time?
-- Interpretation of 3-way interaction: negative β means
-  higher CVR increasingly weakens the protective
-  HVR-cognition association over follow-up
-- Quadratic time (YRS²) justified by likelihood ratio
-  tests comparing nested linear and quadratic models
-  — all 12 models (2 sexes × 2 brain measures ×
-  3 domains) showed significantly better fit with a
-  quadratic term (LRT p < 0.05)
+where the linear block ($\text{YRS} \times \text{CVR}
+\times \text{HVR}$) expands to YRS×CVR, YRS×HVR, and
+YRS×CVR×HVR, and the quadratic block
+($\text{YRS}^2 \times \text{CVR} \times \text{HVR}$)
+expands to YRS², YRS²×CVR, YRS²×HVR, and
+YRS²×CVR×HVR. The quadratic interaction terms test
+whether CVR moderation of the HVR-cognition
+relationship accelerates (or decelerates) over
+follow-up. Random effects include subject-specific
+intercepts ($b_{0i}$) and linear slopes ($b_{1i}$).
+CVR is entered as either FRS or CVR~mimic~ in
+parallel model sets. The hypothesis tested is whether
+CVR moderates how the HVR-cognition relationship
+evolves over time; a negative 3-way β means higher
+CVR increasingly weakens the protective
+HVR-cognition association over follow-up. Quadratic
+time (YRS²) was justified by likelihood ratio tests
+comparing nested linear and quadratic models — all
+12 models (2 sexes × 2 brain measures × 3 domains)
+showed significantly better fit with a quadratic
+term (LRT *p* < 0.05).
 
 ### LGCM Parallel Process Models
 
-- LGCM with parallel HVR and cognitive trajectories
-  [@bollen_latent_2006; @muniz-terrera_latent_2017] tested whether CVR
-  affects the hippocampal-cognitive relationship
-  via mediation (CVR → HVR slope → Cognitive slope)
+We specified LGCM with parallel HVR and cognitive
+trajectories
+[@bollen_latent_2006; @muniz-terrera_latent_2017] to
+test whether CVR affects the hippocampal-cognitive
+relationship via mediation (CVR → HVR slope →
+Cognitive slope).
 
 #### Model Specification
 
@@ -1048,7 +1071,7 @@ y_{it} &= \eta_{0i} + \eta_{1i} \cdot
 \eta_{1i} &= \alpha_1 +
   \boldsymbol{X}_i \boldsymbol{\gamma}_1 + \zeta_{1i}
 \end{aligned}
-$$
+$$ {#eq-lgcm}
 
   where $y_{it}$ is the observed score (HVR z-score
   or cognitive composite) for person $i$ at occasion
@@ -1060,162 +1083,161 @@ $$
   and $\boldsymbol{X}_i$ includes CVR predictor, age,
   education, and APOE ε4 status.
 
-- Two parallel processes (HVR and cognitive composite)
-  are specified simultaneously, with their latent
-  growth factors allowed to covary or linked by
-  directional paths depending on the model
-- Up to 6 measurement occasions per participant
-- Cognitive composite residual variances fixed to SE²
-  from the ADSP-PHC CFA scoring model, embedding
-  known heteroscedastic measurement error directly
-  rather than estimating it as a free parameter. This
-  yields more precise latent slope estimates by
-  separating true variance from measurement noise
-- Fully random quadratic models (6 latent factors
-  per domain) failed to converge due to near-zero
-  quadratic variance and insufficient data capacity
-  for the combined model complexity. We therefore
-  adopted a fixed-quadratic specification: two
-  additional phantom latent factors (HVR quadratic,
-  cognitive quadratic) with variance fixed to near
-  zero and free population means, capturing
-  population-level curvature (2 additional free
-  parameters) without individual-level quadratic
-  variation. Likelihood ratio tests comparing this
-  fixed-quadratic model against a purely linear
-  model determined whether quadratic curvature
-  improved fit
-- We attempted to embed the full MIMIC measurement
-  model within the OpenMx parallel process framework,
-  but only 1/6 models converged. We therefore used
-  pre-computed ζ scores instead (see Score Extraction
-  above)
+Two parallel processes (HVR and cognitive composite)
+are specified simultaneously, with their latent
+growth factors allowed to covary or linked by
+directional paths depending on the model, across up
+to 6 measurement occasions per participant. Cognitive
+composite residual variances were fixed to SE² from
+the ADSP-PHC CFA scoring model, embedding known
+heteroscedastic measurement error directly rather
+than estimating it as a free parameter; this yields
+more precise latent slope estimates by separating
+true variance from measurement noise.
+
+Fully random quadratic models (6 latent factors per
+domain) failed to converge due to near-zero quadratic
+variance and insufficient data capacity for the
+combined model complexity. We therefore adopted a
+fixed-quadratic specification: two additional phantom
+latent factors (HVR quadratic, cognitive quadratic)
+with variance fixed to near zero and free population
+means, capturing population-level curvature
+(2 additional free parameters) without
+individual-level quadratic variation. Likelihood
+ratio tests comparing this fixed-quadratic model
+against a purely linear model determined whether
+quadratic curvature improved fit. We attempted to
+embed the full MIMIC measurement model within the
+OpenMx parallel process framework, but only 1/6
+models converged; we therefore used pre-computed ζ
+scores instead (see Score Extraction above).
 
 #### Time Metric
 
-- Slope loadings use individually-varying time scores
-  (ITVS) determined by each participant's EDT, which
-  maps each visit to a position on the disease
-  progression timeline rather than calendar time
-- Because ITVS give each participant a unique implied
-  covariance structure, standard fit indices (CFI,
-  TLI, RMSEA) that require a common saturated
-  reference model cannot be computed
-  [@grimm_growth_2016; @mehta_putting_2000]
+Slope loadings use individually-varying time scores
+(ITVS) determined by each participant's EDT, which
+maps each visit to a position on the disease
+progression timeline rather than calendar time.
+Because ITVS give each participant a unique implied
+covariance structure, standard fit indices (CFI,
+TLI, RMSEA) that require a common saturated
+reference model cannot be computed
+[@grimm_growth_2016; @mehta_putting_2000].
 
 #### Covariates and Predictors
 
-- CVR predictors (FRS and CVR~mimic~) mean-centered
-  within each sex stratum to account for sex
-  differences in cardiovascular risk distributions.
-  Covariates (age, education) centered on grand means
-  pooled across sexes for consistency across
-  sex-stratified analyses
-- CVR~mimic~ entered as pre-computed age-adjusted ζ
-  scores from the MIMIC model, z-standardized on the
-  common sample. Both FRS and CVR~mimic~ are observed
-  covariates in the LGCM
-- We regressed all covariates on both the latent
-  intercept and latent slope factors for each process
-  (HVR and cognitive)
-- We fit the same models with FRS and CVR~mimic~ for
-  direct
-  comparison of predictive utility
+CVR predictors (FRS and CVR~mimic~) were
+mean-centered within each sex stratum to account for
+sex differences in cardiovascular risk distributions;
+covariates (age, education) were centered on grand
+means pooled across sexes for consistency across
+sex-stratified analyses. CVR~mimic~ entered as
+pre-computed age-adjusted ζ scores from the MIMIC
+model, z-standardized on the common sample. Both FRS
+and CVR~mimic~ are observed covariates in the LGCM.
+We regressed all covariates on both the latent
+intercept and latent slope factors for each process
+(HVR and cognitive) and fit the same models with FRS
+and CVR~mimic~ for direct comparison of predictive
+utility.
 
 #### Model Fit and Inference
 
-- We handled missing data via full information
-  maximum likelihood (FIML), which uses all available
-  observations without listwise deletion
-- We assessed model fit via −2 log-likelihood (−2LL),
-  Akaike information criterion (AIC), and Bayesian
-  information criterion (BIC)
-- Bootstrap inference: case resampling with
-  n = `r format(lgcm_results$bootstrap$n_boot, big.mark = ",")`
-  iterations for all mediation paths
-  (a, b, c', indirect, total). Both percentile
-  and bias-corrected (BC) 95% confidence intervals
-  reported. BC intervals adjust for bias in the
-  bootstrap distribution and are recommended for
-  products of coefficients, which typically have
-  skewed sampling distributions [@efron_introduction_1994].
-  A path is significant when its BC 95% CI
-  excludes zero. This is the primary inference
-  method for all mediation paths
-- We extracted individual factor scores via
-  regression method (`mxFactorScores`) for
-  visualization of slope coupling
+Missing data were handled via full information
+maximum likelihood (FIML), which uses all available
+observations without listwise deletion. We assessed
+model fit via −2 log-likelihood (−2LL), Akaike
+information criterion (AIC), and Bayesian information
+criterion (BIC). For bootstrap inference, we used
+case resampling with
+n = `r format(lgcm_results$bootstrap$n_boot, big.mark = ",")`
+iterations for all mediation paths (a, b, c',
+indirect, total), reporting both percentile and
+bias-corrected (BC) 95% confidence intervals. BC
+intervals adjust for bias in the bootstrap
+distribution and are recommended for products of
+coefficients, which typically have skewed sampling
+distributions [@efron_introduction_1994]. A path is
+significant when its BC 95% CI excludes zero; this
+is the primary inference method for all mediation
+paths. We extracted individual factor scores via the
+regression method (`mxFactorScores`) for
+visualization of slope coupling.
 
 #### Coupling Model
 
-- Parallel process coupling: free covariance between
-  HVR linear slope and cognitive linear slope
-  (hvr~s~ ↔ cog~s~) estimated to test whether
-  linear rates of hippocampal and cognitive decline
-  co-vary; reported as standardized correlations
-  (*r* = cov / √(var~hvr\_s~ × var~cog\_s~))
+In the coupling model, a free covariance between HVR
+linear slope and cognitive linear slope
+(hvr~s~ ↔ cog~s~) is estimated to test whether
+linear rates of hippocampal and cognitive decline
+co-vary, reported as standardized correlations
+(*r* = cov / √(var~hvr\_s~ × var~cog\_s~)).
 
 #### Mediation Model
 
-- Directional paths replace the free slope covariance:
-  - a-path: CVR → HVR slope (does CVR predict rate of
-    hippocampal decline?)
-  - b-path: HVR slope → cognitive slope
-    (hippocampal-cognitive coupling)
-  - c'-path: CVR → cognitive slope (direct effect
-    bypassing hippocampal atrophy)
-  - Indirect effect: a × b (mediation through
-    hippocampus)
-- No free hvr~s~ ↔ cog~s~ covariance is estimated
-  in the mediation model because the directional
-  b-path already captures the slope relationship;
-  the coupling model uses a free covariance without
-  directional paths instead
-- A significant total effect is not required for valid
-  mediation inference [@bollen_latent_2006]
+In the mediation model, directional paths replace the
+free slope covariance: the a-path (CVR → HVR slope)
+tests whether CVR predicts the rate of hippocampal
+decline; the b-path (HVR slope → cognitive slope)
+captures hippocampal-cognitive coupling; the c'-path
+(CVR → cognitive slope) captures the direct effect
+bypassing hippocampal atrophy; and the indirect
+effect (a × b) quantifies mediation through the
+hippocampus. No free hvr~s~ ↔ cog~s~ covariance is
+estimated in the mediation model because the
+directional b-path already captures the slope
+relationship; the coupling model uses a free
+covariance without directional paths instead. A
+significant total effect is not required for valid
+mediation inference [@bollen_latent_2006].
 
 ### Sensitivity Analyses
 
 #### LME Sensitivity
 
-- **HC z-score specificity**: we repeated the LME
-  3-way interaction with total hippocampal volume
-  (HC z-score, normalized against UKB norms) instead
-  of HVR, testing whether CVR moderation effects are
-  specific to the hippocampus-to-ventricle ratio or
-  generalize to hippocampal volume alone
-- **Attrition analysis**: we compared baseline
-  characteristics between completers (≥ 4 visits)
-  and dropouts (< 4 visits) using t-tests
-  (continuous) and χ² tests (categorical), plus
-  logistic regression predicting dropout status from
-  baseline characteristics
-- **Raw HVR and HC sensitivity**: we repeated the
-  LME 3-way interaction using raw (un-normalized)
-  HVR and raw HC (with intracranial volume covariate)
-  instead of UKB z-scored values, testing robustness
-  to the normative z-scoring procedure
-- **EDT moderation**: we used EDT as a moderator in a
-  4-way interaction (CVR × HVR × EDT × YRS), testing
-  whether CVR effects on brain-cognition coupling
-  vary by disease stage
-- **EDT Early/Middle sensitivity**: we restricted
-  LME models to the first two EDT tertiles, excluding
-  late-stage participants to assess robustness
+We conducted five sensitivity analyses within the
+LME framework. First, for **HC z-score specificity**,
+we repeated the 3-way interaction with total
+hippocampal volume (HC z-score, normalized against
+UKB norms) instead of HVR, testing whether CVR
+moderation effects are specific to the
+hippocampus-to-ventricle ratio or generalize to
+hippocampal volume alone. Second, for **attrition
+analysis**, we compared baseline characteristics
+between completers (≥ 4 visits) and dropouts
+(< 4 visits) using t-tests (continuous) and χ² tests
+(categorical), plus logistic regression predicting
+dropout status from baseline characteristics. Third,
+for **raw HVR and HC sensitivity**, we repeated the
+3-way interaction using raw (un-normalized) HVR and
+raw HC (with intracranial volume covariate) instead
+of UKB z-scored values, to confirm findings are not
+artifacts of the normative transformation. Fourth, for **EDT
+moderation**, we used EDT as a moderator in a 4-way
+interaction (CVR × HVR × EDT × YRS), testing whether
+CVR effects on brain-cognition coupling vary by
+disease stage. Fifth, for **EDT Early/Middle
+sensitivity**, we restricted LME models to the first
+two EDT tertiles, excluding late-stage participants
+to assess stability of effects across
+disease stages.
 
 ## Software
 
-- R (version 4.x) with the following packages:
-  - lavaan [@rosseel_lavaan_2012]: MIMIC model specification,
-    estimation (MLR + FIML), measurement invariance
-    testing, and factor score extraction
-  - lme4 [@bates_fitting_2015]: LME growth models with bobyqa
-    optimizer and REML estimation
-  - OpenMx [@neale_openmx_2016]: LGCM parallel process and
-    mediation models with SLSQP optimizer
-    (convergence criterion: gradient < $10^{-5}$)
-  - progmod [@raket_statistical_2020]: EDT computation
-  - CVrisk [@castro_cvrisk_2026]: FRS computation (via ADSP-PHC)
+All analyses were conducted in R (version 4.x) with
+the following packages: lavaan
+[@rosseel_lavaan_2012] for MIMIC model specification,
+estimation (MLR + FIML), measurement invariance
+testing, and factor score extraction; lme4
+[@bates_fitting_2015] for LME growth models with
+bobyqa optimizer and REML estimation; OpenMx
+[@neale_openmx_2016] for LGCM parallel process and
+mediation models with SLSQP optimizer (convergence
+criterion: gradient < $10^{-5}$); progmod
+[@raket_statistical_2020] for EDT computation; and
+CVrisk [@castro_cvrisk_2026] for FRS computation (via
+ADSP-PHC).
 
 ---
 
@@ -1223,53 +1245,52 @@ $$
 
 ## Sample Characteristics
 
-- LME cohort:
-  `r n_subjects` amyloid-positive participants
-  (`r sum(baseline.dt$SEX == "Male")` males,
-  `r sum(baseline.dt$SEX == "Female")` females)
-  with complete data for both FRS and CVR~mimic~
-  after common-sample filtering
-- Mean age
-  `r sprintf("%.1f", age_mean)` ±
-  `r sprintf("%.1f", age_sd)` years
-  (range
-  `r sprintf("%.0f", age_min)`–`r sprintf("%.0f", age_max)`)
-- Diagnostic composition: `r n_cu` cognitively
-  unimpaired
-  (`r sprintf("%.0f", 100 * n_cu / n_subjects)`%),
-  `r n_mci` MCI
-  (`r sprintf("%.0f", 100 * n_mci / n_subjects)`%),
-  `r n_ad` AD dementia
-  (`r sprintf("%.0f", 100 * n_ad / n_subjects)`%)
-- Median
-  `r median_visits` visits
-  (range `r range_visits[1]`–`r range_visits[2]`),
-  mean follow-up
-  `r sprintf("%.1f", fu_mean)` years
-  (max `r sprintf("%.1f", fu_max)`)
-- Education
-  `r sprintf("%.1f", educ_mean)` ±
-  `r sprintf("%.1f", educ_sd)` years;
-  `r sprintf("%.0f", pct_apoe4)`% APOE ε4 carriers
-- Baseline FRS
-  `r sprintf("%.1f", frs_mean_raw)` ±
-  `r sprintf("%.1f", frs_sd_raw)` (raw);
-  CVR~mimic~ ζ
-  `r sprintf("%.2f", cvr_mean)` ±
-  `r sprintf("%.2f", cvr_sd)` (age-adjusted
-  latent scores; both FRS and CVR~mimic~
-  z-standardized on the common sample before
-  analysis)
-- LGCM cohort: `r n_lgcm_total` participants
-  (`r lgcm_n.lst$Male$n` males,
-  `r lgcm_n.lst$Female$n` females) with ≥2
-  occasions and available EDT values
-- Mediation bootstrap samples:
-  `r med_n.lst$Male` males,
-  `r med_n.lst$Female` females (complete cases
-  required for case-resampling)
-- Participant flow in Figure \ref{fig-consort}; baseline
-  demographics by sex in @tbl-demographics
+The LME cohort comprised
+`r n_subjects` amyloid-positive participants
+(`r sum(baseline.dt$SEX == "Male")` males,
+`r sum(baseline.dt$SEX == "Female")` females)
+with complete data for both FRS and CVR~mimic~
+after common-sample filtering. Mean age was
+`r sprintf("%.1f", age_mean)` ±
+`r sprintf("%.1f", age_sd)` years
+(range
+`r sprintf("%.0f", age_min)`–`r sprintf("%.0f", age_max)`).
+The diagnostic composition included `r n_cu`
+cognitively unimpaired
+(`r sprintf("%.0f", 100 * n_cu / n_subjects)`%),
+`r n_mci` MCI
+(`r sprintf("%.0f", 100 * n_mci / n_subjects)`%),
+and `r n_ad` AD dementia
+(`r sprintf("%.0f", 100 * n_ad / n_subjects)`%).
+Participants had a median of
+`r median_visits` visits
+(range `r range_visits[1]`–`r range_visits[2]`)
+with mean follow-up of
+`r sprintf("%.1f", fu_mean)` years
+(max `r sprintf("%.1f", fu_max)`).
+Education averaged
+`r sprintf("%.1f", educ_mean)` ±
+`r sprintf("%.1f", educ_sd)` years, and
+`r sprintf("%.0f", pct_apoe4)`% were APOE ε4
+carriers. Baseline FRS was
+`r sprintf("%.1f", frs_mean_raw)` ±
+`r sprintf("%.1f", frs_sd_raw)` (raw);
+CVR~mimic~ ζ was
+`r sprintf("%.2f", cvr_mean)` ±
+`r sprintf("%.2f", cvr_sd)` (age-adjusted
+latent scores; both FRS and CVR~mimic~
+z-standardized on the common sample before
+analysis). The LGCM cohort included
+`r n_lgcm_total` participants
+(`r lgcm_n.lst$Male$n` males,
+`r lgcm_n.lst$Female$n` females) with ≥2
+occasions and available EDT values.
+Mediation bootstrap samples comprised
+`r med_n.lst$Male` males and
+`r med_n.lst$Female` females (complete cases
+required for case-resampling). Participant flow is
+shown in Figure \ref{fig-consort}; baseline
+demographics by sex appear in @tbl-demographics.
 
 ```{r tbl-demographics}
 #| tbl-cap: "Baseline characteristics of the ADNI analysis cohort compared with the UK Biobank normative reference sample. Values are mean (SD) for continuous variables, % for categorical. HC = bilateral hippocampal volume; HVR = hippocampus-to-ventricle ratio; FRS = Framingham Risk Score; APOE ε4+ = carriers of at least one ε4 allele. Z-scores derived from UK Biobank GAMLSS normative models."
@@ -1298,50 +1319,48 @@ were closer to expected values
 
 ### FRS Properties
 
-- FRS strongly correlated with age (Pearson r =
-  `r sprintf("%.3f", frs_age_r)`,
-  Spearman ρ =
-  `r sprintf("%.3f", frs_age_rho)`)
-- FRS–age partial correlation (controlling for
-  other CVRF) remained substantial
-  (r = `r sprintf("%.3f", frs_partial_r)`),
-  confirming age dominates FRS in older adults
-- Variance decomposition: age alone R² =
-  `r sprintf("%.3f", frs_var_decomp$r2_age)`,
-  CVRF alone R² =
-  `r sprintf("%.3f", frs_var_decomp$r2_cvrf)`,
-  combined R² =
-  `r sprintf("%.3f", frs_var_decomp$r2_full)` —
-  true CVRF contribute modestly beyond age
-- Ceiling:
-  `r sprintf("%.1f", frs_ceiling_all)`% at
-  the 30% risk cap
-  (`r sprintf("%.1f", frs_ceiling_male)`% males,
-  `r sprintf("%.1f", frs_ceiling_female)`% females)
-- Variance compression:
-  `r sprintf("%.1f", frs_above20_all)`% scored
-  above 20, limiting statistical sensitivity even
-  below the formal ceiling
+FRS was strongly correlated with age (Pearson r =
+`r sprintf("%.3f", frs_age_r)`, Spearman ρ =
+`r sprintf("%.3f", frs_age_rho)`). The FRS-age
+partial correlation (controlling for other CVRF)
+remained substantial
+(r = `r sprintf("%.3f", frs_partial_r)`),
+confirming that age dominates FRS in older adults.
+Variance decomposition showed age alone R² =
+`r sprintf("%.3f", frs_var_decomp$r2_age)`,
+CVRF alone R² =
+`r sprintf("%.3f", frs_var_decomp$r2_cvrf)`, and
+combined R² =
+`r sprintf("%.3f", frs_var_decomp$r2_full)`,
+indicating true CVRF contribute modestly beyond
+age. A total of
+`r sprintf("%.1f", frs_ceiling_all)`% of
+participants were at the 30% risk cap
+(`r sprintf("%.1f", frs_ceiling_male)`% males,
+`r sprintf("%.1f", frs_ceiling_female)`% females),
+and `r sprintf("%.1f", frs_above20_all)`% scored
+above 20, limiting statistical sensitivity even
+below the formal ceiling.
 
 ### CVR~mimic~ Validation
 
-- MIMIC model fit: CFI =
-  `r sprintf("%.3f", mimic_fit[["cfi.robust"]])`,
-  TLI =
-  `r sprintf("%.3f", mimic_fit[["tli.robust"]])`,
-  RMSEA =
-  `r sprintf("%.3f", mimic_fit[["rmsea.robust"]])`,
-  SRMR =
-  `r sprintf("%.3f", mimic_fit[["srmr"]])`
-- Structural path: γ =
-  `r sprintf("%.3f", mimic_gamma)`,
-  R² = `r sprintf("%.3f", mimic_r2)` — age
-  explained only
-  `r sprintf("%.1f", mimic_r2 * 100)`% of CVR
-  variance, confirming CVR~mimic~ is largely
-  age-free
-- Factor loadings in @tbl-mimic-loadings; visual
-  validation in @fig-cvr-validation
+The MIMIC model showed good fit: CFI =
+`r sprintf("%.3f", mimic_fit[["cfi.robust"]])`,
+TLI =
+`r sprintf("%.3f", mimic_fit[["tli.robust"]])`,
+RMSEA =
+`r sprintf("%.3f", mimic_fit[["rmsea.robust"]])`,
+SRMR =
+`r sprintf("%.3f", mimic_fit[["srmr"]])`. The
+structural path showed γ =
+`r sprintf("%.3f", mimic_gamma)` with
+R² = `r sprintf("%.3f", mimic_r2)`, indicating age
+explained only
+`r sprintf("%.1f", mimic_r2 * 100)`% of CVR
+variance and confirming CVR~mimic~ is largely
+age-free. Factor loadings appear in
+@tbl-mimic-loadings; visual validation in
+@fig-cvr-validation.
 
 ```{r tbl-mimic-loadings}
 #| tbl-cap: "MIMIC model factor loadings for the CVR latent factor. λ = unstandardized factor loading; Std. λ = standardized loading; SE = standard error."
@@ -1356,34 +1375,28 @@ require_output(
 )
 ```
 
-- CVR~mimic~ after age-adjustment and
-  z-standardization:
-  - Correlation with age: r =
-    `r sprintf("%.3f", cvr_age_cor)` (near-zero
-    by construction)
-  - Correlation with FRS: r =
-    `r sprintf("%.2f", cvr_frs_cor)` (moderate
-    overlap from shared CV indicators)
-  - Distribution: mean =
-    `r sprintf("%.2f", cvr_mean)`, SD =
-    `r sprintf("%.2f", cvr_sd)`
+After age-adjustment and z-standardization,
+CVR~mimic~ showed near-zero correlation with age
+(r = `r sprintf("%.3f", cvr_age_cor)`, by
+construction), moderate correlation with FRS
+(r = `r sprintf("%.2f", cvr_frs_cor)`, reflecting
+shared CV indicators), and approximate standard
+normal distribution (mean =
+`r sprintf("%.2f", cvr_mean)`, SD =
+`r sprintf("%.2f", cvr_sd)`).
 
 ### Measurement Invariance
 
-- MI of the CVR MIMIC model tested across sex in
-  four steps (Appendix B, @tbl-mi); configural
-  invariance
-  supported: CFI =
-  `r sprintf("%.3f", mi_cfg_fit[["CFI"]])`,
-  RMSEA =
-  `r sprintf("%.3f", mi_cfg_fit[["RMSEA"]])`
+MI of the CVR MIMIC model was tested across sex in
+four steps (Appendix B, @tbl-mi). Configural
+invariance was supported: CFI =
+`r sprintf("%.3f", mi_cfg_fit[["CFI"]])`,
+RMSEA =
+`r sprintf("%.3f", mi_cfg_fit[["RMSEA"]])`.
 
 ```{r mi-inline-steps}
-#| output: asis
+#| include: false
 
-# Report each MI step with delta-fit indices
-# Deltas in comparisons_delta/lrt, keyed as
-# "base_vs_test"
 mi_comp <- list(
   metric = "configural_vs_metric",
   scalar = "metric_vs_scalar",
@@ -1394,48 +1407,59 @@ mi_labels <- c(
   scalar = "Scalar (equal intercepts)",
   strict = "Strict (equal residuals)"
 )
-for (step in names(mi_comp)) {
-  ckey <- mi_comp[[step]]
-  delta <- cvr_mi.res$comparisons_delta[[ckey]]
-  lrt <- cvr_mi.res$comparisons_lrt[[ckey]]
-  if (is.null(delta) && is.null(lrt)) next
-  d_cfi <- if (!is.null(delta$d_cfi)) {
-    sprintf("%.3f", delta$d_cfi)
-  } else "NA"
-  d_rmsea <- if (!is.null(delta$d_rmsea)) {
-    sprintf("%.3f", delta$d_rmsea)
-  } else "NA"
-  chi_p <- if (!is.null(lrt$p)) {
-    fmt_p_inline(lrt$p)
-  } else "NA"
-  cat(sprintf(
-    "- %s: ΔCFI = %s, ΔRMSEA = %s (%s)\n",
-    mi_labels[step], d_cfi, d_rmsea, chi_p
-  ))
-}
-# Report scalar failure if applicable
+mi_step_parts <- vapply(
+  names(mi_comp), function(step) {
+    ckey <- mi_comp[[step]]
+    delta <-
+      cvr_mi.res$comparisons_delta[[ckey]]
+    lrt <-
+      cvr_mi.res$comparisons_lrt[[ckey]]
+    if (is.null(delta) && is.null(lrt)) {
+      return("")
+    }
+    d_cfi <- if (!is.null(delta$d_cfi)) {
+      sprintf("%.3f", delta$d_cfi)
+    } else "NA"
+    d_rmsea <- if (!is.null(delta$d_rmsea)) {
+      sprintf("%.3f", delta$d_rmsea)
+    } else "NA"
+    chi_p <- if (!is.null(lrt$p)) {
+      fmt_p_inline(lrt$p)
+    } else "NA"
+    sprintf(
+      "%s: ΔCFI = %s, ΔRMSEA = %s (%s)",
+      mi_labels[step], d_cfi, d_rmsea, chi_p
+    )
+  }, character(1)
+)
+mi_steps_text <- paste(
+  mi_step_parts[mi_step_parts != ""],
+  collapse = "; "
+)
 scalar_delta <- cvr_mi.res$comparisons_delta[[
   "metric_vs_scalar"
 ]]
 scalar_fail <- !is.null(scalar_delta) &&
   !is.null(scalar_delta$d_cfi) &&
   abs(scalar_delta$d_cfi) > 0.01
-if (scalar_fail) {
-  cat(paste0(
-    "\n- Scalar invariance not achieved",
-    " (|\u0394CFI| > 0.01): intercepts",
-    " differ across sex\n",
-    "- Metric invariance (equal",
-    " loadings) supported — sufficient",
-    " for sex-stratified analyses\n"
-  ))
+mi_verdict_text <- if (scalar_fail) {
+  paste0(
+    "Scalar invariance was not achieved",
+    " (|ΔCFI| > 0.01), indicating",
+    " intercepts differ across sex.",
+    " Metric invariance (equal loadings)",
+    " was supported \u2014 sufficient for",
+    " sex-stratified analyses."
+  )
 } else {
-  cat(sprintf(
-    "\n- %s invariance achieved\n",
+  sprintf(
+    "%s invariance was achieved.",
     mi_verdict
-  ))
+  )
 }
 ```
+
+`r mi_steps_text`. `r mi_verdict_text`
 
 ```{r fig-cvr-validation}
 #| fig-cap: "CVR characterization. (A) FRS distribution by sex; dashed red line marks the 30% risk ceiling. (B) FRS vs Age showing strong positive correlation driven by age-weighting in the FRS formula. (C) CVR~mimic~ vs Age showing near-zero correlation, confirming successful age adjustment; dashed line marks zero."
@@ -1496,16 +1520,15 @@ simulation validation are reported in Appendix B
 plot_lme_forest_comparison(frs_hvr, cvr_hvr)
 ```
 
-- Full covariate effects (Age, Education, APOE ε4,
-  CVR main effect, HVR z-score) are reported in
-  Appendix B (@tbl-lme-covariates,
-  @tbl-cvr-lme-covariates)
+Full covariate effects (Age, Education, APOE ε4,
+CVR main effect, HVR z-score) are reported in
+Appendix B (@tbl-lme-covariates,
+@tbl-cvr-lme-covariates).
 
 ```{r lme-inline-results}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(frs_hvr), !is.null(cvr_hvr))
-# Lookup FDR-corrected p from summary table
 get_fdr_p <- function(cvr_meas, sex, domain) {
   row <- lme_summary.dt[
     Analysis == "Primary_Stratified" &
@@ -1527,98 +1550,6 @@ get_lme_result <- function(
     )
   } else NULL
 }
-
-# Collect all results for narrative
-frs_all <- list()
-cvr_all <- list()
-for (sx in c("Male", "Female")) {
-  for (d in c("MEM", "LAN", "EXF")) {
-    frs_all[[paste(sx, d)]] <-
-      get_lme_result(frs_hvr, sx, d, "FRS")
-    cvr_all[[paste(sx, d)]] <-
-      get_lme_result(
-        cvr_hvr, sx, d, "CVR_mimic"
-      )
-  }
-}
-
-frs_n_sig <- sum(sapply(
-  frs_all, function(r) {
-    !is.null(r) && r$p < 0.05
-  }
-))
-cvr_n_sig <- sum(sapply(
-  cvr_all, function(r) {
-    !is.null(r) && r$p < 0.05
-  }
-))
-
-# Compute mean absolute beta ratio
-frs_betas <- abs(sapply(
-  frs_all, function(r) {
-    if (!is.null(r)) r$beta else NA
-  }
-))
-cvr_betas <- abs(sapply(
-  cvr_all, function(r) {
-    if (!is.null(r)) r$beta else NA
-  }
-))
-beta_ratio <- mean(
-  frs_betas, na.rm = TRUE
-) / mean(cvr_betas, na.rm = TRUE)
-
-# --- Pattern-first summary ---
-# Identify which FRS models are significant
-frs_sig_keys <- names(frs_all)[sapply(
-  frs_all, function(r) {
-    !is.null(r) && r$p < 0.05
-  }
-)]
-frs_sig_male <- grep(
-  "^Male", frs_sig_keys, value = TRUE
-)
-frs_sig_female <- grep(
-  "^Female", frs_sig_keys, value = TRUE
-)
-fmt_doms <- function(keys) {
-  ds <- sub("^(Male|Female) ", "", keys)
-  paste(DOMAIN_LABELS[ds], collapse = ", ")
-}
-
-cat("**Key pattern.** FRS produced significant")
-cat(" 3-way interactions (YRS × CVR × HVR)")
-cat(" in males")
-if (length(frs_sig_male) > 0) {
-  cat(sprintf(
-    " (%s)", fmt_doms(frs_sig_male)
-  ))
-}
-if (length(frs_sig_female) > 0) {
-  cat(sprintf(
-    " and females (%s)",
-    fmt_doms(frs_sig_female)
-  ))
-}
-cat(sprintf(
-  paste0(
-    " — %d/6 total (%d/6 surviving FDR)."
-  ),
-  frs_n_sig, fdr_summary.lst$frs_n_fdr
-))
-cat(sprintf(
-  paste0(
-    " CVR~mimic~ showed %d/6 significant",
-    " interactions (%d/6 surviving FDR),",
-    " consistent with FRS effects being",
-    " primarily driven by age-weighting",
-    " rather than true cardiovascular risk",
-    " (see @fig-lme-forest).\n\n"
-  ),
-  cvr_n_sig, fdr_summary.lst$cvr_n_fdr
-))
-
-# Helper: format p with FDR annotation
 fmt_p_fdr <- function(p, p_fdr) {
   base <- fmt_p_inline(p)
   if (!is.na(p_fdr) && p < 0.05) {
@@ -1637,62 +1568,115 @@ fmt_p_fdr <- function(p, p_fdr) {
   } else base
 }
 
-# Per-sex detail (sub-bullets)
+frs_all <- list()
+cvr_all <- list()
 for (sx in c("Male", "Female")) {
-  cat(sprintf("\n**%ss.**\n\n", sx))
-  cat("- FRS × HVR × YRS: ")
-  items <- c()
   for (d in c("MEM", "LAN", "EXF")) {
-    r <- get_lme_result(
-      frs_hvr, sx, d, "FRS"
-    )
-    if (!is.null(r)) {
-      items <- c(items, sprintf(
-        "%s β = %.4f, %s",
-        DOMAIN_LABELS[d], r$beta,
-        fmt_p_fdr(r$p, r$p_fdr)
-      ))
-    }
+    frs_all[[paste(sx, d)]] <-
+      get_lme_result(frs_hvr, sx, d, "FRS")
+    cvr_all[[paste(sx, d)]] <-
+      get_lme_result(
+        cvr_hvr, sx, d, "CVR_mimic"
+      )
   }
-  cat(paste(items, collapse = "; "))
-  cat("\n")
+}
+frs_n_sig <- sum(sapply(
+  frs_all, function(r) {
+    !is.null(r) && r$p < 0.05
+  }
+))
+cvr_n_sig <- sum(sapply(
+  cvr_all, function(r) {
+    !is.null(r) && r$p < 0.05
+  }
+))
+frs_betas <- abs(sapply(
+  frs_all, function(r) {
+    if (!is.null(r)) r$beta else NA
+  }
+))
+cvr_betas <- abs(sapply(
+  cvr_all, function(r) {
+    if (!is.null(r)) r$beta else NA
+  }
+))
+beta_ratio <- mean(
+  frs_betas, na.rm = TRUE
+) / mean(cvr_betas, na.rm = TRUE)
 
-  cat("- CVR~mimic~ × HVR × YRS: ")
-  items <- c()
-  for (d in c("MEM", "LAN", "EXF")) {
-    r <- get_lme_result(
-      cvr_hvr, sx, d, "CVR_mimic"
-    )
-    if (!is.null(r)) {
-      items <- c(items, sprintf(
-        "%s β = %.4f, %s",
-        DOMAIN_LABELS[d], r$beta,
-        fmt_p_fdr(r$p, r$p_fdr)
-      ))
-    }
+frs_sig_keys <- names(frs_all)[sapply(
+  frs_all, function(r) {
+    !is.null(r) && r$p < 0.05
   }
-  cat(paste(items, collapse = "; "))
-  cat("\n\n")
+)]
+fmt_doms <- function(keys) {
+  ds <- sub("^(Male|Female) ", "", keys)
+  paste(DOMAIN_LABELS[ds], collapse = ", ")
+}
+frs_sig_male <- grep(
+  "^Male", frs_sig_keys, value = TRUE
+)
+frs_sig_female <- grep(
+  "^Female", frs_sig_keys, value = TRUE
+)
+lme_male_detail <- paste0(
+  fmt_doms(frs_sig_male)
+)
+lme_female_detail <- paste0(
+  fmt_doms(frs_sig_female)
+)
+
+# Per-sex formatted detail
+lme_sex_text.lst <- list()
+for (sx in c("Male", "Female")) {
+  frs_items <- vapply(
+    c("MEM", "LAN", "EXF"), function(d) {
+      r <- get_lme_result(
+        frs_hvr, sx, d, "FRS"
+      )
+      if (!is.null(r)) {
+        sprintf(
+          "%s β = %.4f, %s",
+          DOMAIN_LABELS[d], r$beta,
+          fmt_p_fdr(r$p, r$p_fdr)
+        )
+      } else ""
+    }, character(1)
+  )
+  cvr_items <- vapply(
+    c("MEM", "LAN", "EXF"), function(d) {
+      r <- get_lme_result(
+        cvr_hvr, sx, d, "CVR_mimic"
+      )
+      if (!is.null(r)) {
+        sprintf(
+          "%s β = %.4f, %s",
+          DOMAIN_LABELS[d], r$beta,
+          fmt_p_fdr(r$p, r$p_fdr)
+        )
+      } else ""
+    }, character(1)
+  )
+  lme_sex_text.lst[[sx]] <- sprintf(
+    paste0(
+      "**%ss.** FRS × HVR × YRS: %s.",
+      " CVR~mimic~ × HVR × YRS: %s."
+    ),
+    sx,
+    paste(frs_items[frs_items != ""],
+      collapse = "; "),
+    paste(cvr_items[cvr_items != ""],
+      collapse = "; ")
+  )
 }
 
-cat(sprintf(
-  paste0(
-    "- FRS β values were on average",
-    " %.1f-fold larger in absolute",
-    " magnitude than CVR~mimic~ β values,",
-    " consistent with age-weighting",
-    " amplifying apparent FRS effects\n\n"
-  ),
-  beta_ratio
-))
-
-# Worked example: translate largest significant FRS
-# 3-way beta into meaningful units
+# Worked example
 frs_sig <- frs_all[sapply(
   frs_all, function(r) {
     !is.null(r) && r$p < 0.05
   }
 )]
+worked_text <- ""
 if (length(frs_sig) > 0) {
   max_r <- frs_sig[[which.max(
     abs(sapply(frs_sig, `[[`, "beta"))
@@ -1702,126 +1686,153 @@ if (length(frs_sig) > 0) {
   )]
   parts <- strsplit(max_nm, " ")[[1]]
   display_nm <- paste(
-    parts[1],
-    DOMAIN_LABELS[parts[2]]
+    parts[1], DOMAIN_LABELS[parts[2]]
   )
-  cat(sprintf(
+  worked_text <- sprintf(
     paste0(
-      "- Worked example: the largest",
-      " significant FRS 3-way effect",
-      " (%s, \u03b2 = %.4f) implies that",
-      " over 5 years, a 1-SD increase",
+      "The largest significant FRS 3-way",
+      " effect (%s, β = %.4f) implies",
+      " that over 5 years, a 1-SD increase",
       " in FRS is associated with a",
       " %.4f-unit cumulative divergence",
-      " in the HVR-cognition",
-      " association\n\n"
+      " in the HVR-cognition association."
     ),
     display_nm, max_r$beta,
     max_r$beta * 5
-  ))
+  )
 }
 ```
 
+**Key pattern.** FRS produced significant 3-way
+interactions (YRS × CVR × HVR) in males
+(`r lme_male_detail`) and females
+(`r lme_female_detail`) —
+`r frs_n_sig`/6 total
+(`r fdr_summary.lst$frs_n_fdr`/6 surviving FDR).
+CVR~mimic~ showed `r cvr_n_sig`/6 significant
+interactions
+(`r fdr_summary.lst$cvr_n_fdr`/6 surviving FDR),
+consistent with FRS effects being primarily driven
+by age-weighting rather than true cardiovascular
+risk (see @fig-lme-forest).
+
+`r lme_sex_text.lst$Male`
+
+`r lme_sex_text.lst$Female`
+
+FRS β values were on average
+`r sprintf("%.1f", beta_ratio)`-fold larger in
+absolute magnitude than CVR~mimic~ β values,
+consistent with age-weighting amplifying apparent
+FRS effects. `r worked_text`
+
 ```{r lme-fdr-note}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(fdr_summary.lst))
-  frs_changed <- fdr_summary.lst$frs_n_sig !=
-    fdr_summary.lst$frs_n_fdr
-  cvr_changed <- fdr_summary.lst$cvr_n_sig !=
-    fdr_summary.lst$cvr_n_fdr
-  if (!frs_changed && !cvr_changed) {
-    cat(
-      "- FDR correction (Benjamini-Hochberg)",
-      " did not change any conclusions for",
-      " either CVR measure\n"
-    )
-  } else if (!frs_changed && cvr_changed) {
-    cat(sprintf(
-      paste0(
-        "- FDR correction did not change FRS",
-        " conclusions. For CVR~mimic~, %d of",
-        " %d uncorrected effects survived",
-        " FDR\n"
-      ),
-      fdr_summary.lst$cvr_n_fdr,
-      fdr_summary.lst$cvr_n_sig
-    ))
-  } else {
-    cat(sprintf(
-      paste0(
-        "- After FDR correction, %d/%d FRS",
-        " and %d/%d CVR~mimic~ uncorrected",
-        " effects remained significant\n"
-      ),
-      fdr_summary.lst$frs_n_fdr,
-      fdr_summary.lst$frs_n_sig,
-      fdr_summary.lst$cvr_n_fdr,
-      fdr_summary.lst$cvr_n_sig
-    ))
-  }
+frs_changed <- fdr_summary.lst$frs_n_sig !=
+  fdr_summary.lst$frs_n_fdr
+cvr_changed <- fdr_summary.lst$cvr_n_sig !=
+  fdr_summary.lst$cvr_n_fdr
+fdr_note_text <- if (
+  !frs_changed && !cvr_changed
+) {
+  paste0(
+    "FDR correction (Benjamini-Hochberg)",
+    " did not change any conclusions for",
+    " either CVR measure."
+  )
+} else if (!frs_changed && cvr_changed) {
+  sprintf(
+    paste0(
+      "FDR correction did not change FRS",
+      " conclusions. For CVR~mimic~, %d of",
+      " %d uncorrected effects survived FDR."
+    ),
+    fdr_summary.lst$cvr_n_fdr,
+    fdr_summary.lst$cvr_n_sig
+  )
+} else {
+  sprintf(
+    paste0(
+      "After FDR correction, %d/%d FRS and",
+      " %d/%d CVR~mimic~ uncorrected effects",
+      " remained significant."
+    ),
+    fdr_summary.lst$frs_n_fdr,
+    fdr_summary.lst$frs_n_sig,
+    fdr_summary.lst$cvr_n_fdr,
+    fdr_summary.lst$cvr_n_sig
+  )
+}
 ```
+
+`r fdr_note_text`
 
 ### Formal Coefficient Comparison (LME)
 
-- Clustered bootstrap Δβ with bias-corrected
-  95% CI comparing FRS vs CVR~mimic~ 3-way
-  interaction coefficients
+Clustered bootstrap Δβ with bias-corrected 95% CI
+compared FRS vs CVR~mimic~ 3-way interaction
+coefficients.
 
 ```{r lme-comparison-boot}
-#| output: asis
+#| include: false
 
 lme_cmp <- lme_hvr_z.res$comparison
+lme_boot_text.lst <- list()
 if (!is.null(lme_cmp) &&
     length(lme_cmp) > 0) {
   for (sx in c("Male", "Female")) {
-    cat(sprintf("\n**%ss.**\n\n", sx))
-    for (d in c("MEM", "LAN", "EXF")) {
-      k <- paste(sx, d, sep = "_")
-      r <- lme_cmp[[k]]
-      if (is.null(r) ||
-          is.na(r$ci_lower)) next
-      sig <- if (isTRUE(r$significant)) {
-        "\\*"
-      } else ""
-      cat(sprintf(
-        paste0(
-          "- %s: \u0394\u03b2 = %.4f",
-          " [%.4f, %.4f]%s\n"
-        ),
-        DOMAIN_LABELS[d],
-        r$delta_beta,
-        r$ci_lower, r$ci_upper, sig
-      ))
-    }
+    items <- vapply(
+      c("MEM", "LAN", "EXF"), function(d) {
+        k <- paste(sx, d, sep = "_")
+        r <- lme_cmp[[k]]
+        if (is.null(r) ||
+            is.na(r$ci_lower)) return("")
+        sig <- if (isTRUE(r$significant)) {
+          "\\*"
+        } else ""
+        sprintf(
+          "%s: Δβ = %.4f [%.4f, %.4f]%s",
+          DOMAIN_LABELS[d], r$delta_beta,
+          r$ci_lower, r$ci_upper, sig
+        )
+      }, character(1)
+    )
+    lme_boot_text.lst[[sx]] <- sprintf(
+      "**%ss.** %s", sx,
+      paste(items[items != ""],
+        collapse = "; ")
+    )
   }
 } else {
-  cat(paste0(
-    "- Bootstrap comparison pending;",
-    " re-run script 08 to generate\n"
-  ))
+  lme_boot_text.lst$Male <- paste0(
+    "Bootstrap comparison pending;",
+    " re-run script 08 to generate."
+  )
+  lme_boot_text.lst$Female <- ""
 }
 ```
+
+`r lme_boot_text.lst$Male`
+
+`r lme_boot_text.lst$Female`
 
 ## LGCM Results
 
 ### Growth Parameters
 
-- LGCM models used EDT as the time metric with
-  individually-varying time scores, fit separately
-  per sex and cognitive domain
+LGCM models used EDT as the time metric with
+individually-varying time scores, fit separately per
+sex and cognitive domain.
 
 ```{r lgcm-growth-inline}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(lgcm_parallel$linear_results))
 domains <- c("MEM", "LAN", "EXF")
-dom_labels <- c(
-  MEM = "Memory", LAN = "Language",
-  EXF = "Executive Function"
-)
 
-# Collect slope means per sex
+lgcm_growth_text.lst <- list()
 for (sx in c("Male", "Female")) {
   hvr_slopes <- c()
   cog_slopes <- c()
@@ -1850,111 +1861,116 @@ for (sx in c("Male", "Female")) {
       )
     }
   }
-  sx_label <- paste0(sx, "s")
-  if (length(hvr_slopes) > 0 &&
-      length(cog_slopes) > 0) {
-    cat(sprintf(
+  lgcm_growth_text.lst[[sx]] <- if (
+    length(hvr_slopes) > 0 &&
+    length(cog_slopes) > 0
+  ) {
+    sprintf(
       paste0(
-        "- %s: mean HVR slopes negative",
-        " across all domains (range:",
-        " %.4f to %.4f); cognitive slopes",
-        " also negative (range: %.4f",
-        " to %.4f), confirming progressive",
-        " decline in both processes\n"
+        "In %ss, mean HVR slopes were negative",
+        " across all domains (range: %.4f to",
+        " %.4f); cognitive slopes were also",
+        " negative (range: %.4f to %.4f),",
+        " confirming progressive decline in",
+        " both processes."
       ),
-      sx_label,
+      tolower(sx),
       min(hvr_slopes), max(hvr_slopes),
       min(cog_slopes), max(cog_slopes)
-    ))
-  }
+    )
+  } else ""
 }
-
-cat(paste0(
-  "- Model fit in @tbl-mediation-fit;",
-  " standard fit indices (CFI, TLI,",
-  " RMSEA) not computable with",
-  " individually-varying time scores;",
-  " adequacy assessed via \u22122LL,",
-  " AIC, BIC, and nested LRTs\n"
-))
 ```
+
+`r lgcm_growth_text.lst$Male`
+`r lgcm_growth_text.lst$Female`
+Model fit appears in @tbl-mediation-fit; standard
+fit indices (CFI, TLI, RMSEA) are not computable
+with individually-varying time scores, so adequacy
+was assessed via −2LL, AIC, BIC, and nested LRTs.
 
 ### Formal a-Path Comparison (LGCM)
 
-- Paired bootstrap Δ~a~ (shared-seed resampling)
-  comparing FRS vs CVR~mimic~ a-path coefficients
+Paired bootstrap Δ~a~ (shared-seed resampling)
+compared FRS vs CVR~mimic~ a-path coefficients.
 
 ```{r lgcm-comparison-boot}
-#| output: asis
+#| include: false
 
 lgcm_cmp <- lgcm_results$comparisons
+lgcm_boot_text.lst <- list()
 if (!is.null(lgcm_cmp) &&
     length(lgcm_cmp) > 0) {
   for (sx in c("Male", "Female")) {
-    cat(sprintf("\n**%ss.**\n\n", sx))
-    for (d in c("MEM", "LAN", "EXF")) {
-      k <- paste(sx, d, sep = "_")
-      r <- lgcm_cmp[[k]]
-      if (is.null(r) ||
-          is.na(r$delta_a_ci_lower)) next
-      sig <- if (
-        isTRUE(r$delta_a_significant)
-      ) "\\*" else ""
-      cat(sprintf(
-        paste0(
-          "- %s: \u0394a = %.5f",
-          " [%.5f, %.5f]%s\n"
-        ),
-        DOMAIN_LABELS[d],
-        r$delta_a_est,
-        r$delta_a_ci_lower,
-        r$delta_a_ci_upper, sig
-      ))
-    }
+    items <- vapply(
+      c("MEM", "LAN", "EXF"), function(d) {
+        k <- paste(sx, d, sep = "_")
+        r <- lgcm_cmp[[k]]
+        if (is.null(r) ||
+            is.na(r$delta_a_ci_lower)) {
+          return("")
+        }
+        sig <- if (
+          isTRUE(r$delta_a_significant)
+        ) "\\*" else ""
+        sprintf(
+          "%s: Δa = %.5f [%.5f, %.5f]%s",
+          DOMAIN_LABELS[d], r$delta_a_est,
+          r$delta_a_ci_lower,
+          r$delta_a_ci_upper, sig
+        )
+      }, character(1)
+    )
+    lgcm_boot_text.lst[[sx]] <- sprintf(
+      "**%ss.** %s", sx,
+      paste(items[items != ""],
+        collapse = "; ")
+    )
   }
 }
 ```
 
+`r lgcm_boot_text.lst$Male`
 
-- Paired bootstrap confirmed the a-path
-  dissociation across all 6 sex × domain models:
-  Δ~a~ (FRS − CVR~mimic~) significantly > 0 in
-  every case, with 95% BC CIs excluding zero
-- Male Δ~a~ estimates consistent across domains
-  (mean = `r sprintf("%.4f", m_da_mean)`),
-  indicating a stable FRS advantage regardless
-  of cognitive outcome
-- Female Δ~a~ estimates approximately
-  `r da_ratio_pct`% larger
-  (mean = `r sprintf("%.4f", f_da_mean)`),
-  suggesting the FRS–CVR~mimic~ dissociation is
-  more pronounced in females
-- These formal tests upgrade the qualitative
-  dissociation (FRS significant in 6/6,
-  CVR~mimic~ in 0/6) to a quantitative
-  difference: FRS is a significantly stronger
-  predictor of hippocampal atrophy rate than
-  CVR~mimic~ within the mediation framework
+`r lgcm_boot_text.lst$Female`
+
+
+Paired bootstrap confirmed the a-path dissociation
+across all 6 sex × domain models: Δ~a~
+(FRS − CVR~mimic~) was significantly greater than
+zero in every case, with 95% BC CIs excluding zero.
+Male Δ~a~ estimates were consistent across domains
+(mean = `r sprintf("%.4f", m_da_mean)`), indicating
+a stable FRS advantage regardless of cognitive
+outcome. Female Δ~a~ estimates were approximately
+`r da_ratio_pct`% larger
+(mean = `r sprintf("%.4f", f_da_mean)`), suggesting
+the FRS-CVR~mimic~ dissociation is more pronounced
+in females. These formal tests upgrade the
+qualitative dissociation (FRS significant in 6/6,
+CVR~mimic~ in 0/6) to a quantitative difference:
+FRS is a significantly stronger predictor of
+hippocampal atrophy rate than CVR~mimic~ within the
+mediation framework.
 
 ### Slope Coupling
 
-- LGCM parallel process models tested whether HVR
-  and cognitive linear decline rates co-vary
-  (latent slope coupling, hvr~s~ ↔ cog~s~) along
-  the EDT disease timeline
-- Positive linear slope correlations observed across
-  all models in males (3/3 significant) and in
-  females for Executive Function (1/3 significant);
-  individuals with faster HVR decline showed
-  steeper cognitive decline
-- This coupling supports the b-path assumption
-  in the mediation framework (CVR → HVR slope →
-  cognitive slope): HVR decline predicts cognitive
-  decline, though the relationship is stronger and
-  more consistently significant in males
+LGCM parallel process models tested whether HVR and
+cognitive linear decline rates co-vary (latent slope
+coupling, hvr~s~ ↔ cog~s~) along the EDT disease
+timeline. Positive linear slope correlations were
+observed across all models in males (3/3
+significant) and in females for Executive Function
+(1/3 significant); individuals with faster HVR
+decline showed steeper cognitive decline. This
+coupling supports the b-path assumption in the
+mediation framework (CVR → HVR slope → cognitive
+slope): HVR decline predicts cognitive decline,
+though the relationship is stronger and more
+consistently significant in males.
 
 ```{r coupling-inline}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(lgcm_parallel$linear_results))
 domains <- c("MEM", "LAN", "EXF")
@@ -1963,7 +1979,7 @@ domain_labels <- c(
   EXF = "Executive Function"
 )
 
-# Collect correlations and p-values per sex
+coupling_text.lst <- list()
 for (sx in c("Male", "Female")) {
   cors <- c()
   cor_names <- c()
@@ -1989,42 +2005,38 @@ for (sx in c("Male", "Female")) {
       ps <- c(ps, lr$coupling$p)
     }
   }
-  if (length(cors) > 0) {
+  coupling_text.lst[[sx]] <- if (
+    length(cors) > 0
+  ) {
     max_d <- cor_names[which.max(cors)]
     min_d <- cor_names[which.min(cors)]
     max_p <- max(ps)
     p_bound <- if (max_p < 0.001) {
       "all *p* < 0.001"
     } else {
-      sprintf(
-        "max %s",
-        fmt_p_inline(max_p)
-      )
+      sprintf("max %s", fmt_p_inline(max_p))
     }
-    cat(sprintf(
+    sprintf(
       paste0(
-        "- In %ss, linear slope",
-        " correlations (*r*)",
-        " ranged from %.3f",
-        " (%s) to %.3f (%s; %s)\n"
+        "In %ss, linear slope correlations",
+        " (*r*) ranged from %.3f (%s) to",
+        " %.3f (%s; %s)."
       ),
       tolower(sx),
       min(cors), min_d,
-      max(cors), max_d,
-      p_bound
-    ))
-  }
+      max(cors), max_d, p_bound
+    )
+  } else ""
 }
-
-cat(paste0(
-  "- Faster hippocampal decline",
-  " consistently associated with steeper",
-  " cognitive decline across all domains",
-  " and both sexes; latent factor scores",
-  " from the parallel process model confirm",
-  " this pattern (see @fig-coupling)\n"
-))
 ```
+
+`r coupling_text.lst$Male`
+`r coupling_text.lst$Female`
+Faster hippocampal decline was consistently
+associated with steeper cognitive decline across all
+domains and both sexes; latent factor scores from the
+parallel process model confirm this pattern (see
+@fig-coupling).
 
 ```{r fig-coupling}
 #| fig-cap: "Latent slope coupling between HVR and cognitive decline from LGCM parallel process models. Females in red, Males in blue throughout. A. Individual trajectories (random 20% subsample) with population mean curves (bold; including fixed quadratic curvature where selected by LRT). 2x2 facets: HVR, Memory, Language, Executive. B. Latent slope coupling: latent cognitive decline rate (x) vs latent HVR decline rate (y) from factor scores (positive = faster decline); solid lines show linear trends per sex; grey line shows 1:1 reference. Correlation estimates from the SEM (* p < .05, ** p < .01, *** p < .001)."
@@ -2050,10 +2062,10 @@ plot_coupling_figure(
 
 ### Mediation: FRS vs CVR~mimic~
 
-- LGCM mediation models tested whether CVR effects
-  on cognitive decline operate through hippocampal
-  atrophy, comparing FRS and CVR~mimic~ as
-  predictors (see @fig-mediation)
+LGCM mediation models tested whether CVR effects on
+cognitive decline operate through hippocampal
+atrophy, comparing FRS and CVR~mimic~ as predictors
+(see @fig-mediation).
 
 ```{r tbl-mediation-fit}
 #| tbl-cap: "LGCM mediation model fit indices, sex-stratified. -2LL = -2 log-likelihood; AIC = Akaike information criterion; BIC = Bayesian information criterion."
@@ -2067,15 +2079,17 @@ require_output(
 )
 ```
 
-- Mediation path diagrams showing a-, b-, c'-path
-  estimates and bootstrap CIs:
-  (see @fig-mediation)
+Mediation path diagrams showing a-, b-, c'-path
+estimates and bootstrap CIs appear in
+@fig-mediation.
 
 
 ```{r fig-mediation}
+#| dev: png
 #| fig-cap: "LGCM mediation path diagrams. Rows: Memory, Language, Executive Function. Columns: FRS, CVR~MIMIC~. Each panel shows Male (blue) and Female (red) path estimates. Solid/bold = significant (bootstrap 95% CI excludes zero); faded = non-significant. Star (\\*) indicates CI excludes zero. 95% bootstrap CIs shown for all paths."
 #| fig-width: 6.5
 #| fig-height: 8.0
+#| fig-dpi: 300
 
 panels <- build_combined_med_panels(
   lgcm_med_male, lgcm_med_female
@@ -2085,14 +2099,13 @@ wrap_plots(panels, ncol = 2) +
 ```
 
 ```{r lgcm-inline-results}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(lgcm_med_male))
 stopifnot(!is.null(lgcm_med_female))
 
 domains <- c("MEM", "LAN", "EXF")
 
-# --- Key dissociation narrative ---
 frs_a_sig <- sum(sapply(
   c("Male", "Female"), function(sx) {
     med <- if (sx == "Male") {
@@ -2102,8 +2115,7 @@ frs_a_sig <- sum(sapply(
       r <- med$results[[
         paste0(d, "_FRS")
       ]]$a
-      !is.null(r) &&
-        ci_sig_check.fn(r)
+      !is.null(r) && ci_sig_check.fn(r)
     })
   }
 ))
@@ -2116,29 +2128,12 @@ cvr_a_sig <- sum(sapply(
       r <- med$results[[
         paste0(d, "_CVR")
       ]]$a
-      !is.null(r) &&
-        ci_sig_check.fn(r)
+      !is.null(r) && ci_sig_check.fn(r)
     })
   }
 ))
-cat(sprintf(
-  paste0(
-    "- **FRS vs CVR~mimic~:** FRS produced",
-    " significant indirect effects",
-    " (CVR \u2192 HVR slope \u2192 Cognitive",
-    " slope) with a significant a-path",
-    " in %d/6 models (bootstrap 95%%",
-    " CIs excluding zero);",
-    " CVR~mimic~ a-path null in %d/6",
-    " models, indicating FRS \"effects\"",
-    " on hippocampal decline are largely",
-    " consistent with age-weighting\n\n"
-  ),
-  frs_a_sig, 6L - cvr_a_sig
-))
+cvr_a_null <- 6L - cvr_a_sig
 
-# --- Pattern summary ---
-# Count indirect effects across all models
 all_ind_sig <- 0L
 all_ind_total <- 0L
 ind_sig_labels <- c()
@@ -2152,9 +2147,7 @@ for (sx in c("Male", "Female")) {
       r <- med$results[[k]]
       all_ind_total <- all_ind_total + 1L
       if (!is.null(r$indirect) &&
-          ci_sig_check.fn(
-            r$indirect
-          )) {
+          ci_sig_check.fn(r$indirect)) {
         all_ind_sig <- all_ind_sig + 1L
         ind_sig_labels <- c(
           ind_sig_labels,
@@ -2167,54 +2160,20 @@ for (sx in c("Male", "Female")) {
     }
   }
 }
-cat(paste0(
-  "**Path-level summary across all",
-  " 12 models (2 sexes × 3 domains",
-  " × 2 predictors):**\n\n"
-))
-cat(sprintf(
-  paste0(
-    "- *a-path* (CVR \u2192 HVR slope):",
-    " significant for FRS in %d/6",
-    " models; null for CVR~mimic~ in",
-    " all 6\n"
-  ),
-  frs_a_sig
-))
-cat(sprintf(
-  paste0(
-    "- *b-path* (HVR slope \u2192 cognitive",
-    " slope): significant for %d/6 FRS",
-    " and %d/6 CVR~mimic~ models",
-    " regardless of predictor\n"
-  ),
-  abs_stats$frs_b_sig,
-  abs_stats$cvr_b_sig
-))
-cat(sprintf(
-  paste0(
-    "- *Indirect effect*: %d/%d",
-    " significant"
-  ),
-  all_ind_sig, all_ind_total
-))
-if (length(ind_sig_labels) > 0) {
-  cat(sprintf(
-    " (%s)",
-    paste(ind_sig_labels, collapse = "; ")
-  ))
-}
-cat("\n\n")
+ind_detail <- if (length(ind_sig_labels) > 0) {
+  sprintf(
+    " (%s)", paste(
+      ind_sig_labels, collapse = "; "
+    )
+  )
+} else ""
 
-# --- Per-sex detail ---
+# Per-sex detail
+med_sex_text.lst <- list()
 for (sx in c("Male", "Female")) {
   med <- if (sx == "Male") {
     lgcm_med_male
   } else lgcm_med_female
-
-  cat(sprintf("#### %ss\n\n", sx))
-
-  # Collect ranges for a-path
   frs_a_betas <- c()
   cvr_a_betas <- c()
   frs_b_betas <- c()
@@ -2251,69 +2210,71 @@ for (sx in c("Male", "Female")) {
       }
     }
     if (!is.null(rf$indirect) &&
-        ci_sig_check.fn(
-          rf$indirect
-        )) {
+        ci_sig_check.fn(rf$indirect)) {
       frs_ind_sig <- frs_ind_sig + 1L
     }
     if (!is.null(rc$indirect) &&
-        ci_sig_check.fn(
-          rc$indirect
-        )) {
+        ci_sig_check.fn(rc$indirect)) {
       cvr_ind_sig <- cvr_ind_sig + 1L
     }
   }
-
-  # a-path summary
-  cat(sprintf(
+  med_sex_text.lst[[sx]] <- sprintf(
     paste0(
-      "- FRS a-path: \u03b2 range %.4f",
-      " to %.4f (%d/3 bootstrap 95%%",
-      " CIs excluding zero);",
+      "**%ss.** FRS a-path: β range",
+      " %.4f to %.4f (%d/3 bootstrap",
+      " 95%% CIs excluding zero);",
       " CVR~mimic~ a-paths: %d/3",
-      " significant (all |\u03b2| <",
-      " %.2f)\n"
+      " significant (all |β| <",
+      " %.2f). b-path: β range %.3f",
+      " to %.3f (%d/3 bootstrap 95%%",
+      " CIs excluding zero). FRS indirect",
+      " effects significant in %d/3",
+      " domains (bootstrap 95%% CI",
+      " excluding zero); CVR~mimic~",
+      " in %d/3. Direct (c\u2019) and",
+      " total effects in @fig-mediation."
     ),
+    sx,
     min(frs_a_betas), max(frs_a_betas),
     frs_a_nsig, cvr_a_nsig,
-    max(cvr_a_betas) + 0.005
-  ))
-
-  # b-path summary
-  cat(sprintf(
-    paste0(
-      "- b-path: \u03b2 range %.3f to",
-      " %.3f (%d/3 bootstrap 95%%",
-      " CIs excluding zero)\n"
-    ),
-    min(frs_b_betas),
-    max(frs_b_betas), frs_b_nsig
-  ))
-
-  # Indirect summary
-  cat(sprintf(
-    paste0(
-      "- FRS indirect effects significant",
-      " in %d/3 domains (bootstrap",
-      " 95%% CI excluding zero);",
-      " CVR~mimic~ in %d/3\n"
-    ),
+    max(cvr_a_betas) + 0.005,
+    min(frs_b_betas), max(frs_b_betas),
+    frs_b_nsig,
     frs_ind_sig, cvr_ind_sig
-  ))
-
-  # c' and total brief note
-  cat(paste0(
-    "- Direct (c') and total effects",
-    " in @fig-mediation\n\n"
-  ))
+  )
 }
-
-cat(paste0(
-  "- Complete path estimates and",
-  " bootstrap CIs in",
-  " @fig-mediation\n"
-))
 ```
+
+**FRS vs CVR~mimic~.** FRS produced significant
+indirect effects (CVR → HVR slope → Cognitive slope)
+with a significant a-path in `r frs_a_sig`/6 models
+(bootstrap 95% CIs excluding zero); CVR~mimic~
+a-path was null in `r cvr_a_null`/6 models,
+indicating FRS "effects" on hippocampal decline are
+largely consistent with age-weighting.
+
+**Path-level summary across all 12 models (2 sexes ×
+3 domains × 2 predictors).** The *a-path*
+(CVR → HVR slope) was significant for FRS in
+`r frs_a_sig`/6 models and null for CVR~mimic~ in
+all 6. The *b-path* (HVR slope → cognitive slope)
+was significant for
+`r abs_stats$frs_b_sig`/6 FRS and
+`r abs_stats$cvr_b_sig`/6 CVR~mimic~ models
+regardless of predictor. The *indirect effect* was
+significant in
+`r all_ind_sig`/`r all_ind_total``r ind_detail`.
+
+#### Males
+
+`r med_sex_text.lst$Male`
+
+#### Females
+
+`r med_sex_text.lst$Female`
+
+Complete path estimates and bootstrap CIs appear in
+@fig-mediation.
 
 
 Sensitivity analyses — including HC z-score
@@ -2325,335 +2286,369 @@ LGCM validation — are reported in Appendix C.
 
 ## Summary of Findings
 
-- Whether CVR affects hippocampal-cognitive
-  trajectories depends on how CVR is measured
-- a-path dissociation: FRS → HVR slope significant
-  in `r abs_stats$frs_a_sig`/6 models (all bootstrap
-  95% CIs excluding zero; [@fig-mediation]);
-  CVR~mimic~ a-path null in all 6 (0/6 significant)
-- b-path (HVR slope → Cognitive slope) consistently
-  significant regardless of predictor
-  (`r abs_stats$frs_b_sig`/6 FRS,
-  `r abs_stats$cvr_b_sig`/6 CVR~mimic~; bootstrap
-  CIs excluding zero), confirming consistent
-  hippocampal-cognitive coupling
-  [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018]
-- FRS indirect effects (a × b) significant in
-  `r abs_stats$frs_ind_sig`/6 models (bootstrap
-  CIs excluding zero); CVR~mimic~ in
-  `r abs_stats$cvr_ind_sig`/6
-- LME 3-way interaction: FRS × HVR × YRS
-  significant in
-  `r abs_lme$frs_m_sig`/3 male and
-  `r abs_lme$frs_f_sig`/3 female domains;
-  CVR~mimic~ in `r abs_lme$cvr_m_sig`/3 male and
-  `r abs_lme$cvr_f_sig`/3 female domains
-  `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
-- FDR correction did not change FRS conclusions;
-  CVR~mimic~ dropped from
-  `r fdr_summary.lst$cvr_n_sig` to
-  `r fdr_summary.lst$cvr_n_fdr` significant effects
-- Interpretation: FRS effects on hippocampal
-  trajectories (LGCM a-path) are primarily
-  age-driven, but CVR may still modulate the
-  HVR-cognition relationship (LME 3-way) through
-  mechanisms other than accelerating atrophy
+The apparent impact of cardiovascular risk on
+hippocampal-cognitive trajectories is a function of
+the risk measure employed. We observed a stark
+a-path dissociation: FRS →
+HVR slope was significant in
+`r abs_stats$frs_a_sig`/6 models (all bootstrap
+95% CIs excluding zero; @fig-mediation), whereas
+CVR~mimic~ a-path was null in all 6 (0/6
+significant). The b-path (HVR slope → Cognitive
+slope) was consistently significant regardless of
+predictor
+(`r abs_stats$frs_b_sig`/6 FRS,
+`r abs_stats$cvr_b_sig`/6 CVR~mimic~; bootstrap
+CIs excluding zero), confirming consistent
+hippocampal-cognitive coupling
+[@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
+FRS indirect effects (a × b) were significant in
+`r abs_stats$frs_ind_sig`/6 models (bootstrap CIs
+excluding zero), compared with
+`r abs_stats$cvr_ind_sig`/6 for CVR~mimic~. The
+LME 3-way interaction (FRS × HVR × YRS) was
+significant in `r abs_lme$frs_m_sig`/3 male and
+`r abs_lme$frs_f_sig`/3 female domains; CVR~mimic~
+was significant in `r abs_lme$cvr_m_sig`/3 male and
+`r abs_lme$cvr_f_sig`/3 female domains
+`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`.
+FDR correction did not change FRS conclusions;
+CVR~mimic~ dropped from
+`r fdr_summary.lst$cvr_n_sig` to
+`r fdr_summary.lst$cvr_n_fdr` significant effects.
+While FRS effects on hippocampal trajectories appear
+primarily age-driven, cardiovascular burden may still
+modulate the HVR-cognition relationship (LME 3-way)
+through pathways independent of accelerated atrophy.
 
 ## FRS Age-Confounding and CVR~mimic~
 
-- CVR~mimic~ successfully removes the age component
-  from cardiovascular risk (near-zero age correlation;
-  @fig-cvr-validation C), supporting its use as an
-  age-independent CVR index for disambiguating
-  age-driven vs CVR-driven brain effects
-- The moderate CVR~mimic~–FRS correlation reflects
-  shared cardiovascular indicators while confirming
-  the measures capture distinct constructs — one
-  age-confounded, one age-orthogonal
-- FRS formula explicitly includes age with large
-  coefficients (3.06 men, 2.33 women in log-hazard
-  scale) [@dagostino_general_2008]. In older samples, age
-  dominates the FRS score
-  [@koller_development_2012; @pencina_quantifying_2019]
-- FRS values in ADNI are compressed into the upper
-  range (see @fig-cvr-validation, panels A–B), limiting score
-  variance and statistical sensitivity, particularly
-  in females
-- When age is partialled out (CVR~mimic~), the
-  indirect pathway (CVR → HVR → Cognition)
-  disappears — the a-path is null, suggesting FRS
-  "effects" on hippocampal-cognitive trajectories
-  are actually age effects captured by the age
-  component of FRS
-- The negative total cholesterol loading
-  (see @tbl-mimic-loadings) likely reflects widespread
-  statin use in this elderly clinical sample: treated
-  individuals have lower cholesterol despite elevated
-  underlying cardiovascular risk, inverting the
-  expected direction of association with the latent
-  CVR factor
-- Common-sample standardization (z-scoring both FRS
-  and CVR~mimic~ on the same N with complete data for
-  both measures) ensures regression coefficients
-  express effects per 1 SD change on an identical
-  scale — without this step, the a-path dissociation
-  could reflect scaling artifacts rather than
-  substantive predictor properties
-- Implication: studies reporting FRS-brain
-  relationships in elderly samples
-  [@zsoldos_association_2020; @seshadri_stroke_2004; @song_associations_2020; @meusel_cardiovascular_2019] may be
-  detecting age effects rather than true
-  cardiovascular effects
+CVR~mimic~ successfully removes the age component
+from cardiovascular risk (near-zero age correlation;
+@fig-cvr-validation C), supporting its use as an
+age-independent CVR index for disambiguating
+age-driven vs CVR-driven brain effects. The moderate
+CVR~mimic~-FRS correlation reflects shared
+cardiovascular indicators while confirming the
+measures capture distinct constructs — one
+age-confounded, one age-orthogonal.
+
+The FRS formula explicitly includes age with large
+coefficients (3.06 men, 2.33 women in log-hazard
+scale) [@dagostino_general_2008], and in older
+samples age dominates the FRS score
+[@koller_development_2012; @pencina_quantifying_2019].
+FRS values in ADNI are compressed into the upper
+range (see @fig-cvr-validation, panels A-B),
+limiting score variance and statistical sensitivity,
+particularly in females. When age is partialled out
+(CVR~mimic~), the indirect pathway
+(CVR → HVR → Cognition) disappears — the a-path is
+null, suggesting FRS "effects" on
+hippocampal-cognitive trajectories are actually age
+effects captured by the age component of FRS.
+
+The negative total cholesterol loading (see
+@tbl-mimic-loadings) likely reflects widespread
+statin use in this elderly clinical sample: treated
+individuals have lower cholesterol despite elevated
+underlying cardiovascular risk, inverting the
+expected direction of association with the latent
+CVR factor. Common-sample standardization (z-scoring
+both FRS and CVR~mimic~ on the same N with complete
+data for both measures) ensures regression
+coefficients express effects per 1 SD change on an
+identical scale — without this step, the a-path
+dissociation could reflect scaling artifacts rather
+than substantive predictor properties. Prior studies
+reporting FRS-brain relationships in elderly samples
+[@zsoldos_association_2020; @seshadri_stroke_2004; @song_associations_2020; @meusel_cardiovascular_2019]
+may be detecting age effects rather than true
+cardiovascular effects.
 
 ## Dissociating Moderation from Mediation
 
-- As outlined in the analytical roadmap, the two
-  modelling frameworks test complementary questions.
-  The LME 3-way interaction
-  (YRS × CVR × HVR → Cognition)
-  and the LGCM a-path (CVR → HVR slope;
-  [@fig-mediation]) test distinct hypotheses:
-  - LME (moderation): does CVR modify how the
-    HVR-cognition relationship evolves over time?
-  - LGCM (mediation): does CVR affect cognition
-    through hippocampal decline?
-- The results diverge for CVR~mimic~:
-  - LGCM a-path is null in all 6 models: age-adjusted
-    CVR does not accelerate hippocampal atrophy
-  - LME 3-way is significant in
-    `r abs_lme$cvr_f_sig`/3 female domains
-    `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
-    only; `r abs_lme$cvr_m_sig`/3 in males
-- This dissociation represents moderation without
-  mediation through hippocampal volume: CVR~mimic~
-  does not accelerate hippocampal atrophy (a-path
-  null), yet it may modify how hippocampal integrity
-  relates to cognitive performance over time
-- This pattern is consistent with a cognitive reserve
-  framework [@stern_cognitive_2012; @rabin_interactive_2018; @iadecola_framingham_2020]:
-  cardiovascular risk may reduce the brain's capacity
-  to maintain cognitive function at a given level of
-  structural integrity, without directly driving
-  structural decline
-- However, the CVR~mimic~ LME evidence rests on a
-  single domain in one sex. This isolated finding
-  should be interpreted cautiously until replicated
-- The HVR-cognition coupling (b-path) was consistent
-  across CVR predictors, in line with prior LGCM
-  coupling studies [@muniz-terrera_latent_2017; @bollen_latent_2006]
+As outlined in the analytical roadmap, the two
+modelling frameworks test complementary questions.
+The LME 3-way interaction
+(YRS × CVR × HVR → Cognition) tests moderation:
+does CVR modify how the HVR-cognition relationship
+evolves over time? The LGCM a-path
+(CVR → HVR slope; @fig-mediation) tests mediation:
+does CVR affect cognition through hippocampal
+decline?
+
+A different pattern emerged for CVR~mimic~: the
+LGCM a-path was null across all 6 models, suggesting
+age-adjusted CVR does not accelerate hippocampal
+atrophy. Yet
+the LME 3-way interaction is significant in
+`r abs_lme$cvr_f_sig`/3 female domains
+`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
+only, with `r abs_lme$cvr_m_sig`/3 significant in
+males. This dissociation represents moderation
+without mediation through hippocampal volume:
+CVR~mimic~ does not accelerate hippocampal atrophy
+(a-path null), yet it may modify how hippocampal
+integrity relates to cognitive performance over
+time. This pattern is consistent with a cognitive
+reserve framework
+[@stern_cognitive_2012; @rabin_interactive_2018; @iadecola_framingham_2020]:
+cardiovascular risk may reduce the brain's capacity
+to maintain cognitive function at a given level of
+structural integrity, without directly driving
+structural decline. However, the CVR~mimic~ LME
+evidence rests on a single domain in one sex, and
+this isolated finding should be interpreted
+cautiously until replicated.
+
+The HVR-cognition coupling (b-path) was consistent
+across CVR predictors, in line with prior LGCM
+coupling studies
+[@muniz-terrera_latent_2017; @bollen_latent_2006].
 
 ## Sex Differences
 
-- Males showed `r abs_lme$cvr_m_sig`/3 significant
-  CVR~mimic~ LME effects, while females showed
-  `r abs_lme$cvr_f_sig`/3
-  `r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
-- The female CVR~mimic~ Executive finding is notable
-  as the only CVR~mimic~ LME effect observed in
-  either sex and warrants targeted investigation in
-  independent samples
-- Female FRS variance compression limits
-  statistical sensitivity — the FRS findings in
-  females may be primarily driven by age-weighting
-- Sex differences in cardiovascular risk profiles
-  [@ferretti_sex_2018; @mielke_consideration_2022], differential APOE ε4
-  effects, and hormonal influences on vascular
-  regulation may all contribute to the observed
-  sex asymmetry in CVR-brain relationships
-- Covariates (age, education, APOE ε4) exhibited
-  expected effects across all models
-  (Appendix B, @tbl-lme-covariates and
-  @tbl-cvr-lme-covariates)
+Males showed `r abs_lme$cvr_m_sig`/3 significant
+CVR~mimic~ LME effects, while females showed
+`r abs_lme$cvr_f_sig`/3
+`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`.
+The female CVR~mimic~ Executive finding is notable as
+the only CVR~mimic~ LME effect observed in either sex
+and warrants targeted investigation in independent
+samples. Female FRS variance compression limits
+statistical sensitivity — the FRS findings in females
+may be primarily driven by age-weighting. Sex
+differences in cardiovascular risk profiles
+[@ferretti_sex_2018; @mielke_consideration_2022],
+differential APOE ε4 effects, and hormonal
+influences on vascular regulation may all contribute
+to the observed sex asymmetry in CVR-brain
+relationships. Covariates (age, education, APOE ε4)
+exhibited expected effects across all models
+(Appendix B, @tbl-lme-covariates and
+@tbl-cvr-lme-covariates).
 
 ## HVR-Cognitive Coupling
 
-- The HVR slope → Cognitive slope relationship
-  (b-path) was consistent regardless of whether FRS
-  or CVR~mimic~ was the predictor (@fig-mediation)
-- Significant b-path estimates appeared in Memory
-  and Executive Function for both predictors (4/6
-  each; Language non-significant), supporting HVR
-  decline as a reliable marker of cognitive decline
-  [@kramer_longitudinal_2007; @oschwald_brain_2020],
-  extending earlier evidence that HVR captures
-  hippocampal integrity more sensitively than raw
-  volume [@schoemaker_hippocampal-ventricle_2019;
-  @fernandez-lozano_enhanced_2025;
-  @bruno_hippocampal_2016]
-- Parallel process coupling showed a complementary
-  pattern: significant in all male models (3/3) but
-  only Executive Function in females (1/3). This
-  sex asymmetry likely reflects lower statistical
-  power in the smaller female subsample rather than
-  a biological absence of coupling, given that
-  mediation b-paths (which condition on a predictor)
-  were significant in 4/6 models for both sexes
-- Language b-paths were non-significant across both
-  analysis frameworks (coupling and mediation),
-  consistent with language being a later-declining
-  domain with less variance to capture at this
-  disease stage
-- The hippocampal-cognitive coupling is not an
-  artifact of CVR measurement — it persists across
-  predictor specifications and analysis frameworks
+The HVR slope → Cognitive slope relationship
+(b-path) was consistent regardless of whether FRS or
+CVR~mimic~ was the predictor (@fig-mediation).
+Significant b-path estimates appeared in Memory and
+Executive Function for both predictors (4/6 each;
+Language non-significant), supporting HVR decline as
+a reliable marker of cognitive decline
+[@kramer_longitudinal_2007; @oschwald_brain_2020]
+and extending earlier evidence that HVR captures
+hippocampal integrity more sensitively than raw
+volume [@schoemaker_hippocampal-ventricle_2019;
+@fernandez-lozano_enhanced_2025;
+@bruno_hippocampal_2016].
+
+Parallel process coupling showed a complementary
+pattern: significant in all male models (3/3) but
+only Executive Function in females (1/3). This sex
+asymmetry likely reflects lower statistical power in
+the smaller female subsample rather than a biological
+absence of coupling, given that mediation b-paths
+(which condition on a predictor) were significant in
+4/6 models for both sexes. Language b-paths were
+non-significant across both analysis frameworks
+(coupling and mediation), consistent with language
+being a later-declining domain with less variance to
+capture at this disease stage. The
+hippocampal-cognitive coupling is not an artifact of
+CVR measurement — it persists across predictor
+specifications and analysis frameworks.
 
 ## Methodological Considerations
 
-- The fixed-quadratic LGCM captures population-level
-  curvature but constrains individual quadratic
-  variation, so slope estimates primarily reflect
-  average rates of change. This makes the a-path
-  null finding conservative — if CVR~mimic~ had
-  individual-level non-linear effects on hippocampal
-  trajectories, these would require a fully random
-  quadratic model to detect, further strengthening
-  the conclusion that the FRS a-path reflects
-  age-weighting
-- EDT linearity tests confirmed significant
-  non-linear trajectories across all models
-  (Appendix B, @tbl-linearity), motivating the
-  fixed-quadratic specification [@newsom_longitudinal_2015].
-  Fully random quadratic parallel process models
-  failed to converge due to near-zero quadratic
-  variance and insufficient data capacity for
-  the combined model complexity.
-  The use of EDT rather than calendar time as the
-  LGCM time metric accounts for heterogeneous
-  disease progression rates across participants,
-  though it introduces dependence on the progmod
-  estimation
-- Bootstrap CIs confirmed that most b-path effects
-  were significant (4/6 for both FRS and CVR~mimic~;
-  CIs excluding zero), consistent with nested LRT
-  results. Language b-paths were non-significant,
-  likely reflecting lower statistical power for
-  this domain
-- **Sensitivity summary:**
-  - HC z-score effects were weaker than HVR z-score
-    effects (Appendix C, @tbl-hc-comparison),
-    supporting the
-    ratio measure's greater sensitivity
-  - Systematic baseline differences between completers
-    and dropouts (Appendix C,
-    @tbl-attrition-baseline) suggest
-    observed effects may underestimate true CVR-brain
-    relationships
-  - Raw (un-normalized) HVR and HC results were
-    concordant with z-scored analyses, confirming the
-    normative transformation does not drive findings
-  - Limited EDT moderation suggests CVR effects are
-    stable across disease stages
-  - SE-constrained LGCM validation showed comparable
-    bias, RMSE, and coverage to free estimation
+The fixed-quadratic LGCM captures population-level
+curvature but constrains individual quadratic
+variation, so slope estimates primarily reflect
+average rates of change. This makes the a-path null
+finding conservative — if CVR~mimic~ had
+individual-level non-linear effects on hippocampal
+trajectories, these would require a fully random
+quadratic model to detect, further strengthening the
+conclusion that the FRS a-path reflects
+age-weighting.
+
+EDT linearity tests confirmed significant non-linear
+trajectories across all models (Appendix B,
+@tbl-linearity), motivating the fixed-quadratic
+specification [@newsom_longitudinal_2015]. Fully
+random quadratic models failed to converge due to
+near-zero quadratic variance. EDT as the time metric
+accounts for heterogeneous disease progression,
+though it introduces progmod dependence.
+
+Sensitivity analyses (Appendix C) showed HC z-score
+effects were weaker than HVR effects
+(@tbl-hc-comparison), attrition patterns suggest
+observed effects may underestimate true relationships
+(@tbl-attrition-baseline), and raw-volume results
+were concordant with z-scored analyses.
 
 ## Clinical Implications
 
-- In clinical trials targeting cardiovascular risk
-  reduction for dementia prevention, FRS should not
-  be used as the sole CVR endpoint in elderly samples
-  due to age-related variance compression and
-  age-confounding
-  [@ko_calibration_2020; @marrugat_adaptation_2003]
-- Age-adjusted CVR measures (via MIMIC models or
-  residualization) should be considered when the
-  research question concerns cardiovascular effects
-  independent of aging [@zhang_bayesian_2024]
-- HVR provides a more sensitive neuroimaging endpoint
-  than hippocampal volume alone, and the consistent
-  HVR-cognition coupling (b-path) supports its use
-  as a surrogate outcome in intervention studies
-- The female CVR~mimic~ Executive Function LME
-  3-way interaction was the sole significant
-  CVR~mimic~ moderation result out of 6 tests
-  (2 sexes × 3 domains), and did not survive FDR
-  correction. This isolated finding should be
-  treated as exploratory and requires independent
-  replication before any clinical interpretation
+In clinical trials targeting cardiovascular risk
+reduction for dementia prevention, FRS should not be
+used as the sole CVR endpoint in elderly samples due
+to age-confounding
+[@ko_calibration_2020; @marrugat_adaptation_2003].
+Age-adjusted CVR measures should be considered when
+the research question concerns cardiovascular effects
+independent of aging [@zhang_bayesian_2024]. HVR
+provides a more sensitive neuroimaging endpoint than
+hippocampal volume alone, and its consistent
+cognitive coupling supports use as a surrogate
+outcome in intervention studies. The isolated
+CVR~mimic~ Executive Function finding (1/6 tests,
+non-significant after FDR) requires replication
+before clinical interpretation.
 
 ## Limitations
 
-- Single cohort (ADNI); replication in other aging
-  samples needed. The UKB-trained GAMLSS normative
-  models showed a systematic negative z-score offset
-  in the ADNI comparable subsample, driven by age
-  distribution mismatch. While within-ADNI relative
-  comparisons remain valid, absolute z-score values
-  should be interpreted cautiously when comparing
-  across cohorts
-- CVR~mimic~ indicators limited to available CVRF
-  data; more comprehensive indicators (e.g., lipid
-  panel, inflammatory markers) could improve the
-  latent CVR measure
-- Cross-sectional CVR measurement; longitudinal CVR
-  trajectories could be informative
-- Amyloid-positive sample only; findings may not
-  generalize to cognitively normal individuals
-  without AD pathology
-- The formal coefficient comparison (shared-seed
-  bootstrap Δ~a~ and clustered bootstrap Δβ) relies
-  on the same resampling framework as the primary
-  mediation inference; independent validation of
-  these paired tests is not available
-- Female CVR~mimic~ Executive LME effect requires
-  replication to determine whether it reflects true
-  CVR moderation or a chance finding
-- The fixed-quadratic LGCM captures population-level
-  curvature but constrains individual quadratic
-  variation; slope estimates may still obscure
-  individual-level acceleration or deceleration
-  patterns
-- LGCM models used individually-varying time scores
-  (EDT definition variables), which preclude
-  computation of CFI, TLI, and RMSEA — we assessed
-  model adequacy via information criteria and
-  nested LRTs only, limiting comparability with
-  studies reporting standard fit indices
-- MIMIC model used only 5 indicators; richer
-  measurement models may yield different results.
-  Factor scores are model-dependent and different
-  specifications could yield different CVR~mimic~
-  values
-- Common-sample filtering may reduce N relative to
-  analyses using only one CVR measure, potentially
-  limiting power
-- Bootstrap mediation CIs (N =
-  `r med_n.lst$Male` males,
-  `r med_n.lst$Female` females) may be liberal with
-  these modest sample sizes; results should be
-  interpreted with caution
+This study used a single cohort (ADNI), and
+replication in other aging samples is needed.
+UKB-trained GAMLSS normative models showed a
+systematic negative z-score offset in the ADNI
+comparable subsample due to age distribution
+mismatch; within-ADNI relative comparisons remain
+valid, but absolute z-scores should be interpreted
+cautiously across cohorts. CVR~mimic~ indicators
+were limited to available CVRF data; additional
+indicators could improve the latent CVR measure.
+CVR was measured cross-sectionally, and the
+amyloid-positive sample limits generalizability to
+individuals without AD pathology.
+
+Our coefficient comparison tests share the same
+resampling framework as primary mediation inference,
+with no independent validation.
+Individually-varying time scores preclude CFI, TLI,
+and RMSEA computation — model adequacy was assessed
+via information criteria and nested LRTs only. The
+MIMIC model used only 5 indicators; richer models
+may yield different CVR~mimic~ values. Bootstrap
+mediation CIs (N = `r med_n.lst$Male` males,
+`r med_n.lst$Female` females) may be liberal with
+these modest sample sizes.
 
 ## Conclusions
 
-- Whether CVR appears to influence
-  hippocampal-cognitive trajectories depends
-  critically on how CVR is measured: FRS produces
-  significant indirect effects through hippocampal
-  decline, while age-adjusted CVR~mimic~ does not
-- This dissociation supports the hypothesis that FRS
-  "effects" on hippocampal decline primarily reflect
-  age-related variance rather than cardiovascular
-  pathophysiology
-- Suggestive single-domain evidence (Female Executive
-  LME 3-way) hints that age-adjusted CVR may still
-  modulate the brain-cognition relationship through
-  reserve-like mechanisms
-- The hippocampal-cognitive coupling persists
-  regardless of CVR measurement, supporting HVR as
-  a reliable biomarker target
-- Future directions include replication in
-  independent aging cohorts (e.g., WRAP, AIBL),
-  longitudinal CVR measurement to capture
-  within-person CVR trajectories, and intervention
-  studies testing whether CVR reduction preserves
-  the HVR-cognition coupling
-- This study demonstrates a general methodological
-  framework — MIMIC-based age adjustment — that can
-  be applied to any composite risk score where age
-  confounding is a concern
+How CVR is measured determines whether it appears
+to influence hippocampal-cognitive trajectories: FRS
+produces significant indirect effects through
+hippocampal decline, but age-adjusted CVR~mimic~
+does not. The most parsimonious explanation is that
+FRS "effects" on hippocampal decline are carried by
+its age component rather than by cardiovascular
+pathophysiology per se. Suggestive single-domain evidence
+(Female Executive LME 3-way) hints that age-adjusted
+CVR may still modulate the brain-cognition
+relationship through reserve-like mechanisms. The
+hippocampal-cognitive coupling persists regardless of
+CVR measurement, supporting HVR as a reliable
+biomarker target.
+
+Future directions include replication in independent
+aging cohorts (e.g., WRAP, AIBL), longitudinal CVR
+measurement to capture within-person CVR
+trajectories, and intervention studies testing
+whether CVR reduction preserves the HVR-cognition
+coupling. Beyond cardiovascular risk, the
+MIMIC-based age-adjustment framework presented here
+applies to any composite score whose constituent
+parts include a variable that independently predicts
+the outcome.
 
 ---
 
+# Ethics Approval Statement {.unnumbered}
+
+Data used in preparation of this article were
+obtained from the ADNI database. ADNI was approved by
+the Institutional Review Boards of all participating
+institutions. Written informed consent was obtained
+from all participants.
+
+# Author Contributions {.unnumbered}
+
+S.F-L. conceived the study, developed the analysis
+pipeline, performed all analyses, and wrote the
+manuscript. S.V. provided critical review of the
+study design and interpretation. D.L.C. supervised
+the project, provided critical review, and approved
+the final manuscript.
+
+# Acknowledgments {.unnumbered}
+
+Data collection and sharing for this project was
+funded by the Alzheimer's Disease Neuroimaging
+Initiative (ADNI) (National Institutes of Health
+Grant U01 AG024904) and DOD ADNI (Department of
+Defense award number W81XWH-12-2-0012). ADNI is
+funded by the National Institute on Aging, the
+National Institute of Biomedical Imaging and
+Bioengineering, and through generous contributions
+from the following: Alzheimer's Association;
+Alzheimer's Drug Discovery Foundation; Araclon
+Biotech; BioClinica, Inc.; Biogen Idec Inc.;
+Bristol-Myers Squibb Company; Eisai Inc.; Elan
+Pharmaceuticals, Inc.; Eli Lilly and Company;
+EuroImmun; F. Hoffmann-La Roche Ltd and its
+affiliated company Genentech, Inc.; Fujirebio; GE
+Healthcare; IXICO Ltd.; Janssen Alzheimer
+Immunotherapy Research & Development, LLC.; Johnson &
+Johnson Pharmaceutical Research & Development LLC.;
+Medpace, Inc.; Merck & Co., Inc.; Meso Scale
+Diagnostics, LLC.; NeuroRx Research; Neurotrack
+Technologies; Novartis Pharmaceuticals Corporation;
+Pfizer Inc.; Piramal Imaging; Servier; Synarc Inc.;
+and Takeda Pharmaceutical Company. The Canadian
+Institutes of Health Research is providing funds to
+support ADNI clinical sites in Canada. Private sector
+contributions are facilitated by the Foundation for
+the National Institutes of Health (www.fnih.org). The
+grantee organization is the Northern California
+Institute for Research and Education, and the study
+is coordinated by the Alzheimer's Disease Cooperative
+Study at the University of California, San Diego.
+ADNI data are disseminated by the Laboratory for
+Neuro Imaging at the University of Southern
+California.
+
+*Data used in preparation of this article were
+obtained from the ADNI database
+(adni.loni.usc.edu). As such, the investigators
+within the ADNI contributed to the design and
+implementation of ADNI and/or provided data but did
+not participate in analysis or writing of this
+report. A complete listing of ADNI investigators can
+be found at:
+http://adni.loni.usc.edu/wp-content/uploads/how_to_apply/ADNI_Acknowledgement_List.pdf*
+
+# Conflict of Interest Statement {.unnumbered}
+
+The authors declare no conflicts of interest.
+
+# Data Availability Statement {.unnumbered}
+
+This research was conducted using ADNI data
+(adni.loni.usc.edu). Data are available to qualified
+researchers through the ADNI data sharing platform.
+Analysis code is available at
+https://github.com/soffiafdz/hvr-cvr-mediation.
+
 \newpage
+
+# Supplementary Material {.unnumbered}
+
+Appendices A--C are provided as supplementary
+material and contain additional tables, figures, and
+analyses referenced in the main text.
 
 :::{=latex}
 \appendix
@@ -2666,36 +2661,32 @@ LGCM validation — are reported in Appendix C.
 # Normative Transfer Validation
 
 
-- For transfer validation, we identified a comparable
-  ADNI subsample of `r adni_demo$n_total`
-  amyloid-negative cognitively unimpaired participants
-  (`r sprintf("%.0f%%", adni_demo$pct_female)`
-  female) within the UKB age range
-- Despite matching on amyloid status and cognitive normality, the
-  ADNI comparable subsample was approximately
-  `r sprintf("%.0f", adni_demo$age_mean - ukb_demo$age_mean)`
-  years older on average (mean
-  `r sprintf("%.1f", adni_demo$age_mean)`
-  vs
-  `r sprintf("%.1f", ukb_demo$age_mean)`
-  years; @fig-normative-validation A), concentrating in the upper
-  tail of the UKB age distribution
-- HVR z-scores showed a systematic negative offset (mean =
-  `r sprintf("%.2f", comp_hvr$mean)`,
-  SD =
-  `r sprintf("%.2f", comp_hvr$sd)`,
-  95% CI
-  [`r sprintf("%.2f", comp_hvr$ci_95["lower"])`,
-  `r sprintf("%.2f", comp_hvr$ci_95["upper"])`]),
-  while HC z-scores were closer to expected values (mean =
-  `r sprintf("%.2f", comp_hc$mean)`,
-  SD =
-  `r sprintf("%.2f", comp_hc$sd)`;
-  @fig-normative-validation B)
-- Age-bin-specific calibration (see @fig-normative-validation, panel B):
-  mean z-scores near zero in younger bins, increasingly
-  negative offset in older bins consistent with the age
-  mismatch
+For transfer validation, we identified a comparable
+ADNI subsample of `r adni_demo$n_total`
+amyloid-negative cognitively unimpaired participants
+(`r sprintf("%.0f%%", adni_demo$pct_female)` female)
+within the UKB age range. Despite matching on amyloid
+status and cognitive normality, the ADNI comparable
+subsample was approximately
+`r sprintf("%.0f", adni_demo$age_mean - ukb_demo$age_mean)`
+years older on average (mean
+`r sprintf("%.1f", adni_demo$age_mean)` vs
+`r sprintf("%.1f", ukb_demo$age_mean)` years;
+@fig-normative-validation A), concentrating in the
+upper tail of the UKB age distribution. HVR z-scores
+showed a systematic negative offset (mean =
+`r sprintf("%.2f", comp_hvr$mean)`, SD =
+`r sprintf("%.2f", comp_hvr$sd)`, 95% CI
+[`r sprintf("%.2f", comp_hvr$ci_95["lower"])`,
+`r sprintf("%.2f", comp_hvr$ci_95["upper"])`]),
+while HC z-scores were closer to expected values
+(mean = `r sprintf("%.2f", comp_hc$mean)`, SD =
+`r sprintf("%.2f", comp_hc$sd)`;
+@fig-normative-validation B). Age-bin-specific
+calibration (@fig-normative-validation, panel B)
+showed mean z-scores near zero in younger bins with
+increasingly negative offset in older bins,
+consistent with the age mismatch.
 
 ```{r fig-normative-validation}
 #| fig-cap: "Normative transfer validation. (A) Age distributions: UK Biobank normative sample (yellow) vs ADNI comparable subsample (cyan); dashed lines indicate sample means. (B) Forest plot of HVR (purple) and HC (green) z-scores (mean +/- 95% CI) by age bin; reference line at z = 0 indicates perfect calibration; open circles = age bins, filled circles = overall. (C) Z-score distributions for HVR (left) and HC (right) compared to the expected N(0,1) (yellow)."
@@ -2772,10 +2763,10 @@ require_output(
 
 ## EDT Linearity and Simulation Validation
 
-- Linear time specification validated via LME
-  likelihood ratio tests comparing linear vs
-  quadratic EDT across all sex-domain models
-  (see @tbl-linearity)
+The linear time specification was validated via LME
+likelihood ratio tests comparing linear vs quadratic
+EDT across all sex-domain models (see
+@tbl-linearity).
 
 ```{r tbl-linearity}
 #| tbl-cap: "EDT linearity validation: LME models testing linear vs quadratic EDT specification. LRT tests whether adding a quadratic EDT term significantly improves fit. ΔAIC = AIC(linear) - AIC(quadratic); positive values favor quadratic. EDT = Estimated Disease Time."
@@ -2790,34 +2781,43 @@ require_output(
 ```
 
 ```{r edt-linearity-narrative}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(edt_linearity))
 lt <- as.data.table(
   edt_linearity$results_table
 )
-# Column is LRT_p, not p
 n_sig <- sum(
   lt$LRT_p < 0.05, na.rm = TRUE
 )
 n_total <- nrow(lt)
 if (n_sig == 0) {
-  cat(paste0(
-    "- No domain showed a significant",
-    " quadratic EDT term (all p > 0.05),",
-    " supporting the linear time",
-    " specification for the LGCM\n"
-  ))
+  edt_lin_text <- paste0(
+    "No domain showed a significant",
+    " quadratic EDT term",
+    " (all p > 0.05), supporting the",
+    " linear time specification for",
+    " the LGCM."
+  )
 } else {
   sig_doms <- lt[LRT_p < 0.05, Domain]
   max_chisq <- max(
     lt$LRT_chisq, na.rm = TRUE
   )
-  cat(sprintf(
+  edt_lin_text <- sprintf(
     paste0(
-      "- All %d/%d models showed",
+      "All %d/%d models showed",
       " significant quadratic EDT terms",
-      " (%s; max \u03c7\u00b2 = %.1f)\n"
+      " (%s; max χ² = %.1f).",
+      " Large test statistics reflect",
+      " substantial power afforded by",
+      " sample size and repeated",
+      " observations. A linear",
+      " specification was adopted as a",
+      " pragmatic compromise given",
+      " convergence failure of quadratic",
+      " parallel process LGCMs",
+      " (see Methods)."
     ),
     n_sig, n_total,
     paste(
@@ -2825,67 +2825,62 @@ if (n_sig == 0) {
       collapse = ", "
     ),
     max_chisq
-  ))
-  cat(paste0(
-    "- Large test statistics reflect",
-    " substantial power afforded by",
-    " sample size and repeated",
-    " observations\n",
-    "- Linear specification adopted as",
-    " pragmatic compromise given",
-    " convergence failure of quadratic",
-    " parallel process LGCMs",
-    " (see Methods)\n"
-  ))
+  )
 }
 ```
 
+`r edt_lin_text`
+
 ## SE-Constrained LGCM Validation
 
-- Monte Carlo simulation
-  (`r simulation.res$config$n_reps` replications
-  at N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`)
-  compared SE-constrained LGCM (residual variance
-  fixed to SE²) against free estimation
+A Monte Carlo simulation
+(`r simulation.res$config$n_reps` replications at
+N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`)
+compared SE-constrained LGCM (residual variance
+fixed to SE²) against free estimation.
 
 ```{r simulation-interpretation}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(sim_conv))
 fmt_sci <- function(x) {
   if (abs(x) < 1e-10) return("0")
   exp <- floor(log10(abs(x)))
   mant <- x / 10^exp
-  sprintf("%.1f \u00d7 10^%d^", mant, exp)
+  sprintf("%.1f × 10^%d^", mant, exp)
 }
-for (i in seq_len(nrow(sim_conv))) {
-  n_val <- sim_conv$n[i]
-  cat(sprintf(
-    paste0(
-      "- N = %d: SE-constrained converged",
-      " %d/500 (free: %d/500); bias = %s",
-      " (free: %s); RMSE = %.3f",
-      " (free: %.3f); 95%% CI coverage",
-      " = %.1f%% (free: %.1f%%)\n"
-    ),
-    n_val,
-    sim_conv$n_converged_se[i],
-    sim_conv$n_converged_free[i],
-    fmt_sci(sim_conv$bias_se[i]),
-    fmt_sci(sim_conv$bias_free[i]),
-    sim_conv$rmse_se[i],
-    sim_conv$rmse_free[i],
-    sim_conv$coverage_se[i] * 100,
-    sim_conv$coverage_free[i] * 100
-  ))
-}
-cat(paste0(
-  "- Both approaches showed comparable",
-  " performance, validating the",
-  " SE-constrained specification used",
-  " in the primary analyses\n"
-))
+sim_text_parts <- vapply(
+  seq_len(nrow(sim_conv)), function(i) {
+    sprintf(
+      paste0(
+        "At N = %d, the SE-constrained",
+        " approach converged %d/500",
+        " (free: %d/500) with bias = %s",
+        " (free: %s), RMSE = %.3f",
+        " (free: %.3f), and 95%% CI",
+        " coverage = %.1f%%",
+        " (free: %.1f%%)"
+      ),
+      sim_conv$n[i],
+      sim_conv$n_converged_se[i],
+      sim_conv$n_converged_free[i],
+      fmt_sci(sim_conv$bias_se[i]),
+      fmt_sci(sim_conv$bias_free[i]),
+      sim_conv$rmse_se[i],
+      sim_conv$rmse_free[i],
+      sim_conv$coverage_se[i] * 100,
+      sim_conv$coverage_free[i] * 100
+    )
+  }, character(1)
+)
+sim_text <- paste(
+  sim_text_parts, collapse = ". "
+)
 ```
+
+`r sim_text`. Both approaches showed comparable
+performance, validating the SE-constrained
+specification used in the primary analyses.
 
 ## LME Covariate Effects
 
@@ -2946,14 +2941,14 @@ details follow.
 
 ### HC z-score (Total Hippocampal Volume)
 
-- HC z-score effects were generally weaker than HVR
-  z-score effects, with fewer significant 3-way
-  interactions, supporting the hippocampus-to-ventricle
-  ratio as a more sensitive brain aging biomarker
-- LME 3-way interaction repeated with HC z-score
-  instead of HVR
-- Results in @tbl-hc-comparison; covariate effects in
-  @tbl-hc-covariates and @tbl-hc-covariates-cvr
+HC z-score effects were generally weaker than HVR
+z-score effects, with fewer significant 3-way
+interactions, supporting the
+hippocampus-to-ventricle ratio as a more sensitive
+brain aging biomarker. The LME 3-way interaction was
+repeated with HC z-score instead of HVR; results
+appear in @tbl-hc-comparison, with covariate effects
+in @tbl-hc-covariates and @tbl-hc-covariates-cvr.
 
 ```{r tbl-hc-comparison}
 #| tbl-cap: "Sensitivity analysis: LME 3-way interaction effects (YRS × CVR × HC z-score) for total hippocampal volume. FRS and CVR~mimic~ compared side-by-side. Bold indicates p < 0.05."
@@ -2994,15 +2989,18 @@ require_output(
 ```
 
 ```{r hc-interpretation}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(hc_summary.dt))
-  hc_p <- hc_summary.dt[
-    Analysis == "Primary_Stratified"
-  ]
-  for (cvr_nm in c("FRS", "CVR_mimic")) {
+hc_p <- hc_summary.dt[
+  Analysis == "Primary_Stratified"
+]
+hc_interp_parts <- vapply(
+  c("FRS", "CVR_mimic"), function(cvr_nm) {
     cvr_rows <- hc_p[CVR_Measure == cvr_nm]
-    sig_rows <- cvr_rows[Significant == TRUE]
+    sig_rows <- cvr_rows[
+      Significant == TRUE
+    ]
     cvr_lab <- ifelse(
       cvr_nm == "CVR_mimic",
       "CVR~mimic~", cvr_nm
@@ -3016,57 +3014,65 @@ stopifnot(!is.null(hc_summary.dt))
         ),
         collapse = ", "
       )
-      cat(sprintf(
-        "- %s × HC × YRS: significant for %s\n",
+      sprintf(
+        "%s × HC × YRS: significant for %s",
         cvr_lab, sig_desc
-      ))
+      )
     } else {
-      cat(sprintf(
-        "- %s × HC × YRS: no significant effects\n",
+      sprintf(
+        paste0(
+          "%s × HC × YRS: no significant",
+          " effects"
+        ),
         cvr_lab
-      ))
+      )
     }
-  }
-  cat(
-    "- HC z-score showed weaker effects than HVR\n",
-    "  z-score, supporting use of the ratio measure\n"
-  )
+  }, character(1)
+)
+hc_interp_text <- paste(
+  hc_interp_parts, collapse = ". "
+)
 ```
 
-```{r hc-vs-hvr-synthesis}
-#| output: asis
+`r hc_interp_text`. HC z-score showed weaker effects than HVR z-score, supporting use of the ratio measure.
 
-# Count significant HC vs HVR effects
-hc_p <- hc_summary.dt[
+```{r hc-vs-hvr-synthesis}
+#| include: false
+
+hc_p2 <- hc_summary.dt[
   Analysis == "Primary_Stratified"
 ]
 hvr_p <- lme_summary.dt[
   Analysis == "Primary_Stratified"
 ]
-n_hc_sig <- sum(hc_p$Significant, na.rm = TRUE)
+n_hc_sig <- sum(
+  hc_p2$Significant, na.rm = TRUE
+)
 n_hvr_sig <- sum(
   hvr_p$Significant, na.rm = TRUE
 )
-cat(sprintf(
+hc_synth_text <- sprintf(
   paste0(
-    "- HC z-score: %d/12 significant",
-    " 3-way interactions vs HVR z-score",
-    " %d/12 — weaker HC effects support",
-    " the specificity of HVR: capturing",
-    " ventricular expansion alongside",
-    " hippocampal atrophy provides",
-    " greater sensitivity to CVR",
-    " moderation\n"
+    "HC z-score produced %d/12 significant",
+    " 3-way interactions versus %d/12 for",
+    " HVR z-score — weaker HC effects",
+    " support the specificity of HVR:",
+    " capturing ventricular expansion",
+    " alongside hippocampal atrophy",
+    " provides greater sensitivity to",
+    " CVR moderation."
   ),
   n_hc_sig, n_hvr_sig
-))
+)
 ```
+
+`r hc_synth_text`
 
 ### Attrition Analysis
 
-- Baseline characteristics compared between completers (≥4 visits)
-  and dropouts (<4 visits)
-- Results in @tbl-attrition-baseline
+Baseline characteristics were compared between
+completers (≥4 visits) and dropouts (<4 visits);
+results appear in @tbl-attrition-baseline.
 
 ```{r tbl-attrition-baseline}
 #| tbl-cap: "Attrition analysis: baseline characteristics of completers (≥4 visits) vs dropouts (<4 visits). Bold rows indicate p < 0.05. Completers = participants with sufficient visits for quadratic trend estimation."
@@ -3078,55 +3084,53 @@ require_output(
 ```
 
 ```{r attrition-interpretation}
-#| output: asis
+#| include: false
 
 stopifnot(
   !is.null(attrition_analysis),
   !is.null(attrition_analysis$comparison_table)
 )
-{
-  comp_dt <- attrition_analysis$comparison_table
-  sig_vars <- comp_dt[p_value < 0.05, Variable]
-  # Map variable names for readability
-  var_display <- c(
-    AGE = "age", EDUC = "education",
-    FRS = "FRS", HVR_z = "HVR z-score",
-    HC_z = "HC z-score", SEX = "sex",
-    APOE4 = "APOE \u03b54 carrier status"
+comp_dt <- attrition_analysis$comparison_table
+sig_vars <- comp_dt[p_value < 0.05, Variable]
+var_display <- c(
+  AGE = "age", EDUC = "education",
+  FRS = "FRS", HVR_z = "HVR z-score",
+  HC_z = "HC z-score", SEX = "sex",
+  APOE4 = "APOE ε4 carrier status"
+)
+sig_labels <- vapply(
+  sig_vars, function(v) {
+    if (v %in% names(var_display)) {
+      var_display[v]
+    } else v
+  }, character(1)
+)
+if (length(sig_vars) > 0) {
+  attrition_text <- sprintf(
+    paste0(
+      "Significant baseline differences",
+      " between completers and dropouts",
+      " were observed in %s (all p < 0.05;",
+      " see @tbl-attrition-baseline)."
+    ),
+    paste(sig_labels, collapse = ", ")
   )
-  sig_labels <- vapply(
-    sig_vars, function(v) {
-      if (v %in% names(var_display)) {
-        var_display[v]
-      } else v
-    }, character(1)
+} else {
+  attrition_text <- paste0(
+    "No significant baseline",
+    " differences between completers",
+    " and dropouts were observed",
+    " (see @tbl-attrition-baseline),",
+    " suggesting attrition was random",
+    " with respect to measured variables."
   )
-  if (length(sig_vars) > 0) {
-    cat(sprintf(
-      paste0(
-        "- Significant baseline differences",
-        " between completers and dropouts",
-        " in %s (all p < 0.05;",
-        " see @tbl-attrition-baseline)\n"
-      ),
-      paste(sig_labels, collapse = ", ")
-    ))
-  } else {
-    cat(paste0(
-      "- No significant baseline",
-      " differences between completers",
-      " and dropouts",
-      " (see @tbl-attrition-baseline),",
-      " suggesting attrition was random",
-      " with respect to measured",
-      " variables\n"
-    ))
-  }
 }
 ```
 
+`r attrition_text`
+
 ```{r attrition-logistic-inline}
-#| output: asis
+#| include: false
 
 stopifnot(
   !is.null(attrition_analysis),
@@ -3146,7 +3150,7 @@ or_dt[, sig := CI_lower > 1 | CI_upper < 1]
 # Readable term labels
 term_display <- c(
   FRS = "FRS", AGE = "age",
-  APOE4TRUE = "APOE \u03b54 carrier status",
+  APOE4TRUE = "APOE ε4 carrier status",
   SEXMale = "male sex",
   HVR_z = "HVR z-score",
   HC_z = "HC z-score"
@@ -3165,22 +3169,22 @@ if (nrow(sig_preds) > 0) {
     sig_preds$CI_lower,
     sig_preds$CI_upper
   )
-  cat(sprintf(
+  logistic_text <- sprintf(
     paste0(
-      "- Logistic regression predicting",
-      " dropout: %d significant",
-      " predictor%s — %s\n"
+      "Logistic regression predicting",
+      " dropout identified %d significant",
+      " predictor%s — %s."
     ),
     nrow(sig_preds),
     ifelse(nrow(sig_preds) > 1, "s", ""),
     paste(items, collapse = "; ")
-  ))
+  )
 } else {
-  cat(paste0(
-    "- Logistic regression predicting",
-    " dropout: no significant predictors",
-    " (all 95%% CIs included 1)\n"
-  ))
+  logistic_text <- paste0(
+    "Logistic regression predicting",
+    " dropout identified no significant",
+    " predictors (all 95% CIs included 1)."
+  )
 }
 
 # FRS direction narrative
@@ -3188,6 +3192,7 @@ comp_dt <- attrition_analysis$comparison_table
 frs_row <- comp_dt[
   grepl("FRS", Variable, ignore.case = TRUE)
 ]
+frs_dir_text <- ""
 if (nrow(frs_row) > 0) {
   c_mean <- frs_row$Completers_mean[1]
   d_mean <- frs_row$Dropouts_mean[1]
@@ -3196,30 +3201,32 @@ if (nrow(frs_row) > 0) {
     direction <- if (d_mean > c_mean) {
       "higher"
     } else "lower"
-    cat(sprintf(
+    frs_dir_text <- sprintf(
       paste0(
-        "- Dropouts had %s baseline FRS",
+        " Dropouts had %s baseline FRS",
         " (M = %.2f) than completers",
         " (M = %.2f), consistent with",
         " selective loss of higher-risk",
-        " participants — may attenuate",
-        " observed CVR effects\n"
+        " participants — this may",
+        " attenuate observed CVR effects."
       ),
       direction, d_mean, c_mean
-    ))
+    )
   }
 }
 ```
 
+`r logistic_text``r frs_dir_text`
+
 ### Raw Brain Measure Sensitivity
 
-- LME 3-way interaction repeated using raw
-  (un-normalized) HVR and raw HC (with TIV
-  covariate); FRS predictor, full-sample, no sex
-  stratification, no YRS² term
+The LME 3-way interaction was repeated using raw
+(un-normalized) HVR and raw HC (with TIV covariate),
+with FRS as predictor, full-sample, no sex
+stratification, and no YRS² term.
 
 ```{r raw-hvr-inline}
-#| output: asis
+#| include: false
 
 stopifnot(
   !is.null(lme_raw_sens.res),
@@ -3233,26 +3240,32 @@ hc_raw <- lme_raw_sens.res$results$HC_raw_FRS
 stopifnot(!is.null(hc_raw))
 raw_hc_results <- list(results = hc_raw)
 
-for (meas_nm in c("Raw HVR", "Raw HC (+TIV)")) {
-  res <- if (meas_nm == "Raw HVR") {
-    raw_hvr_results
-  } else raw_hc_results
-  items <- c()
-  for (d in c("MEM", "LAN", "EXF")) {
-    r <- res$results[[d]]$interaction
-    if (!is.null(r)) {
-      items <- c(items, sprintf(
-        "%s \u03b2 = %.4f, %s",
-        DOMAIN_LABELS[d], r$beta,
-        fmt_p_inline(r$p_value)
-      ))
+raw_meas_parts <- vapply(
+  c("Raw HVR", "Raw HC (+TIV)"),
+  function(meas_nm) {
+    res <- if (meas_nm == "Raw HVR") {
+      raw_hvr_results
+    } else raw_hc_results
+    items <- c()
+    for (d in c("MEM", "LAN", "EXF")) {
+      r <- res$results[[d]]$interaction
+      if (!is.null(r)) {
+        items <- c(items, sprintf(
+          "%s β = %.4f, %s",
+          DOMAIN_LABELS[d], r$beta,
+          fmt_p_inline(r$p_value)
+        ))
+      }
     }
-  }
-  cat(sprintf(
-    "- %s: %s\n",
-    meas_nm, paste(items, collapse = "; ")
-  ))
-}
+    sprintf(
+      "%s: %s", meas_nm,
+      paste(items, collapse = "; ")
+    )
+  }, character(1)
+)
+raw_meas_text <- paste(
+  raw_meas_parts, collapse = ". "
+)
 
 # Concordance check
 sig_hvr <- sapply(
@@ -3263,24 +3276,24 @@ sig_hvr <- sapply(
   }
 )
 if (any(sig_hvr)) {
-  cat(sprintf(
+  raw_concord_text <- sprintf(
     paste0(
-      "- Raw HVR \u00d7 FRS significant for",
+      "Raw HVR × FRS was significant for",
       " %s, confirming normative z-scoring",
-      " does not drive primary findings\n"
+      " does not drive primary findings."
     ),
     paste(
       DOMAIN_LABELS[names(sig_hvr)[sig_hvr]],
       collapse = ", "
     )
-  ))
+  )
 } else {
-  cat(paste0(
-    "- Raw HVR \u00d7 FRS not significant",
+  raw_concord_text <- paste0(
+    "Raw HVR × FRS was not significant",
     " for any domain, suggesting",
     " normative z-scoring enhances",
-    " sensitivity\n"
-  ))
+    " sensitivity."
+  )
 }
 
 # Raw HC (+TIV) note
@@ -3291,81 +3304,85 @@ sig_hc <- sapply(
     !is.null(r) && r$p_value < 0.05
   }
 )
-if (!any(sig_hc)) {
-  cat(paste0(
-    "- Raw HC (+TIV) not significant",
+raw_hc_note <- if (!any(sig_hc)) {
+  paste0(
+    " Raw HC (+TIV) was not significant",
     " for any domain, reinforcing the",
     " added sensitivity of the ratio",
-    " measure\n"
-  ))
-}
+    " measure."
+  )
+} else ""
 ```
+
+`r raw_meas_text`. `r raw_concord_text``r raw_hc_note`
 
 ### EDT Moderation of LME Effects
 
-- 4-way interaction (CVR × HVR × EDT × YRS) tested
-  whether CVR effects vary by disease stage
+A 4-way interaction (CVR × HVR × EDT × YRS) tested
+whether CVR effects vary by disease stage.
 
 ```{r edt-moderation-inline}
-#| output: asis
+#| include: false
 
-report_edt <- function(edt_res, cvr_label) {
+build_edt_text <- function(edt_res, cvr_label) {
   stopifnot(
     !is.null(edt_res),
     !is.null(edt_res$summary_continuous)
   )
   sc <- as.data.table(edt_res$summary_continuous)
-  for (sx in c("Male", "Female")) {
-    sx_rows <- sc[Sex == sx]
-    sig <- sx_rows[Significant == TRUE]
-    if (nrow(sig) > 0) {
-      items <- sprintf(
-        "%s (\u03b2 = %.4f, %s)",
-        DOMAIN_LABELS[sig$Domain],
-        sig$Beta,
-        sapply(sig$p_value, fmt_p_inline)
-      )
-      cat(sprintf(
-        "- %s \u00d7 HVR \u00d7 EDT (%s):",
-        cvr_label, sx
-      ))
-      cat(sprintf(
-        " significant for %s\n",
-        paste(items, collapse = "; ")
-      ))
-    } else {
-      min_p <- min(
-        sx_rows$p_value, na.rm = TRUE
-      )
-      cat(sprintf(
-        paste0(
-          "- %s \u00d7 HVR \u00d7 EDT (%s):",
-          " not significant (min %s)\n"
-        ),
-        cvr_label, sx,
-        fmt_p_inline(min_p)
-      ))
-    }
-  }
+  parts <- vapply(
+    c("Male", "Female"), function(sx) {
+      sx_rows <- sc[Sex == sx]
+      sig <- sx_rows[Significant == TRUE]
+      if (nrow(sig) > 0) {
+        items <- sprintf(
+          "%s (β = %.4f, %s)",
+          DOMAIN_LABELS[sig$Domain],
+          sig$Beta,
+          sapply(sig$p_value, fmt_p_inline)
+        )
+        sprintf(
+          paste0(
+            "%s × HVR × EDT (%s):",
+            " significant for %s"
+          ),
+          cvr_label, sx,
+          paste(items, collapse = "; ")
+        )
+      } else {
+        min_p <- min(
+          sx_rows$p_value, na.rm = TRUE
+        )
+        sprintf(
+          paste0(
+            "%s × HVR × EDT (%s):",
+            " not significant (min %s)"
+          ),
+          cvr_label, sx,
+          fmt_p_inline(min_p)
+        )
+      }
+    }, character(1)
+  )
+  paste(parts, collapse = ". ")
 }
-report_edt(frs_edt, "FRS")
-report_edt(cvr_edt, "CVR~mimic~")
-cat(paste0(
-  "- Limited EDT moderation suggests",
-  " CVR effects on HVR-cognition",
-  " coupling are relatively stable",
-  " across disease stages\n"
-))
+edt_mod_text <- paste(
+  build_edt_text(frs_edt, "FRS"),
+  build_edt_text(cvr_edt, "CVR~mimic~"),
+  sep = ". "
+)
 ```
+
+`r edt_mod_text`. Limited EDT moderation suggests CVR effects on HVR-cognition coupling are relatively stable across disease stages.
 
 ### EDT Stage Sensitivity
 
-- Analyses restricted to early and middle EDT
-  tertiles (excluding late-stage) to assess
-  robustness
+Analyses were restricted to early and middle EDT
+tertiles (excluding late-stage) to confirm effect
+stability.
 
 ```{r edt-sensitivity-inline}
-#| output: asis
+#| include: false
 
 stopifnot(!is.null(edt_sens.res))
 rt <- as.data.table(edt_sens.res$results_table)
@@ -3379,52 +3396,58 @@ dom_labels <- c(
   EXF = "Executive Function"
 )
 
-for (meas in unique(rt$Measure)) {
-  mrt <- rt[Measure == meas]
-  m_lab <- if (meas %in% names(meas_labels)) {
-    meas_labels[meas]
-  } else meas
-  items <- c()
-  n_concord <- 0L
-  for (i in seq_len(nrow(mrt))) {
-    row <- mrt[i]
-    d_lab <- if (
-      row$Domain %in% names(dom_labels)
-    ) dom_labels[row$Domain] else row$Domain
-    pct <- if (
-      !is.null(row$Beta_change_pct) &&
-      !is.na(row$Beta_change_pct)
-    ) {
+edt_sens_parts <- vapply(
+  unique(rt$Measure), function(meas) {
+    mrt <- rt[Measure == meas]
+    m_lab <- if (
+      meas %in% names(meas_labels)
+    ) meas_labels[meas] else meas
+    items <- c()
+    n_concord <- 0L
+    for (i in seq_len(nrow(mrt))) {
+      row <- mrt[i]
+      d_lab <- if (
+        row$Domain %in% names(dom_labels)
+      ) dom_labels[row$Domain] else row$Domain
+      pct <- if (
+        !is.null(row$Beta_change_pct) &&
+        !is.na(row$Beta_change_pct)
+      ) {
+        sprintf(
+          ", %.1f%% change",
+          row$Beta_change_pct
+        )
+      } else ""
+      if (!is.null(row$Consistent) &&
+          isTRUE(row$Consistent)) {
+        n_concord <- n_concord + 1L
+      }
+      items <- c(items, sprintf(
+        "%s (β = %.4f, %s%s)",
+        d_lab, row$Beta_early_middle,
+        fmt_p_inline(row$P_early_middle),
+        pct
+      ))
+    }
+    concord_note <- if (n_concord > 0) {
       sprintf(
-        ", %.1f%% change",
-        row$Beta_change_pct
+        " (%d/%d concordant with full-sample)",
+        n_concord, nrow(mrt)
       )
     } else ""
-    if (!is.null(row$Consistent) &&
-        isTRUE(row$Consistent)) {
-      n_concord <- n_concord + 1L
-    }
-    items <- c(items, sprintf(
-      "%s (\u03b2 = %.4f, %s%s)",
-      d_lab, row$Beta_early_middle,
-      fmt_p_inline(row$P_early_middle),
-      pct
-    ))
-  }
-  concord_note <- if (n_concord > 0) {
     sprintf(
-      " (%d/%d concordant with full-sample)",
-      n_concord, nrow(mrt)
+      "%s: %s%s", m_lab,
+      paste(items, collapse = "; "),
+      concord_note
     )
-  } else ""
-  cat(sprintf(
-    "- %s: %s%s\n",
-    m_lab,
-    paste(items, collapse = "; "),
-    concord_note
-  ))
-}
+  }, character(1)
+)
+edt_sens_text <- paste(
+  edt_sens_parts, collapse = ". "
+)
 ```
+
+`r edt_sens_text`.
 
 :::{=latex}
 \FloatBarrier
