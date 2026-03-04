@@ -11,7 +11,7 @@ author:
       - ref: bic
       - ref: psych
       - ref: stopad
-  - name: Louis D. Collins
+  - name: D. Louis Collins
     affiliations:
       - ref: bic
       - ref: ipn
@@ -19,6 +19,7 @@ author:
     email: louis.collins@mcgill.ca
     corresponding: true
   - name: for the Alzheimer's Disease Neuroimaging Initiative
+    affiliations: []
 affiliations:
   - id: bic
     name: McConnell Brain Imaging Centre
