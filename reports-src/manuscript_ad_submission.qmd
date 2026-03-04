@@ -333,17 +333,23 @@ coupling.
 **RESULTS:**
 FRS predicted hippocampal atrophy (a-path significant
 in `r n_of_total.fn(abs_stats$frs_a_sig, 6L)` LGCM
-models); CVR~mimic~ did not. The b-path
-(HVR slope → cognitive slope) was significant for
-Memory and Executive Function regardless of
-predictor, confirming hippocampal-cognitive coupling
-is not an artifact of CVR measurement. FRS indirect
-effects were significant for Memory and Executive
-Function in both sexes; Language and all CVR~mimic~
-indirect effects were non-significant. LME 3-way
-interactions (YRS × CVR × HVR) were significant
-across all domains for FRS but largely null for
-CVR~mimic~.
+models); CVR~mimic~ did not
+(`r n_of_total.fn(abs_stats$cvr_a_sig, 6L)`). The
+b-path (HVR slope → cognitive slope) was significant
+in `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS
+and `r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
+CVR~mimic~ models, confirming hippocampal-cognitive
+coupling is not an artifact of CVR measurement. FRS
+indirect effects were significant in
+`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models;
+CVR~mimic~ indirect effects in
+`r n_of_total.fn(abs_stats$cvr_ind_sig, 6L)`. LME
+3-way interactions (YRS × CVR × HVR) were significant
+in
+`r n_of_total.fn(abs_lme$frs_m_sig + abs_lme$frs_f_sig, 6L)`
+FRS models (all surviving FDR) versus
+`r n_of_total.fn(abs_lme$cvr_m_sig + abs_lme$cvr_f_sig, 6L)`
+for CVR~mimic~.
 
 **DISCUSSION:**
 FRS "effects" on hippocampal-cognitive decline
@@ -2299,10 +2305,10 @@ age-weighting. By contrast, the b-path
 `r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
 CVR~mimic~ models, confirming that hippocampal-
 cognitive coupling persists regardless of predictor.
-The FRS indirect effect (a × b) was significant
-for Memory and Executive Function in both sexes;
-Language indirect effects and all CVR~mimic~
-indirect effects were non-significant.
+The FRS indirect effect (a × b) was significant in
+`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models;
+CVR~mimic~ indirect effects in
+`r n_of_total.fn(abs_stats$cvr_ind_sig, 6L)`.
 
 **Males.** FRS predicted hippocampal atrophy across
 `r m_frs_a_nsig` domains (a-path β range
@@ -2512,10 +2518,10 @@ exhibited expected effects across all models
 The HVR slope → Cognitive slope relationship
 (b-path) was consistent regardless of whether FRS or
 CVR~mimic~ was the predictor (@fig-mediation).
-Significant b-path estimates appeared in Memory and
-Executive Function for both predictors
-(`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` each;
-Language non-significant), supporting HVR decline as
+The b-path was significant in
+`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS and
+`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
+CVR~mimic~ models, supporting HVR decline as
 a reliable marker of cognitive decline
 [@kramer_longitudinal_2007; @oschwald_brain_2020]
 and extending earlier evidence that HVR captures
