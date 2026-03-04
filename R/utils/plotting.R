@@ -2202,8 +2202,11 @@ plot_cvr_validation <- function(data.dt) {
 #' Plot FRS vs Age scatter
 #'
 #' @param data.dt Data with FRS_pct and AGE columns
+#' @param frs_age_r Pre-computed Pearson r for
+#'   annotation; if NULL, computed from data.dt
 #' @return ggplot object
-plot_frs_validation <- function(data.dt) {
+plot_frs_validation <- function(data.dt,
+                                frs_age_r = NULL) {
   if (is.null(data.dt)) return(NULL)
 
   dt <- as.data.table(data.dt)
@@ -2217,10 +2220,14 @@ plot_frs_validation <- function(data.dt) {
     baseline.dt <- dt[!duplicated(PTID)]
   }
 
-  frs_age_cor <- cor(
-    baseline.dt$FRS_pct, baseline.dt$AGE,
-    use = "complete"
-  )
+  frs_age_cor <- if (!is.null(frs_age_r)) {
+    frs_age_r
+  } else {
+    cor(
+      baseline.dt$FRS_pct, baseline.dt$AGE,
+      use = "complete"
+    )
+  }
 
   ggplot(
     baseline.dt, aes(x = AGE, y = FRS_pct)

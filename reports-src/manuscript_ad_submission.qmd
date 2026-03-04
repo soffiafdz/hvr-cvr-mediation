@@ -330,17 +330,19 @@ models tested CVR effects on hippocampal-cognitive
 coupling.
 
 **RESULTS:**
-FRS predicted hippocampal atrophy (CVR → HVR slope
-significant in
-`r n_of_total.fn(abs_stats$frs_a_sig, 6L)` LGCM
-mediation models); CVR~mimic~ did not (none
-significant). HVR-cognitive coupling was significant
-in `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` models
-for both FRS and CVR~mimic~, persisting regardless
-of CVR measure. FRS showed significant indirect
-effects in
-`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models;
-CVR~mimic~ showed none.
+FRS predicted hippocampal atrophy (a-path significant
+in `r n_of_total.fn(abs_stats$frs_a_sig, 6L)` LGCM
+models); CVR~mimic~ did not. The b-path
+(HVR slope → cognitive slope) was significant for
+Memory and Executive Function regardless of
+predictor, confirming hippocampal-cognitive coupling
+is not an artifact of CVR measurement. FRS indirect
+effects were significant for Memory and Executive
+Function in both sexes; Language and all CVR~mimic~
+indirect effects were non-significant. LME 3-way
+interactions (YRS × CVR × HVR) were significant
+across all domains for FRS but largely null for
+CVR~mimic~.
 
 **DISCUSSION:**
 FRS "effects" on hippocampal-cognitive decline
@@ -386,7 +388,10 @@ effects rather than cardiovascular pathophysiology.
 
 **Future Directions:**
 Replication in independent aging cohorts (e.g.,
-WRAP, AIBL) with longitudinal CVR measurement is
+the Wisconsin Registry for Alzheimer's Prevention
+[WRAP], the Australian Imaging, Biomarker and
+Lifestyle Flagship Study of Ageing [AIBL]) with
+longitudinal CVR measurement is
 needed. The MIMIC-based age-adjustment framework
 demonstrated here can be applied to any composite
 risk score where age confounding is a concern.
@@ -495,7 +500,8 @@ Neuroimaging Initiative (ADNI), a multi-site
 longitudinal study spanning phases ADNI-1, ADNI-GO,
 ADNI-2, and ADNI-3. We included amyloid-positive
 participants defined by PET Centiloid > 25
-[@klunk_centiloid_2015] across FBP, FBB, and PIB
+[@klunk_centiloid_2015] across florbetapir (FBP),
+florbetaben (FBB), and Pittsburgh Compound B (PIB)
 tracers, or CSF amyloid-positive status via Gaussian
 Mixture Model classification
 [@timsina_harmonization_2024]. Additional inclusion
@@ -572,7 +578,8 @@ cat("\\end{figure}\n")
 
 ## Neuroimaging: Hippocampal-to-Ventricle Ratio (HVR)
 
-T1-weighted MPRAGE sequences were acquired on 1.5T
+T1-weighted magnetization-prepared rapid gradient
+echo (MPRAGE) sequences were acquired on 1.5T
 and 3T scanners across ADNI sites using standardized
 acquisition protocols. Hippocampal (HC) and temporal
 horn of the lateral ventricle (VC) volumes were
@@ -655,20 +662,24 @@ Sequencing Project Phenotype Harmonization Consortium
 (ADSP-PHC) Cardiovascular Risk Factor dataset
 [@lee_fmnl2_2022; @lee_reliability_2023]. The ADSP-PHC
 computed FRS using the Framingham 2008 simple
-office-based 10-year CVD risk score via the
+office-based 10-year cardiovascular disease (CVD)
+risk score via the
 `ascvd_10y_frs_simple` function from the CVrisk R
 package [@castro_cvrisk_2026]. Despite the function
 name, this implements the Framingham general
 cardiovascular risk algorithm
-[@dagostino_general_2008], not the ACC/AHA Pooled
-Cohort Equations (ASCVD). The score estimates
+[@dagostino_general_2008], not the American College
+of Cardiology/American Heart Association (ACC/AHA)
+atherosclerotic cardiovascular disease (ASCVD)
+Pooled Cohort Equations. The score estimates
 10-year cardiovascular disease risk based on sex,
 age (≥ 30 years), body mass index (BMI, kg/m²),
 systolic blood pressure (mmHg), use of blood
 pressure medication, current smoking status, and
 diabetes status. This is the "simple" FRS variant
 that substitutes BMI for the lipid panel (total and
-HDL cholesterol) required by the general FRS
+high-density lipoprotein [HDL] cholesterol) required
+by the general FRS
 [@dagostino_general_2008]. Age coefficients in the
 log-hazard scale are 3.06 (men) and 2.33 (women),
 making age the dominant component in older adults.
@@ -727,30 +738,27 @@ through iterative model refinement, evaluating
 factor loadings, modification indices, and
 substantive interpretability at each step. Several
 candidate indicators were evaluated but excluded.
-BMI was available in the ADSP-PHC dataset but its
-factor loading became non-significant (*p* > 0.20)
-once specific residual covariances with
+BMI was dropped because its factor loading became
+non-significant once residual covariances with
 hypertension, glucose, and cholesterol were modeled,
 indicating its cardiovascular risk variance is fully
-captured by the retained indicators through
-vascular, metabolic, and lipid pathways. Diabetes,
-heart disease, and stroke (ADSP-PHC binary medical
-history flags) showed near-perfect tetrachoric
-correlations (φ > 0.90) due to a harmonization
-artifact in how self-reported conditions were coded
-across ADNI phases, rendering them empirically
-indistinguishable and unsuitable as separate
-indicators. Smoking status had a non-significant
-factor loading (*p* > 0.20), likely reflecting
-survivorship bias in an elderly cohort where current
-smokers are underrepresented. Blood pressure
-medication showed near-complete redundancy with
-hypertension status, as the factor fully explains
-their shared variance.
+captured by the retained indicators. Diabetes, heart
+disease, and stroke (ADSP-PHC binary medical history
+flags) showed near-perfect tetrachoric correlations
+due to a harmonization artifact in how self-reported
+conditions were coded across ADNI phases, rendering
+them empirically indistinguishable. Smoking status
+had a non-significant factor loading, likely
+reflecting survivorship bias in an elderly cohort.
+Blood pressure medication showed near-complete
+redundancy with hypertension status. Specific
+loading estimates and model selection diagnostics
+are reported in the supplement.
 
 #### Estimation and Fit
 
-We evaluated model fit with the robust (MLR-scaled)
+We evaluated model fit with the robust maximum
+likelihood (MLR)-scaled
 comparative fit index (CFI), Tucker-Lewis index
 (TLI), root mean square error of approximation
 (RMSEA), and standardized root mean square residual
@@ -775,13 +783,14 @@ FRS. This latent-level residualization operates on
 the measurement-error-free latent variable and is
 equivalent to extracting the disturbance term of the
 MIMIC structural equation [@bollen_structural_1989].
-By construction, correlation(CVR~mimic~, Age) ≈ 0.
+By construction, *r*(CVR~mimic~, Age) ≈ 0.
 
 #### Measurement Invariance
 
 We tested measurement invariance (MI) across sex in
 four steps — configural, metric, scalar, and
-strict — using the CFA measurement model only
+strict — using the confirmatory factor analysis
+(CFA) measurement model only
 (without the Age → CVR structural path). MI
 evaluates whether factor loadings, intercepts, and
 residual variances are equivalent across groups,
@@ -841,7 +850,10 @@ disease timeline by estimating each individual's
 position along an underlying progression curve
 [@raket_statistical_2020]. We computed EDT using the
 progmod R package with a simultaneous multivariate
-model fitting ADAS-Cog 13 and MMSE jointly, sharing
+model fitting the Alzheimer's Disease Assessment
+Scale-Cognitive subscale (ADAS-Cog) 13 and the
+Mini-Mental State Examination (MMSE) jointly,
+sharing
 a common disease time random effect across scales
 [@kuhnel_simultaneous_2021]. The simultaneous
 approach provides more stable individual time
@@ -862,12 +874,15 @@ listwise deletion.
 
 We used ADSP-PHC composite scores
 [@kang_genome-wide_2023] for three cognitive domains:
-memory (episodic memory composite: WMS-R Logical
-Memory, Rey AVLT, ADAS-Cog word recall, MMSE/MoCA
-memory items), language (language/semantic composite:
+memory (episodic memory composite: Wechsler Memory
+Scale-Revised [WMS-R] Logical Memory, Rey Auditory
+Verbal Learning Test [AVLT], ADAS-Cog word recall,
+MMSE/Montreal Cognitive Assessment [MoCA] memory
+items), language (language/semantic composite:
 category fluency, Boston Naming Test, ADAS-Cog
 naming/commands), and executive function (executive
-composite: Trail Making A/B, WAIS-R Digit
+composite: Trail Making A/B, Wechsler Adult
+Intelligence Scale-Revised [WAIS-R] Digit
 Span/Symbol, clock drawing). Scores were
 co-calibrated across multiple cohorts via a bifactor
 item banking approach, initially across ADNI, Adult
@@ -900,7 +915,8 @@ hippocampal-cognitive relationship, and whether the
 answer depends on how CVR is measured.
 
 All models were sex-stratified (no pooled sample),
-following the NIH policy on Sex as a Biological
+following the National Institutes of Health (NIH)
+policy on Sex as a Biological
 Variable (SABV; @clayton_policy_2014). Sex
 differences in AD pathophysiology, cardiovascular
 risk profiles, and brain aging trajectories motivate
@@ -911,8 +927,8 @@ effect sizes, variance components, and covariate
 relationships to differ freely between sexes; sex is
 omitted from covariates because it defines the
 strata. Covariates in all models include age at
-baseline, education (years), and APOE ε4 carrier
-status.
+baseline, education (years), and Apolipoprotein E
+(APOE) ε4 carrier status.
 
 Primary inferences are based on uncorrected per-test
 p-values given the pre-specified, hypothesis-driven
@@ -931,9 +947,9 @@ independent model comparisons
 [@perneger_whats_1998]. For the LGCM mediation
 models (12 tests: 2 sexes × 3 domains ×
 2 predictors), no FDR correction was applied:
-inference rests on the consistency of the pattern
-across models (FRS a-path significant in 6/6 vs
-CVR~mimic~ 0/6) rather than on any single test.
+inference rests on the consistency of the a-path
+pattern across models rather than on any single
+test (see Results).
 
 **Analytical roadmap.** The two modelling frameworks
 address distinct questions. The LME tests
@@ -1040,12 +1056,12 @@ parallel model sets. The hypothesis tested is whether
 CVR moderates how the HVR-cognition relationship
 evolves over time; a negative 3-way β means higher
 CVR increasingly weakens the protective
-HVR-cognition association over follow-up. Quadratic
-time (YRS²) was justified by likelihood ratio tests
-comparing nested linear and quadratic models — all
-12 models (2 sexes × 2 brain measures × 3 domains)
-showed significantly better fit with a quadratic
-term (LRT *p* < 0.05).
+HVR-cognition association over follow-up. Inclusion
+of the quadratic time term (YRS²) was evaluated via
+likelihood ratio tests comparing nested linear and
+quadratic models across all 12 specifications
+(2 sexes × 2 brain measures × 3 domains); results
+are reported in Appendix B (see @tbl-linearity).
 
 ### LGCM Parallel Process Models
 
@@ -1094,23 +1110,22 @@ than estimating it as a free parameter; this yields
 more precise latent slope estimates by separating
 true variance from measurement noise.
 
-Fully random quadratic models (6 latent factors per
-domain) failed to converge due to near-zero quadratic
-variance and insufficient data capacity for the
-combined model complexity. We therefore adopted a
-fixed-quadratic specification: two additional phantom
-latent factors (HVR quadratic, cognitive quadratic)
-with variance fixed to near zero and free population
-means, capturing population-level curvature
-(2 additional free parameters) without
-individual-level quadratic variation. Likelihood
-ratio tests comparing this fixed-quadratic model
-against a purely linear model determined whether
-quadratic curvature improved fit. We attempted to
-embed the full MIMIC measurement model within the
-OpenMx parallel process framework, but only 1/6
-models converged; we therefore used pre-computed ζ
-scores instead (see Score Extraction above).
+We first attempted fully random quadratic models
+(6 latent factors per domain); when these did not
+converge, we adopted a fixed-quadratic
+specification: two additional phantom latent factors
+(HVR quadratic, cognitive quadratic) with variance
+fixed to near zero and free population means,
+capturing population-level curvature (2 additional
+free parameters) without individual-level quadratic
+variation. Likelihood ratio tests comparing this
+fixed-quadratic model against a purely linear model
+determined whether quadratic curvature improved fit
+(see Results). We also attempted to embed the full
+MIMIC measurement model within the OpenMx parallel
+process framework; convergence was insufficient, so
+we used pre-computed ζ scores instead (see Score
+Extraction above).
 
 #### Time Metric
 
@@ -1170,8 +1185,14 @@ In the coupling model, a free covariance between HVR
 linear slope and cognitive linear slope
 (hvr~s~ ↔ cog~s~) is estimated to test whether
 linear rates of hippocampal and cognitive decline
-co-vary, reported as standardized correlations
-(*r* = cov / √(var~hvr\_s~ × var~cog\_s~)).
+co-vary, reported as standardized correlations:
+
+$$
+r = \frac{\text{Cov}(\eta_{1,\text{hvr}},
+  \eta_{1,\text{cog}})}{\sqrt{
+  \text{Var}(\eta_{1,\text{hvr}}) \cdot
+  \text{Var}(\eta_{1,\text{cog}})}}
+$$
 
 #### Mediation Model
 
@@ -1224,15 +1245,18 @@ disease stages.
 
 ## Software
 
-All analyses were conducted in R (version 4.x) with
+All analyses were conducted in
+R (`r R.version.string`) with
 the following packages: lavaan
 [@rosseel_lavaan_2012] for MIMIC model specification,
 estimation (MLR + FIML), measurement invariance
 testing, and factor score extraction; lme4
 [@bates_fitting_2015] for LME growth models with
-bobyqa optimizer and REML estimation; OpenMx
+bobyqa optimizer and restricted maximum likelihood
+(REML) estimation; OpenMx
 [@neale_openmx_2016] for LGCM parallel process and
-mediation models with SLSQP optimizer (convergence
+mediation models with sequential least squares
+programming (SLSQP) optimizer (convergence
 criterion: gradient < $10^{-5}$); progmod
 [@raket_statistical_2020] for EDT computation; and
 CVrisk [@castro_cvrisk_2026] for FRS computation (via
@@ -1321,7 +1345,8 @@ were closer to expected values
 FRS was strongly correlated with age (Pearson r =
 `r sprintf("%.3f", frs_age_r)`, Spearman ρ =
 `r sprintf("%.3f", frs_age_rho)`). The FRS-age
-partial correlation (controlling for other CVRF)
+partial correlation (controlling for other
+cardiovascular risk factors [CVRF])
 remained substantial
 (r = `r sprintf("%.3f", frs_partial_r)`),
 confirming that age dominates FRS in older adults.
@@ -1491,7 +1516,7 @@ stopifnot(!is.null(cvr_scores), !is.null(cohort.dt))
     merged_plot.dt
   )
   p_frs_age <- plot_frs_validation(
-    merged_plot.dt
+    merged_plot.dt, frs_age_r = frs_age_r
   )
   p_cvr_age <- plot_cvr_validation(
     merged_plot.dt
@@ -1707,8 +1732,8 @@ and Executive Function
 CVR~mimic~ showed no significant interactions
 (all *p* > `r m_cvr_min_p`).
 
-**Females.** FRS effects were similarly significant
-across all three domains but larger in magnitude:
+**Females.** FRS effects were also significant
+across all three domains, with larger magnitudes:
 Memory (β = `r f_mem_frs_b`, `r f_mem_frs_p`),
 Language (β = `r f_lan_frs_b`, `r f_lan_frs_p`),
 and Executive Function
@@ -1933,6 +1958,12 @@ n_da_sig <- sum(vapply(
 ))
 ```
 
+The paired difference
+Δ~a~ = a~FRS~ − a~CVR~ quantifies how much larger
+the FRS a-path is than the CVR~mimic~ a-path; a
+significant positive Δ~a~ confirms FRS is the
+stronger predictor of hippocampal atrophy rate.
+
 **Males.** Δ~a~ was significantly positive across
 all three domains — Memory
 (Δ~a~ = `r m_mem_da`, 95% CI `r m_mem_da_ci`),
@@ -1968,22 +1999,12 @@ quantitative difference: FRS is a significantly
 stronger predictor of hippocampal atrophy rate than
 CVR~mimic~ within the mediation framework.
 
-### Slope Coupling
+### Slope Coupling {#sec-slope-coupling}
 
 LGCM parallel process models tested whether HVR and
 cognitive linear decline rates co-vary (latent slope
 coupling, hvr~s~ ↔ cog~s~) along the EDT disease
-timeline. Positive linear slope correlations were
-observed across all models in males (all three
-significant) and in females for Executive Function
-(one of three significant); individuals with
-faster HVR decline showed steeper cognitive
-decline. This
-coupling supports the b-path assumption in the
-mediation framework (CVR → HVR slope → cognitive
-slope): HVR decline predicts cognitive decline,
-though the relationship is stronger and more
-consistently significant in males.
+timeline.
 
 ```{r coupling-inline}
 #| include: false
@@ -2048,10 +2069,16 @@ for (sx in c("Male", "Female")) {
 
 `r coupling_text.lst$Male`
 `r coupling_text.lst$Female`
-Faster hippocampal decline was consistently
-associated with steeper cognitive decline across all
-domains and both sexes; latent factor scores from the
-parallel process model confirm this pattern (see
+In males, faster hippocampal decline was
+significantly associated with steeper cognitive
+decline across all three domains; in females, the
+direction was consistent but only Executive Function
+reached significance, likely reflecting lower
+statistical power in the smaller female subsample.
+This coupling supports the b-path assumption in the
+mediation framework: HVR decline predicts cognitive
+decline. Latent factor scores from the parallel
+process model confirm this pattern (see
 @fig-coupling).
 
 ```{r fig-coupling}
@@ -2252,53 +2279,53 @@ list2env(
 )
 ```
 
-**FRS vs CVR~mimic~.** FRS produced significant
-indirect effects (CVR → HVR slope → Cognitive slope)
-with a significant a-path in
-`r n_of_total.fn(frs_a_sig, 6L)` models
-(bootstrap 95% CIs excluding zero); CVR~mimic~
-a-path was null in
-`r n_of_total.fn(cvr_a_null, 6L)` models,
-indicating FRS "effects" on hippocampal decline are
-largely consistent with age-weighting.
-
-**Path-level summary across all 12 models (2 sexes ×
-3 domains × 2 predictors).** The *a-path*
-(CVR → HVR slope) was significant for FRS in
-`r n_of_total.fn(frs_a_sig, 6L)` models and null
-for CVR~mimic~ in all six. The *b-path*
+**FRS vs CVR~mimic~ across all 12 models.** The
+a-path (CVR → HVR slope) showed a clear predictor
+dissociation: FRS significantly predicted
+hippocampal decline in
+`r n_of_total.fn(frs_a_sig, 6L)` models (bootstrap
+95% CIs excluding zero), whereas CVR~mimic~ did not
+in any — indicating that FRS "effects" on
+hippocampal decline are largely consistent with
+age-weighting. By contrast, the b-path
 (HVR slope → cognitive slope) was significant for
 `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS and
 `r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
-CVR~mimic~ models regardless of predictor. The
-*indirect effect* was significant in
-`r n_of_total.fn(all_ind_sig, all_ind_total)`
-models`r ind_detail`.
+CVR~mimic~ models, confirming that hippocampal-
+cognitive coupling persists regardless of predictor.
+The FRS indirect effect (a × b) was significant
+for Memory and Executive Function in both sexes;
+Language indirect effects and all CVR~mimic~
+indirect effects were non-significant.
 
-#### Males
-
-FRS predicted hippocampal atrophy across
+**Males.** FRS predicted hippocampal atrophy across
 `r m_frs_a_nsig` domains (a-path β range
 `r m_frs_a_range`, all bootstrap 95% CIs excluding
 zero); CVR~mimic~ did not
 (all |β| < `r m_cvr_max_a`). Hippocampal decline
 in turn predicted cognitive decline (b-path β range
 `r m_frs_b_range`, `r m_frs_b_nsig` CIs excluding
-zero). The FRS indirect effect was significant in
-`r m_frs_ind` domains; no CVR~mimic~ indirect
+zero), and the FRS indirect effect was significant
+for `r m_frs_ind` domains. No CVR~mimic~ indirect
 effects reached significance.
 
-#### Females
-
-The same a-path dissociation held: FRS was
-significant across `r f_frs_a_nsig` domains
+**Females.** The same a-path dissociation held: FRS
+was significant across `r f_frs_a_nsig` domains
 (β range `r f_frs_a_range`), CVR~mimic~ was not
-(all |β| < `r f_cvr_max_a`). The b-path estimates
-were comparable to males (β range
-`r f_frs_b_range`, `r f_frs_b_nsig` CIs excluding
-zero). FRS indirect effects reached significance in
-`r f_frs_ind` domains; CVR~mimic~ reached
-significance in `r f_cvr_ind`.
+(all |β| < `r f_cvr_max_a`). B-path estimates were
+comparable to males (β range `r f_frs_b_range`,
+`r f_frs_b_nsig` CIs excluding zero), and FRS
+indirect effects reached significance in
+`r f_frs_ind` domains; CVR~mimic~ indirect effects
+reached significance in `r f_cvr_ind`. Notably,
+the CVR~mimic~ Memory model showed a significant
+direct effect (c' =
+`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$est)`,
+95% CI
+[`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$boot_ci_lower)`,
+`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$boot_ci_upper)`]),
+suggesting CVR~mimic~ may influence memory decline
+through a non-hippocampal pathway.
 
 Complete path estimates, bootstrap CIs, and direct
 (c') effects appear in @fig-mediation.
@@ -2314,41 +2341,40 @@ LGCM validation — are reported in Appendix C.
 ## Summary of Findings
 
 The apparent impact of cardiovascular risk on
-hippocampal-cognitive trajectories is a function of
-the risk measure employed. We observed a stark
-a-path dissociation: FRS → HVR slope was significant
-in `r n_of_total.fn(abs_stats$frs_a_sig, 6L)` models
-(all bootstrap 95% CIs excluding zero;
-@fig-mediation), whereas the CVR~mimic~ a-path was
-null in all six. The b-path
-(HVR slope → Cognitive slope) was consistently
-significant regardless of predictor
-(`r n_of_total.fn(abs_stats$frs_b_sig, 6L)` FRS,
-`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`
-CVR~mimic~; bootstrap CIs excluding zero),
-confirming consistent hippocampal-cognitive coupling
+hippocampal-cognitive trajectories depends on
+whether the risk measure retains its age component.
+Three findings converge on this conclusion. First,
+the LGCM a-path dissociation: FRS predicted
+hippocampal decline in
+`r n_of_total.fn(abs_stats$frs_a_sig, 6L)` models
+(@fig-mediation), whereas CVR~mimic~ did not in any,
+demonstrating that the FRS-hippocampal link is
+driven by age-weighting rather than cardiovascular
+pathophysiology. Second, despite this predictor
+dissociation, the b-path (hippocampal-cognitive
+coupling) remained significant for both FRS
+(`r n_of_total.fn(abs_stats$frs_b_sig, 6L)`) and
+CVR~mimic~
+(`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`),
+confirming that hippocampal decline reliably
+predicts cognitive decline regardless of CVR measure
 [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
-FRS indirect effects (a × b) were significant in
-`r n_of_total.fn(abs_stats$frs_ind_sig, 6L)` models
-(bootstrap CIs excluding zero), compared with
-`r n_of_total.fn(abs_stats$cvr_ind_sig, 6L)` for
-CVR~mimic~. The LME 3-way interaction
-(FRS × HVR × YRS) was significant in
+Third, the LME 3-way interaction (FRS × HVR × YRS)
+was significant across
 `r n_of_total.fn(abs_lme$frs_m_sig, 3L)` male and
 `r n_of_total.fn(abs_lme$frs_f_sig, 3L)` female
-domains; CVR~mimic~ was significant in
-`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male and
+domains (all surviving FDR), while CVR~mimic~ was
+significant in
 `r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
 domains
-`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`.
-FDR correction did not change FRS conclusions;
-CVR~mimic~ dropped from
-`r fdr_summary.lst$cvr_n_sig` to
-`r fdr_summary.lst$cvr_n_fdr` significant effects.
-While FRS effects on hippocampal trajectories appear
-primarily age-driven, cardiovascular burden may still
-modulate the HVR-cognition relationship (LME 3-way)
-through pathways independent of accelerated atrophy.
+`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s only)", abs_lme$cvr_f_sig_doms) else ""`
+and
+`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male —
+suggesting that while FRS effects on hippocampal
+trajectories are primarily age-driven, residual
+cardiovascular burden may still modulate the
+HVR-cognition relationship through pathways
+independent of accelerated atrophy.
 
 ## FRS Age-Confounding and CVR~mimic~
 
@@ -2428,7 +2454,12 @@ reserve framework
 cardiovascular risk may reduce the brain's capacity
 to maintain cognitive function at a given level of
 structural integrity, without directly driving
-structural decline. However, the CVR~mimic~ LME
+structural decline. This interpretation is further
+supported by the significant CVR~mimic~ direct
+effect (c') for Female Memory (@fig-mediation),
+which indicates CVR~mimic~ can influence cognitive
+decline through a non-hippocampal pathway even when
+the a-path is null. However, the CVR~mimic~ LME
 evidence rests on a single domain in one sex, and
 this isolated finding should be interpreted
 cautiously until replicated.
@@ -2488,10 +2519,12 @@ biological absence of coupling, given that mediation
 b-paths (which condition on a predictor) were
 significant in
 `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` models
-for both sexes. Language b-paths were
-non-significant across both analysis frameworks
-(coupling and mediation), consistent with language
-being a later-declining domain with less variance to
+for both sexes. Language mediation b-paths were
+non-significant for both sexes, though Language
+parallel process coupling reached significance in
+males (consistent with @sec-slope-coupling) but not
+females — a pattern compatible with language being
+a later-declining domain with less variance to
 capture at this disease stage. The
 hippocampal-cognitive coupling is not an artifact of
 CVR measurement — it persists across predictor
@@ -3272,7 +3305,8 @@ if (nrow(frs_row) > 0) {
 ### Raw Brain Measure Sensitivity
 
 The LME 3-way interaction was repeated using raw
-(un-normalized) HVR and raw HC (with TIV covariate),
+(un-normalized) HVR and raw HC (with total
+intracranial volume [TIV] covariate),
 with FRS as predictor, full-sample, no sex
 stratification, and no YRS² term.
 
@@ -3550,8 +3584,6 @@ edt_sens_text <- paste(
 :::{=latex}
 \FloatBarrier
 :::
-
----
 
 # References {.unnumbered}
 
