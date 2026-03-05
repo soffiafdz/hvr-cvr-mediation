@@ -598,7 +598,8 @@ log_info("")
 #' @return OpenMx model (without data)
 build_mediation.fn <- function(cog_vars, hvr_vars,
                                predictor = "CVR_c",
-                               name = "Med") {
+                               name = "Med",
+                               data = NULL) {
   n_tp <- length(cog_vars)
   latents <- c(
     "hvr_i", "hvr_s", "cog_i", "cog_s"
@@ -657,16 +658,27 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
   # the b path (hvr_s -> cog_s) captures the slope
   # relationship. Including both would be redundant.
 
-  # Residuals (equal across timepoints)
+  # Residuals
   hvr_resid <- mxPath(
     from = hvr_vars, arrows = 2,
     free = TRUE, values = 0.5,
     labels = "hvr_resid"
   )
+
+  # Cognitive residuals: fix to SE² from CFA
+  cog_var_cols.v <- sub(
+    "_(T\\d+)$", "_VAR_\\1", cog_vars
+  )
+  avg_cog_se2.v <- sapply(
+    cog_var_cols.v, function(col) {
+      if (!is.null(data) && col %in% names(data))
+        mean(data[[col]], na.rm = TRUE)
+      else 0.04
+    }
+  )
   cog_resid <- mxPath(
     from = cog_vars, arrows = 2,
-    free = TRUE, values = 0.5,
-    labels = "cog_resid"
+    free = FALSE, values = avg_cog_se2.v
   )
 
   # Manifest means fixed to 0
@@ -810,7 +822,8 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
 #' @return OpenMx model (without data)
 build_mimic_mediation.fn <- function(
     cog_vars, hvr_vars,
-    name = "MIMICMed") {
+    name = "MIMICMed",
+    data = NULL) {
   n_tp <- length(cog_vars)
   latents <- c(
     "hvr_i", "hvr_s",
@@ -877,10 +890,21 @@ build_mimic_mediation.fn <- function(
     free = TRUE, values = 0.5,
     labels = "hvr_resid"
   )
+
+  # Cognitive residuals: fix to SE² from CFA
+  cog_var_cols.v <- sub(
+    "_(T\\d+)$", "_VAR_\\1", cog_vars
+  )
+  avg_cog_se2.v <- sapply(
+    cog_var_cols.v, function(col) {
+      if (!is.null(data) && col %in% names(data))
+        mean(data[[col]], na.rm = TRUE)
+      else 0.04
+    }
+  )
   cog_resid <- mxPath(
     from = cog_vars, arrows = 2,
-    free = TRUE, values = 0.5,
-    labels = "cog_resid"
+    free = FALSE, values = avg_cog_se2.v
   )
   hvr_mm <- mxPath(
     from = "one", to = hvr_vars,
@@ -1426,7 +1450,8 @@ for (sample_name in names(samples.lst)) {
           name = paste0(
             "Med_", sample_name, "_",
             domain, "_", pred_label
-          )
+          ),
+          data = data.dt
         )
       } else {
         # MIMIC: include indicators (FIML
@@ -1451,7 +1476,8 @@ for (sample_name in names(samples.lst)) {
           name = paste0(
             "Med_", sample_name, "_",
             domain, "_", pred_label
-          )
+          ),
+          data = data.dt
         )
       }
 
@@ -1597,7 +1623,8 @@ for (sample_name in names(samples.lst)) {
               name = paste0(
                 "Boot_", domain, "_",
                 pred_label
-              )
+              ),
+              data = data.dt
             )
             omxSetParameters(
               m,
@@ -1612,7 +1639,8 @@ for (sample_name in names(samples.lst)) {
               name = paste0(
                 "Boot_", domain, "_",
                 pred_label
-              )
+              ),
+              data = data.dt
             )
             omxSetParameters(
               m,
