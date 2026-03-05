@@ -961,7 +961,7 @@ models (12 tests: 2 sexes × 3 domains ×
 2 predictors), no FDR correction was applied:
 inference rests on the consistency of the a-path
 pattern across models rather than on any single
-test (see Results).
+test.
 
 **Analytical roadmap.** The two modelling frameworks
 address distinct questions. The LME tests
@@ -1007,10 +1007,11 @@ variance freely estimated). This is a methodological
 validation, not a power analysis — it validates the
 estimation approach under known truth, not detection
 rates for specific effect sizes. The SE-constraint
-is a key methodological innovation: normative
-z-scores from GAMLSS models have known SEs, so
-fixing residual variance to SE² uses this
-information rather than discarding it.
+is a key methodological innovation: cognitive
+composites from the ADSP-PHC CFA have known
+observation-specific SEs, so fixing residual
+variance to SE² uses this information rather
+than discarding it.
 
 Data were generated from a univariate latent growth
 model with known true parameters: intercept mean =
@@ -1089,8 +1090,7 @@ Cognitive slope).
 $$
 \begin{aligned}
 y_{it} &= \eta_{0i} + \eta_{1i} \cdot
-  \text{EDT}_{it} + \epsilon_{it},
-  \quad \text{Var}(\epsilon_{it}) = \text{SE}_{it}^2
+  \text{EDT}_{it} + \epsilon_{it}
   \\[4pt]
 \eta_{0i} &= \alpha_0 +
   \boldsymbol{X}_i \boldsymbol{\gamma}_0 + \zeta_{0i}
@@ -1105,8 +1105,7 @@ $$ {#eq-lgcm}
   $t$; $\eta_{0i}$ and $\eta_{1i}$ are
   person-specific intercepts and slopes; EDT~it~ is
   the individually-varying time score (see below);
-  $\epsilon_{it}$ has variance fixed to the squared
-  standard error from the upstream scoring model;
+  $\epsilon_{it}$ is the occasion-specific residual;
   and $\boldsymbol{X}_i$ includes CVR predictor, age,
   education, and APOE ε4 status.
 
@@ -1132,8 +1131,8 @@ capturing population-level curvature (2 additional
 free parameters) without individual-level quadratic
 variation. Likelihood ratio tests comparing this
 fixed-quadratic model against a purely linear model
-determined whether quadratic curvature improved fit
-(see Results). We also attempted to embed the full
+determined whether quadratic curvature improved fit.
+We also attempted to embed the full
 MIMIC measurement model within the OpenMx parallel
 process framework; convergence was insufficient, so
 we used pre-computed ζ scores instead (see Score
@@ -2239,6 +2238,7 @@ for (sx in c("m", "f")) {
   frs_ind_nsig <- 0L
   cvr_ind_nsig <- 0L
   cvr_max_abs_a <- 0
+  frs_pm.v <- c()
   for (d in domains) {
     rf <- med$results[[paste0(d, "_FRS")]]
     rc <- med$results[[paste0(d, "_CVR")]]
@@ -2265,6 +2265,9 @@ for (sx in c("m", "f")) {
     if (!is.null(rc$indirect) &&
         ci_sig_check.fn(rc$indirect))
       cvr_ind_nsig <- cvr_ind_nsig + 1L
+    pm <- rf$prop_mediated
+    if (!is.null(pm) && !is.na(pm))
+      frs_pm.v <- c(frs_pm.v, pm)
   }
   pfx <- sx
   med_inline.lst[[paste0(pfx, "_frs_a_range")]] <-
@@ -2285,6 +2288,14 @@ for (sx in c("m", "f")) {
     n_of_total.fn(frs_ind_nsig, 3L)
   med_inline.lst[[paste0(pfx, "_cvr_ind")]] <-
     n_of_total.fn(cvr_ind_nsig, 3L)
+  med_inline.lst[[paste0(pfx, "_frs_pm")]] <-
+    if (length(frs_pm.v) > 0) {
+      sprintf(
+        "%.0f%%–%.0f%%",
+        min(frs_pm.v) * 100,
+        max(frs_pm.v) * 100
+      )
+    } else "NA"
 }
 list2env(
   med_inline.lst, envir = environment()
@@ -2318,8 +2329,9 @@ zero); CVR~mimic~ did not
 in turn predicted cognitive decline (b-path β range
 `r m_frs_b_range`, `r m_frs_b_nsig` CIs excluding
 zero), and the FRS indirect effect was significant
-for `r m_frs_ind` domains. No CVR~mimic~ indirect
-effects reached significance.
+for `r m_frs_ind` domains (proportion mediated
+`r m_frs_pm`). No CVR~mimic~ indirect effects
+reached significance.
 
 **Females.** The same a-path dissociation held: FRS
 was significant across `r f_frs_a_nsig` domains
@@ -2328,7 +2340,8 @@ was significant across `r f_frs_a_nsig` domains
 comparable to males (β range `r f_frs_b_range`,
 `r f_frs_b_nsig` CIs excluding zero), and FRS
 indirect effects reached significance in
-`r f_frs_ind` domains; CVR~mimic~ indirect effects
+`r f_frs_ind` domains (proportion mediated
+`r f_frs_pm`); CVR~mimic~ indirect effects
 reached significance in `r f_cvr_ind`. Notably,
 the CVR~mimic~ Memory model showed a significant
 direct effect (c' =
@@ -2907,12 +2920,14 @@ if (n_sig == 0) {
       " Large test statistics reflect",
       " substantial power afforded by",
       " sample size and repeated",
-      " observations. A linear",
-      " specification was adopted as a",
-      " pragmatic compromise given",
-      " convergence failure of quadratic",
-      " parallel process LGCMs",
-      " (see Methods)."
+      " observations. A fixed-quadratic",
+      " specification was adopted:",
+      " quadratic variance fixed to",
+      " near zero with freely estimated",
+      " quadratic means, capturing",
+      " population-level curvature",
+      " without individual-level",
+      " quadratic variation."
     ),
     sub("^(.)", "\\U\\1",
       n_of_total.fn(n_sig, n_total),
