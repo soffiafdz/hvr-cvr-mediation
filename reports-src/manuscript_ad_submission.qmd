@@ -2288,13 +2288,27 @@ for (sx in c("m", "f")) {
     n_of_total.fn(frs_ind_nsig, 3L)
   med_inline.lst[[paste0(pfx, "_cvr_ind")]] <-
     n_of_total.fn(cvr_ind_nsig, 3L)
+  # Check CVR c' significance for each domain
+  cvr_cp_sig.v <- character(0)
+  for (d in domains) {
+    rc <- med$results[[paste0(d, "_CVR")]]
+    if (!is.null(rc$cprime) &&
+        ci_sig_check.fn(rc$cprime))
+      cvr_cp_sig.v <- c(cvr_cp_sig.v, d)
+  }
+  med_inline.lst[[paste0(
+    pfx, "_cvr_cp_sig_doms"
+  )]] <- cvr_cp_sig.v
+  frs_pm_capped.v <- pmin(frs_pm.v, 1)
   med_inline.lst[[paste0(pfx, "_frs_pm")]] <-
-    if (length(frs_pm.v) > 0) {
-      sprintf(
-        "%.0f%%–%.0f%%",
-        min(frs_pm.v) * 100,
-        max(frs_pm.v) * 100
-      )
+    if (length(frs_pm_capped.v) > 0) {
+      lo <- min(frs_pm_capped.v) * 100
+      hi <- max(frs_pm_capped.v) * 100
+      if (hi >= 100) {
+        sprintf("%.0f%%–full mediation", lo)
+      } else {
+        sprintf("%.0f%%–%.0f%%", lo, hi)
+      }
     } else "NA"
 }
 list2env(
@@ -2342,15 +2356,8 @@ comparable to males (β range `r f_frs_b_range`,
 indirect effects reached significance in
 `r f_frs_ind` domains (proportion mediated
 `r f_frs_pm`); CVR~mimic~ indirect effects
-reached significance in `r f_cvr_ind`. Notably,
-the CVR~mimic~ Memory model showed a significant
-direct effect (c' =
-`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$est)`,
-95% CI
-[`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$boot_ci_lower)`,
-`r sprintf("%.4f", lgcm_med_female$results$MEM_CVR$cprime$boot_ci_upper)`]),
-suggesting CVR~mimic~ may influence memory decline
-through a non-hippocampal pathway.
+reached significance in `r f_cvr_ind`.
+`r if (length(f_cvr_cp_sig_doms) > 0) paste0("The CVR~mimic~ ", paste(DOMAIN_LABELS[f_cvr_cp_sig_doms], collapse = " and "), " model", ifelse(length(f_cvr_cp_sig_doms) > 1, "s showed significant direct effects", " showed a significant direct effect"), " (c'), suggesting CVR~mimic~ may influence cognitive decline through a non-hippocampal pathway.") else "No CVR~mimic~ direct effects (c') reached significance."`
 
 Complete path estimates, bootstrap CIs, and direct
 (c') effects appear in @fig-mediation.
@@ -2487,12 +2494,8 @@ reserve framework
 cardiovascular risk may reduce the brain's capacity
 to maintain cognitive function at a given level of
 structural integrity, without directly driving
-structural decline. This interpretation is further
-supported by the significant CVR~mimic~ direct
-effect (c') for Female Memory (@fig-mediation),
-which indicates CVR~mimic~ can influence cognitive
-decline through a non-hippocampal pathway even when
-the a-path is null. However, the CVR~mimic~ LME
+structural decline.
+`r if (length(f_cvr_cp_sig_doms) > 0) paste0("This interpretation is further supported by the significant CVR~mimic~ direct effect (c') for Female ", paste(DOMAIN_LABELS[f_cvr_cp_sig_doms], collapse = " and "), " (@fig-mediation), indicating CVR~mimic~ can influence cognitive decline through a non-hippocampal pathway even when the a-path is null. However, the") else "The"` CVR~mimic~ LME
 evidence rests on a single domain in one sex, and
 this isolated finding should be interpreted
 cautiously until replicated.
