@@ -182,6 +182,10 @@ PREDICTORS <- list(
   FRS = list(
     type = "observed",
     var = "FRS_c"
+  ),
+  Age_bl = list(
+    type = "observed",
+    var = "AGE_c"
   )
 )
 
@@ -599,7 +603,8 @@ log_info("")
 build_mediation.fn <- function(cog_vars, hvr_vars,
                                predictor = "CVR_c",
                                name = "Med",
-                               data = NULL) {
+                               data = NULL,
+                               skip_age_cov = FALSE) {
   n_tp <- length(cog_vars)
   latents <- c(
     "hvr_i", "hvr_s", "cog_i", "cog_s"
@@ -691,8 +696,13 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
     free = FALSE, values = rep(0, n_tp)
   )
 
-  # Predictors
-  preds <- c(predictor, "AGE_c", "EDUC_c")
+  # Predictors (exclude AGE_c covariate when
+  # age IS the predictor to avoid duplication)
+  preds <- if (skip_age_cov) {
+    c(predictor, "EDUC_c")
+  } else {
+    c(predictor, "AGE_c", "EDUC_c")
+  }
   if (HAS_APOE) {
     preds <- c(preds, "APOE4_num")
   }
@@ -727,12 +737,8 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
     labels = c("pred_hvr_i", "pred_cog_i")
   )
 
-  # Covariate paths
-  age_paths <- mxPath(
-    from = "AGE_c", to = latents,
-    free = TRUE, values = 0,
-    labels = paste0("age_", latents)
-  )
+  # Covariate paths (skip age when age IS predictor
+  # — mediation paths already capture all age effects)
   educ_paths <- mxPath(
     from = "EDUC_c", to = latents,
     free = TRUE, values = 0,
@@ -755,8 +761,17 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
     hvr_mm, cog_mm,
     pred_var, pred_mn,
     a_path, b_path, cprime_path, pred_int,
-    age_paths, educ_paths
+    educ_paths
   )
+
+  if (!skip_age_cov) {
+    age_paths <- mxPath(
+      from = "AGE_c", to = latents,
+      free = TRUE, values = 0,
+      labels = paste0("age_", latents)
+    )
+    model <- mxModel(model, age_paths)
+  }
 
   if (HAS_APOE) {
     apoe_paths <- mxPath(
@@ -1369,6 +1384,11 @@ for (sample_name in names(samples.lst)) {
         sep = "_"
       )
 
+      # Age_bl is supplementary — Sobel only
+      n_boot_eff <- if (
+        pred_label == "Age_bl"
+      ) 0L else N_BOOT
+
       # --- Checkpoint: skip if already done ---
       chk_path <- path_join(
         checkpoint_dir,
@@ -1390,7 +1410,7 @@ for (sample_name in names(samples.lst)) {
         chk_all_ci <- isTRUE(
           cached$boot_all_ci
         )
-        if (chk_nboot == N_BOOT &&
+        if (chk_nboot == n_boot_eff &&
             chk_shared && chk_fq &&
             chk_all_ci) {
           log_info(
@@ -1427,6 +1447,8 @@ for (sample_name in names(samples.lst)) {
       # Prepare data and build model
       # OpenMx FIML handles all missingness —
       # no complete.cases() filtering needed.
+      is_age_pred <- pred_label == "Age_bl"
+
       if (pred_cfg$type == "observed") {
         pred_var <- pred_cfg$var
         keep_cols <- c(
@@ -1439,6 +1461,7 @@ for (sample_name in names(samples.lst)) {
             keep_cols, "APOE4_num"
           )
         }
+        keep_cols <- unique(keep_cols)
 
         model_data <- as.data.frame(
           data.dt[, ..keep_cols]
@@ -1451,7 +1474,8 @@ for (sample_name in names(samples.lst)) {
             "Med_", sample_name, "_",
             domain, "_", pred_label
           ),
-          data = data.dt
+          data = data.dt,
+          skip_age_cov = is_age_pred
         )
       } else {
         # MIMIC: include indicators (FIML
@@ -1605,7 +1629,7 @@ for (sample_name in names(samples.lst)) {
       tot_boot_se <- NA
       tot_boot_sig <- NA
 
-      if (N_BOOT > 0) {
+      if (n_boot_eff > 0) {
         # Warm-start: use converged params
         # as starting values so each bootstrap
         # iteration begins near the solution
@@ -1669,7 +1693,7 @@ for (sample_name in names(samples.lst)) {
 
         boot_res <- bootstrap_indirect.fn(
           boot_model.fn, model_data,
-          n_boot = N_BOOT,
+          n_boot = n_boot_eff,
           ci_level = CI_LEVEL,
           seed = boot_seed,
           original_estimate = ind_est,
@@ -1737,7 +1761,7 @@ for (sample_name in names(samples.lst)) {
         ind_est, ind_p, ind_s
       )
 
-      if (N_BOOT > 0) {
+      if (n_boot_eff > 0) {
         log_info(
           "    boot CI: [%.6f, %.6f] %s",
           boot_ci_lower, boot_ci_upper,
@@ -1772,10 +1796,10 @@ for (sample_name in names(samples.lst)) {
 
       # Store boot vectors for paired delta
       boot_a_raw <- if (
-        N_BOOT > 0 && !is.null(boot_res)
+        n_boot_eff > 0 && !is.null(boot_res)
       ) boot_res$boot_a_vals else NULL
       boot_b_raw <- if (
-        N_BOOT > 0 && !is.null(boot_res)
+        n_boot_eff > 0 && !is.null(boot_res)
       ) boot_res$boot_b_vals else NULL
 
       # Store result
@@ -1833,7 +1857,7 @@ for (sample_name in names(samples.lst)) {
         fit_indices =
           extract_fit_indices.fn(fit),
         all_params = params,
-        bootstrap_n = N_BOOT,
+        bootstrap_n = n_boot_eff,
         shared_seed = TRUE,
         fixed_quad = TRUE,
         boot_all_ci = TRUE,

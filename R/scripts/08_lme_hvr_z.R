@@ -124,7 +124,8 @@ COGNITIVE_DOMAINS <- get_parameter("cognitive_domains")
 
 CVR_MEASURES <- list(
   FRS = "FRS",
-  CVR_mimic = "CVR_mimic"
+  CVR_mimic = "CVR_mimic",
+  Age_bl = "Age_bl_z"
 )
 
 # LME settings from config
@@ -247,6 +248,13 @@ if (!"Age_bl" %in% names(cohort.dt)) {
   )
 }
 
+# Z-score baseline age for use as predictor
+cohort.dt[, Age_bl_z := scale(Age_bl)[, 1]]
+log_info(
+  "Age_bl_z: M=%.3f, SD=%.3f",
+  mean(cohort.dt$Age_bl_z),
+  sd(cohort.dt$Age_bl_z)
+)
 log_info("Age_bl = age at first obs in analysis cohort")
 log_info(
   "  Range: %.1f - %.1f years",
@@ -434,13 +442,21 @@ all_stratified.lst <- list()
 
 for (cvr_name in names(CVR_MEASURES)) {
   CVR_VAR <- CVR_MEASURES[[cvr_name]]
+
+  # Drop Age_bl covariate when age IS the predictor
+  cvr_covariates <- if (cvr_name == "Age_bl") {
+    if (HAS_APOE) "EDUC + APOE4" else "EDUC"
+  } else {
+    COVARIATES_STRAT
+  }
+
   log_info(
     "====== CVR measure: %s ======", CVR_VAR
   )
   log_info(
     "Model: Cog ~ YRS x %s x %s + I(YRS^2) x %s x %s + %s + (YRS | PTID)",
     CVR_VAR, BRAIN_VAR, CVR_VAR, BRAIN_VAR,
-    COVARIATES_STRAT
+    cvr_covariates
   )
   log_info("")
 
@@ -467,7 +483,7 @@ for (cvr_name in names(CVR_MEASURES)) {
           "%s + (YRS_from_bl | PTID)"
         ),
         domain, CVR_VAR, BRAIN_VAR,
-        CVR_VAR, BRAIN_VAR, COVARIATES_STRAT
+        CVR_VAR, BRAIN_VAR, cvr_covariates
       )
 
       model.res <- fit_lme_growth.fn(
