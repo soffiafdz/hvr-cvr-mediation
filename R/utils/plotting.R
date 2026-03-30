@@ -2505,9 +2505,10 @@ plot_frs_ceiling_by_sex <- function(data.dt) {
       )
     ) +
     facet_wrap(~SEX, scales = "free_y") +
+    scale_y_log10() +
     labs(
       x = "Framingham Risk Score (%)",
-      y = "Count"
+      y = "Count (log scale)"
     ) +
     theme_publication(base_size = 10) +
     theme(legend.position = "none")
@@ -2647,15 +2648,18 @@ plot_interaction_cvr_hvr <- function(cohort_dt, outcome_var = "MEM") {
 
 #' Create LME forest comparison plot (FRS vs CVR)
 #'
-#' Builds a two-panel (Males/Females) forest plot comparing
-#' 3-way interaction effect sizes from FRS and CVR LME analyses.
-#' Returns a patchwork composition with panel tags A, B.
+#' Builds a forest plot comparing 3-way interaction
+#' effect sizes from FRS and CVR LME analyses.
+#' With aneg_res, adds a third panel for A-/CU.
 #'
 #' @param frs_res LME results list for FRS predictor
 #' @param cvr_res LME results list for CVR predictor
-#' @return patchwork object
+#' @param aneg_res Optional A-/CU LME results (pooled
+#'   sex). Structure: results$CVR$Domain$interaction
+#' @return ggplot object
 #' @export
-plot_lme_forest_comparison <- function(frs_res, cvr_res) {
+plot_lme_forest_comparison <- function(
+    frs_res, cvr_res, aneg_res = NULL) {
   if (is.null(frs_res) || is.null(cvr_res)) {
     return(NULL)
   }
@@ -2694,6 +2698,39 @@ plot_lme_forest_comparison <- function(frs_res, cvr_res) {
   }
 
   forest.dt <- rbind(frs_forest.dt, cvr_forest.dt)
+
+  # Optional A-/CU panel (pooled-sex results)
+  if (!is.null(aneg_res) &&
+      !is.null(aneg_res$results)) {
+    extract_aneg.fn <- function(cvr, pred) {
+      lapply(
+        c("MEM", "LAN", "EXF"), function(d) {
+          r <- aneg_res$results[[cvr]][[d]]
+          if (!is.null(r) &&
+              !is.null(r$interaction)) {
+            data.table(
+              Domain = d,
+              Sex = "Aneg_CU",
+              Beta = r$interaction$beta,
+              SE = r$interaction$se,
+              p = r$interaction$p_value,
+              Predictor = pred
+            )
+          }
+        }
+      ) |> rbindlist()
+    }
+    aneg_frs.dt <- extract_aneg.fn(
+      "FRS", "FRS"
+    )
+    aneg_cvr.dt <- extract_aneg.fn(
+      "CVR_mimic", "CVR_MIMIC"
+    )
+    forest.dt <- rbind(
+      forest.dt, aneg_frs.dt, aneg_cvr.dt
+    )
+  }
+
   forest.dt[, Significant := p < 0.05]
 
   domain_map <- c(
@@ -2704,11 +2741,22 @@ plot_lme_forest_comparison <- function(frs_res, cvr_res) {
   forest.dt[, CI_lower := Beta - 1.96 * SE]
   forest.dt[, CI_upper := Beta + 1.96 * SE]
 
-  # Facet label with "s" suffix
-  forest.dt[, Sex_label := paste0(Sex, "s")]
+  # Facet labels
+  has_aneg <- "Aneg_CU" %in% forest.dt$Sex
+  sex_labels <- c(
+    Male = "Males", Female = "Females",
+    Aneg_CU = "A\u03b2- CU"
+  )
+  forest.dt[, Sex_label := sex_labels[Sex]]
+  sex_lvls <- if (has_aneg) {
+    c("Females", "Males", "A\u03b2- CU")
+  } else {
+    c("Females", "Males")
+  }
   forest.dt[, Sex_label := factor(
-    Sex_label, levels = c("Females", "Males")
+    Sex_label, levels = sex_lvls
   )]
+  n_col <- if (has_aneg) 3L else 2L
 
   pred_labels <- c(
     "FRS" = "FRS",
@@ -2767,7 +2815,7 @@ plot_lme_forest_comparison <- function(frs_res, cvr_res) {
       name = "Predictor",
       drop = FALSE
     ) +
-    facet_wrap(~ Sex_label, ncol = 2) +
+    facet_wrap(~ Sex_label, ncol = n_col) +
     labs(
       x = expression(beta * " (95% CI)"),
       y = NULL
@@ -4491,8 +4539,10 @@ plot_coupling_figure <- function(
       guide = "none"
     ) +
     ggplot2::facet_wrap(
-      ~ Domain, nrow = 1,
-      scales = "free_x"
+      ~ Domain, nrow = 1
+    ) +
+    ggplot2::coord_cartesian(
+      xlim = c(0, 0.3)
     ) +
     ggplot2::labs(
       x = "Latent cognitive decline",

@@ -148,6 +148,20 @@ simulation.res <- load_if_exists(
   ),
   "Simulation"
 )
+aneg_lme.res <- load_if_exists(
+  file.path(
+    lme_results_dir,
+    "lme_amyloid_negative.rds"
+  ),
+  "A-/CU LME"
+)
+aneg_lgcm.res <- load_if_exists(
+  file.path(
+    lgcm_results_dir,
+    "lgcm_amyloid_negative.rds"
+  ),
+  "A-/CU LGCM"
+)
 inclusion_counts <- load_if_exists(
   file.path(
     derivatives_dir, "inclusion_counts.rds"
@@ -836,7 +850,97 @@ comp_hvr <- nv_data$comparable_subsample$HVR
 comp_hc <- nv_data$comparable_subsample$HC
 
 # ---------------------------------------------------------
-# 14. Assemble and save
+# 14. Age covariate effects on LGCM latent factors
+# ---------------------------------------------------------
+# Exclude Age_bl models (no age covariate paths)
+all_med.v <- grep(
+  "Age_bl", names(lgcm_results$results),
+  value = TRUE, invert = TRUE
+)
+male_med.v <- all_med.v[grepl("^Male", all_med.v)]
+female_med.v <- all_med.v[
+  grepl("^Female", all_med.v)
+]
+
+get_age_est.fn <- function(model_name, param) {
+  p <- lgcm_results$results[[
+    model_name
+  ]]$all_params
+  r <- p[p$name == param, ]
+  list(
+    est = r$Estimate,
+    se = r$Std.Error,
+    p = 2 * pnorm(
+      -abs(r$Estimate / r$Std.Error)
+    )
+  )
+}
+
+# Male age -> HVR intercept
+m_hvr_i.v <- sapply(
+  male_med.v,
+  function(m) get_age_est.fn(m, "age_hvr_i")$est
+)
+m_hvr_i_p.v <- sapply(
+  male_med.v,
+  function(m) get_age_est.fn(m, "age_hvr_i")$p
+)
+
+# Male age -> HVR slope
+m_hvr_s_p.v <- sapply(
+  male_med.v,
+  function(m) get_age_est.fn(m, "age_hvr_s")$p
+)
+
+# Female age -> HVR intercept
+f_hvr_i_p.v <- sapply(
+  female_med.v,
+  function(m) get_age_est.fn(m, "age_hvr_i")$p
+)
+
+# FRS vs CVR_mimic magnitude (males only)
+m_frs_hvr_i.v <- sapply(
+  male_med.v[grepl("FRS", male_med.v)],
+  function(m) get_age_est.fn(m, "age_hvr_i")$est
+)
+m_cvr_hvr_i.v <- sapply(
+  male_med.v[grepl("CVR", male_med.v)],
+  function(m) get_age_est.fn(m, "age_hvr_i")$est
+)
+
+# age -> cognitive intercept (all 12)
+cog_i_p.v <- sapply(
+  all_med.v,
+  function(m) get_age_est.fn(m, "age_cog_i")$p
+)
+
+age_cov.lst <- list(
+  m_hvr_i_range = sprintf(
+    "%.3f to %.3f",
+    max(m_hvr_i.v), min(m_hvr_i.v)
+  ),
+  m_hvr_i_max_p = sprintf(
+    "%.1e", max(m_hvr_i_p.v)
+  ),
+  m_hvr_s_max_p = sprintf(
+    "%.1e", max(m_hvr_s_p.v)
+  ),
+  f_hvr_i_min_p = sprintf(
+    "%.2f", min(f_hvr_i_p.v)
+  ),
+  m_frs_mag = sprintf(
+    "%.3f", mean(abs(m_frs_hvr_i.v))
+  ),
+  m_cvr_mag = sprintf(
+    "%.3f", mean(abs(m_cvr_hvr_i.v))
+  ),
+  cog_i_max_p = sprintf(
+    "%.1e", max(cog_i_p.v)
+  )
+)
+
+# ---------------------------------------------------------
+# 15. Assemble and save
 # ---------------------------------------------------------
 env.lst <- list(
   # Full result objects (needed by narrative)
@@ -851,6 +955,8 @@ env.lst <- list(
   cvr_edt = cvr_edt,
   edt_sens.res = edt_sens.res,
   edt_linearity = edt_linearity,
+  aneg_lme.res = aneg_lme.res,
+  aneg_lgcm.res = aneg_lgcm.res,
   frs_problem.res = frs_problem.res,
   cvr_model.res = cvr_model.res,
   cvr_mi.res = cvr_mi.res,
@@ -919,6 +1025,7 @@ env.lst <- list(
   # Sample info
   lgcm_n.lst = lgcm_n.lst,
   med_n.lst = med_n.lst,
+  age_cov.lst = age_cov.lst,
 
   # Abstract stats
   abs_stats = abs_stats,
