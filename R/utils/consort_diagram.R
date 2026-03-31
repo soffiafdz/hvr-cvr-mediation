@@ -312,45 +312,49 @@ generate_consort_tikz <- function(
     ))
   }
 
-  # Right track: if sensitivity present, CU splits
-  # to both A-/CU sensitivity and age-comparable
-  # side by side at row 5
+  # Right track endpoints
   if (has_right && has_sens) {
     exc_cvr <- n_aneg_cu_mri - n_aneg_sensitivity
     rx_left <- rx - 1.3
-    rx_right <- rx + 2.0
+    rx_right <- rx + 1.3
+    y_exc_bot <- y_lgcm - 1.5
 
+    # A-/CU Subsample (left of pair)
     tikz <- paste0(tikz, node.fn(
       "final", "aneg_sens", rx_left, y_lgcm,
       paste0(
-        "\\textbf{A\\textsuperscript{--}/CU",
-        " Control}\\\\[2pt]",
+        "\\textbf{A\\textsuperscript{--}",
+        "/CU}\\\\[2pt]",
         "\\textbf{N\\,=\\,",
         fmt(n_aneg_sensitivity), "}"
       )
     ))
+
+    # UKB Subsample (right of pair)
     tikz <- paste0(tikz, node.fn(
       "final", "age_comp", rx_right, y_lgcm,
       paste0(
-        "\\textbf{", age_lbl,
-        " Subsample}\\\\[2pt]",
+        "\\textbf{UKB}\\\\[2pt]",
         "\\textbf{N\\,=\\,",
         fmt(n_age_comparable), "}"
       )
     ))
+
+    # Exclusions below each
     if (exc_cvr > 0) {
       tikz <- paste0(tikz, node.fn(
         "excluded", "exc_cvr",
-        rx_left, y_lgcm - 1.5,
+        rx_left, y_exc_bot,
         paste0(
-          "Excluded: Missing CVR\\\\",
+          "Excluded:\\\\",
+          "Missing CVR data\\\\",
           "n\\,=\\,", fmt(exc_cvr)
         )
       ))
     }
     tikz <- paste0(tikz, node.fn(
       "excluded", "exc_age",
-      rx_right + exr, y_lgcm,
+      rx_right, y_exc_bot,
       paste0(
         "Excluded:\\\\",
         "Outside UKB age range\\\\",
@@ -444,7 +448,7 @@ generate_consort_tikz <- function(
     )
 
     if (has_sens) {
-      # T-junction from CU to both endpoints
+      # T-junction from CU to both subsample boxes
       cu_mid_y <- (y_lme + y_lgcm) / 2
       arrows.v <- c(
         arrows.v,
@@ -486,20 +490,34 @@ generate_consort_tikz <- function(
       paste0(
         "  \\draw[dasharrow]",
         " (cu.east) -- (exc_dx.west);"
-      ),
-      paste0(
-        "  \\draw[dasharrow]",
-        " (age_comp.east) -- (exc_age.west);"
       )
     )
-    if (has_sens &&
-        n_aneg_cu_mri - n_aneg_sensitivity > 0) {
+    # Exclusions below subsample boxes
+    if (has_sens) {
+      if (n_aneg_cu_mri - n_aneg_sensitivity > 0) {
+        arrows.v <- c(
+          arrows.v,
+          paste0(
+            "  \\draw[dasharrow]",
+            " (aneg_sens.south)",
+            " -- (exc_cvr.north);"
+          )
+        )
+      }
       arrows.v <- c(
         arrows.v,
         paste0(
           "  \\draw[dasharrow]",
-          " (aneg_sens.south)",
-          " -- (exc_cvr.north);"
+          " (age_comp.south)",
+          " -- (exc_age.north);"
+        )
+      )
+    } else {
+      arrows.v <- c(
+        arrows.v,
+        paste0(
+          "  \\draw[dasharrow]",
+          " (age_comp.east) -- (exc_age.west);"
         )
       )
     }
