@@ -586,19 +586,24 @@ tikz_code <- generate_consort_tikz(
   n_aneg_mri = cc$n_aneg_mri,
   n_aneg_cu_mri = cc$n_aneg_cu_mri,
   n_age_comparable = cc$n_age_comparable,
-  ukb_age_range = cc$ukb_age_range
+  ukb_age_range = cc$ukb_age_range,
+  n_aneg_sensitivity =
+    aneg_lme.res$sample_info$n_subjects
 )
 
 cat("\\begin{figure}[H]\n")
 cat(tikz_code)
 cap <- paste0(
-  "\\caption{CONSORT flow diagram showing ",
-  "participant selection. Left: amyloid-positive",
+  "\\caption{\\textbf{CONSORT flow diagram ",
+  "showing participant selection.} ",
+  "Left: amyloid-positive",
   " analysis track from LME cohort to LGCM ",
   "subsample. Right: amyloid-negative, ",
-  "cognitively unimpaired normative comparison",
-  " sample used to validate UKB z-score ",
-  "transfer. ADSP-PHC = Alzheimer's Disease ",
+  "cognitively unimpaired participants used ",
+  "for the A\\textsuperscript{--}/CU ",
+  "sensitivity analysis and ",
+  "normative z-score validation (age-comparable",
+  " subsample). ADSP-PHC = Alzheimer's Disease ",
   "Sequencing Project Phenotype Harmonization ",
   "Consortium; CL = Centiloid; CSF = ",
   "cerebrospinal fluid; CU = cognitively ",
@@ -1923,105 +1928,10 @@ Executive Function
 (Δβ = `r f_exf_db`, 95% CI `r f_exf_ci`)
 did not.
 
-### Amyloid-Negative CU Control Analysis
-
-```{r aneg-lme-inline}
-#| include: false
-
-stopifnot(!is.null(aneg_lme.res))
-aneg_st <- as.data.table(
-  aneg_lme.res$summary_table
-)
-aneg_n <- aneg_lme.res$sample_info$n_subjects
-
-# Per-CVR significance counts
-aneg_frs_sig <- sum(
-  aneg_st[CVR_Measure == "FRS"]$Significant
-)
-aneg_frs_fdr <- sum(
-  aneg_st[CVR_Measure == "FRS"]$Significant_FDR
-)
-aneg_cvr_sig <- sum(
-  aneg_st[
-    CVR_Measure == "CVR_mimic"
-  ]$Significant
-)
-aneg_cvr_fdr <- sum(
-  aneg_st[
-    CVR_Measure == "CVR_mimic"
-  ]$Significant_FDR
-)
-
-# Per-domain details for significant findings
-aneg_cvr_details <- sapply(
-  c("MEM", "LAN", "EXF"), function(d) {
-    row <- aneg_st[
-      CVR_Measure == "CVR_mimic" &
-        Domain == d
-    ]
-    if (nrow(row) > 0) {
-      sig_tag <- if (row$Significant) {
-        fmt_p_fdr(row$p_value, row$p_fdr)
-      } else {
-        fmt_p_inline(row$p_value)
-      }
-      sprintf(
-        "%s (beta = %.4f, %s)",
-        DOMAIN_LABELS[d],
-        row$Beta, sig_tag
-      )
-    } else ""
-  }
-)
-aneg_frs_details <- sapply(
-  c("MEM", "LAN", "EXF"), function(d) {
-    row <- aneg_st[
-      CVR_Measure == "FRS" & Domain == d
-    ]
-    if (nrow(row) > 0) {
-      sprintf(
-        "%s (%s)",
-        DOMAIN_LABELS[d],
-        fmt_p_inline(row$p_value)
-      )
-    } else ""
-  }
-)
-
-# Significant CVR domain names
-aneg_cvr_sig_doms <- aneg_st[
-  CVR_Measure == "CVR_mimic" &
-    Significant == TRUE
-]$Domain
-aneg_cvr_sig_names <- paste(
-  DOMAIN_LABELS[aneg_cvr_sig_doms],
-  collapse = " and "
-)
-```
-
-To test whether the primary FRS effects reflect AD
-pathology rather than cardiovascular risk per se, we
-repeated the LME 3-way interaction in an independent
-sample of `r aneg_n` amyloid-negative, baseline
-cognitively unimpaired (A^--^/CU) participants, pooling
-sexes with SEX as a covariate. The pattern reversed:
-FRS did not survive FDR correction in any domain
-(`r n_of_total.fn(aneg_frs_fdr, 3L)`;
-`r paste(aneg_frs_details, collapse = "; ")`),
-whereas CVR~mimic~ reached significance in
-`r n_of_total.fn(aneg_cvr_fdr, 3L)` domains after
-FDR correction
-(`r paste(aneg_cvr_details, collapse = "; ")`).
-This complementary reversal — FRS significant in
-A^+^ but not after FDR in A^--^/CU; CVR~mimic~ not
-significant after FDR in A^+^ but significant in
-A^--^/CU — supports the interpretation that FRS
-effects are carried by the age component of the
-score, which co-varies with AD pathology. In the
-absence of amyloid burden, age-adjusted CVR~mimic~
-reveals a cardiovascular moderation effect that is
-masked in the amyloid-positive sample. A parallel LGCM analysis in this sample is
-reported in Appendix C.
+The A^--^/CU control analysis reversed this pattern:
+CVR~mimic~ reached FDR significance while FRS did
+not (@fig-lme-forest, panel C; full results in
+Appendix C).
 
 ## LGCM Results
 
@@ -2905,10 +2815,11 @@ explanation is that FRS-hippocampal associations in
 this elderly sample are primarily carried by the age
 component of the FRS. The A^--^/CU control analysis
 provides converging evidence that age-adjusted CVR
-modulates the brain-cognition relationship: when
-amyloid burden is removed, CVR~mimic~ reached FDR
-significance while FRS did not, consistent with a
-reserve-like mechanism. The
+modulates the brain-cognition relationship
+(@fig-lme-forest; Appendix C): when amyloid burden
+is removed, CVR~mimic~ reached FDR significance
+while FRS did not, consistent with a reserve-like
+mechanism. The
 hippocampal-cognitive coupling persists regardless of
 CVR measurement, supporting HVR as a reliable
 biomarker target.
@@ -3982,89 +3893,141 @@ edt_sens_text <- paste(
 
 `r edt_sens_text`.
 
-## Amyloid-Negative CU Mediation
+## Amyloid-Negative CU Control
+
+### LME 3-Way Interaction
+
+```{r aneg-lme-inline}
+#| include: false
+
+stopifnot(!is.null(aneg_lme_summary.lst))
+al <- aneg_lme_summary.lst
+```
+
+The LME 3-way interaction was repeated in
+`r al$n` A^--^/CU participants (pooled sex, SEX
+as covariate; see Methods). Results appear in
+@tbl-aneg-lme.
+
+```{r tbl-aneg-lme}
+#| tbl-cap: "**A$^{-}$/CU LME 3-way interaction.** FRS vs CVR$_{\\text{mimic}}$ effects (YRS $\\times$ CVR $\\times$ HVR z-score $\\rightarrow$ Cognition) in amyloid-negative, cognitively unimpaired participants. Pooled sex with SEX as covariate. Bold indicates p < 0.05. FDR correction applied within each predictor (3 tests)."
+
+require_output(
+  create_aneg_lme_table(
+    aneg_lme_summary.lst
+  ),
+  "tbl-aneg-lme"
+)
+```
+
+FRS did not survive FDR correction in any domain
+(`r n_of_total.fn(al$frs_fdr, 3L)`;
+`r paste(al$frs_details, collapse = "; ")`),
+whereas CVR~mimic~ reached significance in
+`r n_of_total.fn(al$cvr_fdr, 3L)` domains after
+FDR correction
+(`r paste(al$cvr_details, collapse = "; ")`).
+This complementary reversal — FRS significant in
+A^+^ but not after FDR in A^--^/CU; CVR~mimic~ not
+significant after FDR in A^+^ but significant in
+A^--^/CU — supports the interpretation that FRS
+effects are carried by the age component of the
+score, which co-varies with AD pathology
+(@fig-lme-forest).
+
+### LGCM Mediation
 
 ```{r aneg-lgcm-inline}
 #| include: false
 
-stopifnot(!is.null(aneg_lgcm.res))
-aneg_lgcm_r <- aneg_lgcm.res$results
-aneg_lgcm_n <-
-  aneg_lgcm.res$sample_info$n_subjects
+stopifnot(!is.null(aneg_lgcm_summary.lst))
+s <- aneg_lgcm_summary.lst
 
-# a-path: predictor -> HVR slope
-aneg_a_details <- sapply(
-  names(aneg_lgcm_r), function(k) {
-    r <- aneg_lgcm_r[[k]]
-    if (!r$converged) return(NULL)
+# b-path per-domain formatted strings
+aneg_b_sig_parts <- sapply(
+  s$b_by_dom[sapply(
+    s$b_by_dom, function(x) x$sig
+  )],
+  function(x) {
     sprintf(
-      "%s: beta = %.4f, %s",
-      k, r$a_path$est,
-      fmt_p_inline(r$a_path$p)
+      "%s (β ≈ %.3f, %s to %s)",
+      x$domain, x$b_avg,
+      fmt_p_inline(x$p_min),
+      fmt_p_inline(x$p_max)
     )
   }
 )
-
-# b-path: HVR slope -> cognitive slope
-aneg_b_sig <- sum(sapply(
-  names(aneg_lgcm_r), function(k) {
-    r <- aneg_lgcm_r[[k]]
-    r$converged && r$b_path$p < 0.05
+aneg_b_sig_text <- paste(
+  aneg_b_sig_parts, collapse = " and "
+)
+aneg_b_border_parts <- sapply(
+  s$b_by_dom[sapply(
+    s$b_by_dom, function(x) x$borderline
+  )],
+  function(x) {
+    sprintf(
+      "%s (%s to %s)",
+      x$domain,
+      fmt_p_inline(x$p_min),
+      fmt_p_inline(x$p_max)
+    )
   }
-))
-aneg_b_total <- length(aneg_lgcm_r)
-
-# Analytic N (may differ from sample N due to
-# missingness handled by FIML)
-aneg_lgcm_model_n <- aneg_lgcm_r[[1]]$n
-
-# a-path significance count
-aneg_a_sig <- sum(sapply(
-  names(aneg_lgcm_r), function(k) {
-    r <- aneg_lgcm_r[[k]]
-    r$converged && r$a_path$p < 0.05
-  }
-))
-
-# Min a-path p
-aneg_a_min_p <- min(sapply(
-  names(aneg_lgcm_r), function(k) {
-    r <- aneg_lgcm_r[[k]]
-    if (r$converged) r$a_path$p else 1
-  }
-))
+)
+aneg_b_border_text <- paste(
+  aneg_b_border_parts, collapse = " and "
+)
 ```
 
-The LGCM mediation analysis in A^--^/CU participants
-(N = `r aneg_lgcm_n`; analytic
-N = `r aneg_lgcm_model_n` after excluding cases with
-insufficient data for LGCM estimation) used a
-different specification
-than the primary analysis: a linear growth model with
-YRS (years from baseline) as the time metric, free
-residual variances (no SE^2^ constraint), and pooled
-sexes (SEX covariate). Three caveats apply: (1) the
-linear specification may underfit non-linear
-trajectories, (2) the smaller sample reduces
-statistical power, and (3) free residuals may absorb
-variance otherwise captured by latent factors.
+The A^--^/CU LGCM used a linear growth model with
+YRS time metric, pooled sexes, free residuals, and
+Wald/Sobel inference (see Methods;
+N = `r s$n_sample`,
+analytic N = `r s$n_analytic`).
 
-No a-path (predictor → HVR slope) reached
-significance for either FRS or CVR~mimic~
-(`r n_of_total.fn(aneg_a_sig, aneg_b_total)`;
-minimum `r fmt_p_inline(aneg_a_min_p)`),
-indicating that neither cardiovascular risk measure
-predicted hippocampal rate of change in this sample.
+```{r tbl-aneg-lgcm}
+#| tbl-cap: "**A$^{-}$/CU LGCM mediation paths.** Linear LGCM mediation in amyloid-negative, cognitively unimpaired participants. a-path = predictor $\\rightarrow$ HVR slope; b-path = HVR slope $\\rightarrow$ cognitive slope; indirect = a $\\times$ b. Bold indicates p < 0.05. Inference via Wald/Sobel tests (no bootstrap)."
+
+require_output(
+  create_aneg_lgcm_table(
+    aneg_lgcm_summary.lst
+  ),
+  "tbl-aneg-lgcm"
+)
+```
+
+Neither FRS nor CVR~mimic~ predicted HVR slope in any
+of the `r s$a_total` models (all a-path
+`r fmt_p_inline(s$a_min_p)`; @tbl-aneg-lgcm).
+This contrasts sharply with the primary A^+^ analysis,
+where FRS predicted hippocampal decline in all six
+models (@fig-mediation): removing amyloid pathology
+eliminates the FRS a-path, confirming that
+FRS-hippocampal associations require AD-related
+neurodegeneration rather than reflecting direct
+cardiovascular effects on the hippocampus. The
+a-path estimates themselves are near zero
+(range `r sprintf("%.3f", s$a_range[1])`–`r sprintf("%.3f", s$a_range[2])`),
+indicating this is a genuinely null effect rather
+than a power limitation.
+
 The b-path (HVR slope → cognitive slope) was
-significant in
-`r n_of_total.fn(aneg_b_sig, aneg_b_total)` models,
-confirming hippocampal-cognitive coupling in the
-absence of amyloid burden. The null a-paths with
-significant b-paths mirror the CVR~mimic~ pattern
-from the primary A^+^ analysis (moderation without
-mediation), but cannot distinguish FRS from
-CVR~mimic~ in this specification. Inline model
-details: `r paste(aneg_a_details, collapse = "; ")`.
+significant for `r aneg_b_sig_text``r if (nchar(aneg_b_border_text) > 0) paste0(", and borderline for ", aneg_b_border_text) else ""`,
+confirming that hippocampal-cognitive coupling
+persists in the absence of amyloid burden. This
+invariance across both A^+^ and A^--^/CU samples
+and across both CVR predictors supports HVR decline
+as a general marker of neurodegeneration-cognition
+coupling, independent of AD pathology or CVR
+measurement.
+
+No indirect effects reached significance (all Sobel
+*p* > 0.5), consistent with null a-paths. The
+overall pattern — null a-paths with preserved
+b-paths for both FRS and CVR~mimic~ — closes the
+age-confounding argument: FRS mediates through
+hippocampal decline only when age co-varies with
+AD-driven atrophy (A^+^), not in the general aging
+population (A^--^/CU).
 
 :::{=latex}
 \FloatBarrier

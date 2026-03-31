@@ -30,7 +30,8 @@ generate_consort_tikz <- function(
     n_aneg_mri = NULL,
     n_aneg_cu_mri = NULL,
     n_age_comparable = NULL,
-    ukb_age_range = NULL) {
+    ukb_age_range = NULL,
+    n_aneg_sensitivity = NULL) {
 
   fmt <- function(x) {
     format(x, big.mark = ",")
@@ -50,6 +51,7 @@ generate_consort_tikz <- function(
   if (has_lgcm) {
     exc_lgcm <- n_lme - n_lgcm
   }
+  has_sens <- !is.null(n_aneg_sensitivity)
   if (has_right) {
     exc_mri_r <- n_aneg - n_aneg_mri
     exc_dx <- n_aneg_mri - n_aneg_cu_mri
@@ -330,6 +332,32 @@ generate_consort_tikz <- function(
     ))
   }
 
+  # ---- Row 5b: A-/CU sensitivity (if provided) ----
+  y_sens <- y_lgcm - 2.0
+  if (has_sens && has_right) {
+    exc_cvr <- n_aneg_cu_mri - n_aneg_sensitivity
+    tikz <- paste0(tikz, node.fn(
+      "final", "aneg_sens", rx, y_sens,
+      paste0(
+        "\\textbf{A\\textsuperscript{--}/CU",
+        " Sensitivity}\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_aneg_sensitivity), "}"
+      )
+    ))
+    if (exc_cvr > 0) {
+      tikz <- paste0(tikz, node.fn(
+        "excluded", "exc_cvr",
+        rx + exr, y_sens,
+        paste0(
+          "Excluded:\\\\",
+          "Missing CVR data\\\\",
+          "n\\,=\\,", fmt(exc_cvr)
+        )
+      ))
+    }
+  }
+
   # ---- Arrows ----
   # Vertical main flow
   arrows.v <- c(
@@ -408,6 +436,29 @@ generate_consort_tikz <- function(
         " (age_comp.east) -- (exc_age.west);"
       )
     )
+    if (has_sens) {
+      # Branch from CU, routed left to avoid
+      # overlap with age_comp track
+      arrows.v <- c(
+        arrows.v,
+        "  % A-/CU sensitivity from CU",
+        paste0(
+          "  \\draw[arrow]",
+          " (cu.south west)",
+          " |- (aneg_sens.west);"
+        )
+      )
+      if (n_aneg_cu_mri - n_aneg_sensitivity > 0) {
+        arrows.v <- c(
+          arrows.v,
+          paste0(
+            "  \\draw[dasharrow]",
+            " (aneg_sens.east)",
+            " -- (exc_cvr.west);"
+          )
+        )
+      }
+    }
   }
 
   tikz <- paste0(

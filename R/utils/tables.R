@@ -4736,3 +4736,182 @@ n_of_total.fn <- function(n, total) {
     paste(word.fn(n), "of", word.fn(total))
   }
 }
+
+#' Create A-/CU LME comparison table
+#'
+#' Side-by-side FRS vs CVR_mimic, row-grouped by
+#' domain. Matches primary comparison table style.
+#'
+#' @param summary_lst Pre-computed A-/CU LME summary
+#' @return gt table
+#' @export
+create_aneg_lme_table <- function(summary_lst) {
+  st <- copy(summary_lst$tbl)
+  st[, Domain := DOMAIN_LABELS[Domain]]
+
+  frs <- st[CVR_Measure == "FRS", .(
+    Domain,
+    FRS_beta = Beta, FRS_se = SE,
+    FRS_p = p_value, FRS_fdr = p_fdr
+  )]
+  cvr <- st[CVR_Measure == "CVR_mimic", .(
+    Domain,
+    CVR_beta = Beta, CVR_se = SE,
+    CVR_p = p_value, CVR_fdr = p_fdr
+  )]
+  combined.dt <- merge(frs, cvr, by = "Domain")
+
+  combined.dt |>
+    gt(rowname_col = "Domain") |>
+    fmt_number(
+      columns = c(
+        FRS_beta, FRS_se, CVR_beta, CVR_se
+      ),
+      decimals = 4
+    ) |>
+    fmt_number(
+      columns = c(
+        FRS_p, FRS_fdr, CVR_p, CVR_fdr
+      ),
+      decimals = 3
+    ) |>
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(
+        columns = c(FRS_beta, FRS_se,
+          FRS_p, FRS_fdr),
+        rows = FRS_p < 0.05
+      )
+    ) |>
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(
+        columns = c(CVR_beta, CVR_se,
+          CVR_p, CVR_fdr),
+        rows = CVR_p < 0.05
+      )
+    ) |>
+    cols_label(
+      FRS_beta = "\u03b2", FRS_se = "SE",
+      FRS_p = "p", FRS_fdr = md("*p*~FDR~"),
+      CVR_beta = "\u03b2", CVR_se = "SE",
+      CVR_p = "p", CVR_fdr = md("*p*~FDR~")
+    ) |>
+    tab_spanner(
+      label = "FRS",
+      columns = starts_with("FRS_")
+    ) |>
+    tab_spanner(
+      label = md("CVR~mimic~"),
+      columns = starts_with("CVR_")
+    ) |>
+    style_manuscript_table()
+}
+
+#' Create A-/CU LGCM mediation table
+#'
+#' Domain row groups, a/b/ab path rows,
+#' FRS vs CVR_mimic as spanners (est + p).
+#'
+#' @param summary_lst Pre-computed summary from
+#'   script 15 (aneg_lgcm_summary.lst)
+#' @return gt table
+#' @export
+create_aneg_lgcm_table <- function(summary_lst) {
+  tbl.dt <- copy(summary_lst$tbl)
+  path_labels <- c(
+    a = "a (CVR \u2192 HVR slope)",
+    b = "b (HVR \u2192 Cog slope)",
+    ab = "Indirect (a \u00d7 b)"
+  )
+
+  rows.lst <- list()
+  for (i in seq_len(nrow(tbl.dt))) {
+    r <- tbl.dt[i]
+    dom <- r$Domain
+    pred <- r$Predictor
+    for (path in c("a", "b", "ab")) {
+      est_col <- if (path == "ab") {
+        "ind_est"
+      } else {
+        paste0(path, "_est")
+      }
+      p_col <- if (path == "ab") {
+        "ind_p"
+      } else {
+        paste0(path, "_p")
+      }
+      key <- paste(dom, pred, path, sep = "_")
+      rows.lst[[key]] <- data.table(
+        Domain = dom,
+        Path = path_labels[path],
+        Predictor = pred,
+        est = r[[est_col]],
+        p = r[[p_col]]
+      )
+    }
+  }
+  long.dt <- rbindlist(rows.lst)
+  long.dt[, Path := factor(
+    Path, levels = path_labels
+  )]
+
+  # Pivot to wide: FRS est/p, CVR est/p
+  frs <- long.dt[Predictor == "FRS", .(
+    Domain, Path,
+    FRS_est = est, FRS_p = p
+  )]
+  cvr <- long.dt[
+    Predictor == "CVR_mimic", .(
+      Domain, Path,
+      CVR_est = est, CVR_p = p
+    )
+  ]
+  wide.dt <- merge(frs, cvr,
+    by = c("Domain", "Path")
+  )
+  setorder(wide.dt, Domain, Path)
+
+  wide.dt |>
+    gt(
+      groupname_col = "Domain",
+      rowname_col = "Path"
+    ) |>
+    fmt_number(
+      columns = c(FRS_est, CVR_est),
+      decimals = 4
+    ) |>
+    fmt_number(
+      columns = c(FRS_p, CVR_p),
+      decimals = 3
+    ) |>
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(
+        columns = c(FRS_est, FRS_p),
+        rows = FRS_p < 0.05
+      )
+    ) |>
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_body(
+        columns = c(CVR_est, CVR_p),
+        rows = CVR_p < 0.05
+      )
+    ) |>
+    cols_label(
+      FRS_est = "\u03b2",
+      FRS_p = "p",
+      CVR_est = "\u03b2",
+      CVR_p = "p"
+    ) |>
+    tab_spanner(
+      label = "FRS",
+      columns = starts_with("FRS_")
+    ) |>
+    tab_spanner(
+      label = md("CVR~mimic~"),
+      columns = starts_with("CVR_")
+    ) |>
+    style_manuscript_table()
+}

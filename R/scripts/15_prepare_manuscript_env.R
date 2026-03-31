@@ -940,7 +940,156 @@ age_cov.lst <- list(
 )
 
 # ---------------------------------------------------------
-# 15. Assemble and save
+# 15. A-/CU LGCM summary objects
+# ---------------------------------------------------------
+# A-/CU LME summary
+aneg_lme_summary.lst <- {
+  st <- as.data.table(aneg_lme.res$summary_table)
+  n <- aneg_lme.res$sample_info$n_subjects
+
+  frs_fdr <- sum(
+    st[CVR_Measure == "FRS"]$Significant_FDR
+  )
+  cvr_fdr <- sum(
+    st[CVR_Measure == "CVR_mimic"]$Significant_FDR
+  )
+
+  # Per-domain detail strings
+  cvr_details.v <- sapply(
+    c("MEM", "LAN", "EXF"), function(d) {
+      row <- st[
+        CVR_Measure == "CVR_mimic" & Domain == d
+      ]
+      sig_tag <- if (row$Significant) {
+        sprintf(
+          "%s [*p*~FDR~ %s]",
+          fmt_p_inline(row$p_value),
+          if (row$p_fdr < 0.001) {
+            "< 0.001"
+          } else {
+            sprintf(
+              "= %.3f%s",
+              row$p_fdr,
+              if (!row$Significant_FDR) ", n.s." else ""
+            )
+          }
+        )
+      } else {
+        fmt_p_inline(row$p_value)
+      }
+      sprintf(
+        "%s (β = %.4f, %s)",
+        DOMAIN_LABELS[d], row$Beta, sig_tag
+      )
+    }
+  )
+  frs_details.v <- sapply(
+    c("MEM", "LAN", "EXF"), function(d) {
+      row <- st[
+        CVR_Measure == "FRS" & Domain == d
+      ]
+      sprintf(
+        "%s (%s)",
+        DOMAIN_LABELS[d],
+        fmt_p_inline(row$p_value)
+      )
+    }
+  )
+
+  list(
+    n = n,
+    frs_fdr = frs_fdr,
+    cvr_fdr = cvr_fdr,
+    cvr_details = cvr_details.v,
+    frs_details = frs_details.v,
+    tbl = st
+  )
+}
+
+aneg_lgcm_summary.lst <- {
+  r <- aneg_lgcm.res$results
+  doms.v <- c("MEM", "LAN", "EXF")
+  preds.v <- c("FRS", "CVR_mimic")
+
+  # a-path summary
+  a_sig <- sum(sapply(
+    names(r), function(k) {
+      r[[k]]$converged && r[[k]]$a_path$p < 0.05
+    }
+  ))
+  a_total <- length(r)
+  a_min_p <- min(sapply(
+    names(r), function(k) {
+      if (r[[k]]$converged) r[[k]]$a_path$p else 1
+    }
+  ))
+  a_range <- range(sapply(
+    names(r), function(k) r[[k]]$a_path$est
+  ))
+
+  # b-path per-domain (averaged across predictors)
+  b_by_dom.lst <- lapply(doms.v, function(d) {
+    frs_r <- r[[paste(d, "FRS", sep = "_")]]
+    cvr_r <- r[[paste(d, "CVR_mimic", sep = "_")]]
+    b_avg <- mean(c(
+      frs_r$b_path$est, cvr_r$b_path$est
+    ))
+    p_rng <- range(c(
+      frs_r$b_path$p, cvr_r$b_path$p
+    ))
+    list(
+      domain = DOMAIN_LABELS[d],
+      b_avg = b_avg,
+      p_min = p_rng[1], p_max = p_rng[2],
+      sig = all(p_rng < 0.05),
+      borderline = !all(p_rng < 0.05) &&
+        min(p_rng) < 0.06
+    )
+  })
+  names(b_by_dom.lst) <- doms.v
+  b_sig_n <- sum(sapply(
+    names(r), function(k) {
+      r[[k]]$b_path$p < 0.05
+    }
+  ))
+
+  # Build table data
+  tbl_rows.lst <- list()
+  for (d in doms.v) {
+    for (pred in preds.v) {
+      k <- paste(d, pred, sep = "_")
+      m <- r[[k]]
+      tbl_rows.lst[[k]] <- data.table(
+        Domain = DOMAIN_LABELS[d],
+        Predictor = pred,
+        a_est = m$a_path$est,
+        a_p = m$a_path$p,
+        b_est = m$b_path$est,
+        b_p = m$b_path$p,
+        ind_est = m$indirect$est,
+        ind_p = as.numeric(
+          m$indirect$sobel_p %||% m$indirect$p
+        )
+      )
+    }
+  }
+  tbl.dt <- rbindlist(tbl_rows.lst)
+
+  list(
+    a_sig = a_sig,
+    a_total = a_total,
+    a_min_p = a_min_p,
+    a_range = a_range,
+    b_by_dom = b_by_dom.lst,
+    b_sig_n = b_sig_n,
+    tbl = tbl.dt,
+    n_sample = aneg_lgcm.res$sample_info$n_subjects,
+    n_analytic = r[[1]]$n
+  )
+}
+
+# ---------------------------------------------------------
+# 16. Assemble and save
 # ---------------------------------------------------------
 env.lst <- list(
   # Full result objects (needed by narrative)
@@ -957,6 +1106,8 @@ env.lst <- list(
   edt_linearity = edt_linearity,
   aneg_lme.res = aneg_lme.res,
   aneg_lgcm.res = aneg_lgcm.res,
+  aneg_lme_summary.lst = aneg_lme_summary.lst,
+  aneg_lgcm_summary.lst = aneg_lgcm_summary.lst,
   frs_problem.res = frs_problem.res,
   cvr_model.res = cvr_model.res,
   cvr_mi.res = cvr_mi.res,
