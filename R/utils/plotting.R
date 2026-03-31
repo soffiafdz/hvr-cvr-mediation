@@ -2105,31 +2105,27 @@ plot_age_distribution_comparison <- function(
       linetype = "dashed", linewidth = 0.8
     ) +
     annotate(
-      "text", x = ukb_age_mean - 1, y = Inf,
-      label = sprintf("%.1f", ukb_age_mean),
+      "text", x = ukb_age_mean, y = Inf,
+      label = sprintf("UKB\n%.1f", ukb_age_mean),
       color = colors$ukb,
-      hjust = 1, vjust = 1.5, size = 2.5
+      hjust = 1.1, vjust = 1.2, size = 2.5,
+      lineheight = 0.8
     ) +
     annotate(
-      "text", x = adni_mean + 1, y = Inf,
-      label = sprintf("%.1f", adni_mean),
+      "text", x = adni_mean, y = Inf,
+      label = sprintf("ADNI\n%.1f", adni_mean),
       color = colors$adni,
-      hjust = 0, vjust = 1.5, size = 2.5
+      hjust = -0.1, vjust = 1.2, size = 2.5,
+      lineheight = 0.8
     ) +
     scale_y_continuous(expand = expansion(
-      mult = c(0.02, 0.12)
+      mult = c(0.02, 0.15)
     )) +
     labs(
-      x = "Age (years)", y = "Density",
-      fill = "Sample", color = "Sample"
+      x = "Age (years)", y = "Density"
     ) +
     theme_publication(base_size = 10) +
-    theme(
-      legend.position = "bottom",
-      legend.text = element_text(size = 7),
-      legend.title = element_text(size = 8),
-      legend.key.size = unit(0.5, "lines")
-    )
+    theme(legend.position = "none")
 }
 
 # =============================================================================
@@ -3322,10 +3318,11 @@ plot_zscore_validation_forest <- function(nv.res) {
       ),
       fill = "none"
     ) +
-    labs(x = "Z-score", y = NULL) +
+    labs(x = "Z-score", y = NULL,
+      color = "Measure") +
     theme_publication(base_size = 10) +
     theme(
-      legend.position = "bottom",
+      legend.position = "right",
       legend.text = element_text(size = 7),
       legend.title = element_text(size = 8)
     )

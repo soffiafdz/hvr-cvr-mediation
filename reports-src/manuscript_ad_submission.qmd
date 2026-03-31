@@ -80,8 +80,8 @@ format:
         \usepackage{array}
         \usepackage{multirow}
         \usepackage{float}
-        \floatplacement{table}{H}
-        \floatplacement{figure}{H}
+        \floatplacement{table}{htbp}
+        \floatplacement{figure}{htbp}
         \usepackage{placeins}
         \usepackage{setspace}
         \doublespacing
@@ -591,7 +591,7 @@ tikz_code <- generate_consort_tikz(
     aneg_lme.res$sample_info$n_subjects
 )
 
-cat("\\begin{figure}[H]\n")
+cat("\\begin{figure}[htbp]\n")
 cat(tikz_code)
 cap <- paste0(
   "\\caption{\\textbf{CONSORT flow diagram ",
@@ -2960,9 +2960,9 @@ increasingly negative offset in older bins,
 consistent with the age mismatch.
 
 ```{r fig-normative-validation}
-#| fig-cap: "**Normative transfer validation.** (A) Age distributions: UK Biobank normative sample (yellow) vs ADNI comparable subsample (cyan); dashed lines indicate sample means. (B) Forest plot of HVR (purple) and HC (green) z-scores (mean ± 95% CI) by age bin; reference line at z = 0 indicates perfect calibration; open circles = age bins, filled circles = overall. (C) Z-score distributions for HVR (left) and HC (right) compared to the expected N(0,1) (yellow)."
+#| fig-cap: "**Normative transfer validation.** (A) Age distributions: UK Biobank (UKB, yellow) vs ADNI comparable subsample (cyan); dashed lines indicate sample means. (B) Forest plot of HVR (purple) and HC (green) z-scores (mean ± 95% CI) by age bin; reference line at z = 0 indicates perfect calibration; open circles = age bins, filled circles = overall. (C) Z-score distributions for HVR (left) and HC (right) compared to the expected N(0,1) (yellow)."
 #| fig-width: 6.5
-#| fig-height: 6
+#| fig-height: 5.5
 
 stopifnot(!is.null(nv_data))
 ukb_d <- nv_data$comparable_subsample$demographics$ukb_normative

@@ -289,7 +289,7 @@ generate_consort_tikz <- function(
     ))
   }
 
-  # ---- Row 5: LGCM / Age-comparable ----
+  # ---- Row 5: LGCM / Right-track endpoints ----
   if (has_lgcm) {
     tikz <- paste0(tikz, node.fn(
       "final", "lgcm", lx, y_lgcm,
@@ -311,7 +311,53 @@ generate_consort_tikz <- function(
       )
     ))
   }
-  if (has_right) {
+
+  # Right track: if sensitivity present, CU splits
+  # to both A-/CU sensitivity and age-comparable
+  # side by side at row 5
+  if (has_right && has_sens) {
+    exc_cvr <- n_aneg_cu_mri - n_aneg_sensitivity
+    rx_left <- rx - 1.3
+    rx_right <- rx + 2.0
+
+    tikz <- paste0(tikz, node.fn(
+      "final", "aneg_sens", rx_left, y_lgcm,
+      paste0(
+        "\\textbf{A\\textsuperscript{--}/CU",
+        " Control}\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_aneg_sensitivity), "}"
+      )
+    ))
+    tikz <- paste0(tikz, node.fn(
+      "final", "age_comp", rx_right, y_lgcm,
+      paste0(
+        "\\textbf{", age_lbl,
+        " Subsample}\\\\[2pt]",
+        "\\textbf{N\\,=\\,",
+        fmt(n_age_comparable), "}"
+      )
+    ))
+    if (exc_cvr > 0) {
+      tikz <- paste0(tikz, node.fn(
+        "excluded", "exc_cvr",
+        rx_left, y_lgcm - 1.5,
+        paste0(
+          "Excluded: Missing CVR\\\\",
+          "n\\,=\\,", fmt(exc_cvr)
+        )
+      ))
+    }
+    tikz <- paste0(tikz, node.fn(
+      "excluded", "exc_age",
+      rx_right + exr, y_lgcm,
+      paste0(
+        "Excluded:\\\\",
+        "Outside UKB age range\\\\",
+        "n\\,=\\,", fmt(exc_age)
+      )
+    ))
+  } else if (has_right) {
     tikz <- paste0(tikz, node.fn(
       "final", "age_comp", rx, y_lgcm,
       paste0(
@@ -330,32 +376,6 @@ generate_consort_tikz <- function(
         "n\\,=\\,", fmt(exc_age)
       )
     ))
-  }
-
-  # ---- Row 5b: A-/CU sensitivity (if provided) ----
-  y_sens <- y_lgcm - 2.0
-  if (has_sens && has_right) {
-    exc_cvr <- n_aneg_cu_mri - n_aneg_sensitivity
-    tikz <- paste0(tikz, node.fn(
-      "final", "aneg_sens", rx, y_sens,
-      paste0(
-        "\\textbf{A\\textsuperscript{--}/CU",
-        " Sensitivity}\\\\[2pt]",
-        "\\textbf{N\\,=\\,",
-        fmt(n_aneg_sensitivity), "}"
-      )
-    ))
-    if (exc_cvr > 0) {
-      tikz <- paste0(tikz, node.fn(
-        "excluded", "exc_cvr",
-        rx + exr, y_sens,
-        paste0(
-          "Excluded:\\\\",
-          "Missing CVR data\\\\",
-          "n\\,=\\,", fmt(exc_cvr)
-        )
-      ))
-    }
   }
 
   # ---- Arrows ----
@@ -420,8 +440,44 @@ generate_consort_tikz <- function(
       arrows.v,
       "  % Right-track vertical flow",
       "  \\draw[arrow] (aneg) -- (mri_r);",
-      "  \\draw[arrow] (mri_r) -- (cu);",
-      "  \\draw[arrow] (cu) -- (age_comp);",
+      "  \\draw[arrow] (mri_r) -- (cu);"
+    )
+
+    if (has_sens) {
+      # T-junction from CU to both endpoints
+      cu_mid_y <- (y_lme + y_lgcm) / 2
+      arrows.v <- c(
+        arrows.v,
+        "  % T-junction: CU splits to both",
+        paste0(
+          "  \\path (cu.south)",
+          " -- ++(0,",
+          cu_mid_y - y_lme, ")",
+          " coordinate (cu_split);"
+        ),
+        paste0(
+          "  \\draw[thick, black!70]",
+          " (cu.south) -- (cu_split);"
+        ),
+        paste0(
+          "  \\draw[arrow]",
+          " (cu_split) -| (aneg_sens.north);"
+        ),
+        paste0(
+          "  \\draw[arrow]",
+          " (cu_split) -| (age_comp.north);"
+        )
+      )
+    } else {
+      arrows.v <- c(
+        arrows.v,
+        "  \\draw[arrow] (cu) -- (age_comp);"
+      )
+    }
+
+    # Right-track exclusions
+    arrows.v <- c(
+      arrows.v,
       "  % Right-track exclusions",
       paste0(
         "  \\draw[dasharrow]",
@@ -436,28 +492,16 @@ generate_consort_tikz <- function(
         " (age_comp.east) -- (exc_age.west);"
       )
     )
-    if (has_sens) {
-      # Branch from CU, routed left to avoid
-      # overlap with age_comp track
+    if (has_sens &&
+        n_aneg_cu_mri - n_aneg_sensitivity > 0) {
       arrows.v <- c(
         arrows.v,
-        "  % A-/CU sensitivity from CU",
         paste0(
-          "  \\draw[arrow]",
-          " (cu.south west)",
-          " |- (aneg_sens.west);"
+          "  \\draw[dasharrow]",
+          " (aneg_sens.south)",
+          " -- (exc_cvr.north);"
         )
       )
-      if (n_aneg_cu_mri - n_aneg_sensitivity > 0) {
-        arrows.v <- c(
-          arrows.v,
-          paste0(
-            "  \\draw[dasharrow]",
-            " (aneg_sens.east)",
-            " -- (exc_cvr.west);"
-          )
-        )
-      }
     }
   }
 
