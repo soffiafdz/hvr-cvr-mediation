@@ -342,7 +342,7 @@ generate_consort_tikz <- function(
       rx_left, y_lgcm,
       paste0(
         "\\textbf{A\\textsuperscript{--}",
-        "/CU}\\\\[2pt]",
+        "/CU Subsample}\\\\[2pt]",
         "\\textbf{N\\,=\\,",
         fmt(n_aneg_sensitivity), "}"
       )
@@ -353,7 +353,8 @@ generate_consort_tikz <- function(
       "smallfinal", "age_comp",
       rx_right, y_lgcm,
       paste0(
-        "\\textbf{UKB}\\\\[2pt]",
+        "\\textbf{UKB",
+        " Subsample}\\\\[2pt]",
         "\\textbf{N\\,=\\,",
         fmt(n_age_comparable), "}"
       )
