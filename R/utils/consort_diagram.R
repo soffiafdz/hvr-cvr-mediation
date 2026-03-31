@@ -470,7 +470,7 @@ generate_consort_tikz <- function(
 
     if (has_sens) {
       # T-junction from CU to both subsample boxes
-      cu_mid_y <- (y_lme + y_lgcm) / 2
+      cu_mid_y <- y_lme + (y_lgcm - y_lme) * 0.3
       arrows.v <- c(
         arrows.v,
         "  % T-junction: CU splits to both",
