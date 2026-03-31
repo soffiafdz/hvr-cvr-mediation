@@ -948,7 +948,7 @@ estimating it as a free parameter.
 
 All primary analyses (LME and LGCM) were run twice:
 once with FRS and once with CVR~mimic~ as the CVR
-predictor. The key diagnostic is whether FRS effects
+predictor. The key test is whether FRS effects
 disappear when replaced by age-adjusted CVR~mimic~,
 which would implicate age-confounding rather than
 true cardiovascular pathophysiology. The central
@@ -2448,7 +2448,7 @@ CVR~mimic~ within the mediation framework.
 Sensitivity analyses — including HC z-score
 comparisons, attrition analysis, raw (un-normalized)
 concordance checks, EDT moderation, SE-constrained
-LGCM validation, and A^--^/CU LGCM mediation — are
+LGCM validation, and A^--^/CU control analysis — are
 reported in Appendix C.
 
 # Discussion
@@ -3320,7 +3320,7 @@ HVR–cognition coupling (b-path) is consistent. Main
 findings are stable across alternative brain
 measures (HC volume), raw scores, attrition
 adjustments, EDT specification checks, and an
-amyloid-negative CU mediation analysis. Full details
+amyloid-negative CU control analysis. Full details
 follow.
 
 ## LME Sensitivity
