@@ -641,7 +641,6 @@ $$
   \text{HC}_L + \text{HC}_R +
   \text{VC}_L + \text{VC}_R}
 $$ {#eq-hvr}
-
 computed on bilateral summed native-space volumes
 [@schoemaker_hippocampal_ventricle_2019]. This ratio
 captures hippocampal integrity relative to
@@ -662,7 +661,7 @@ when available].
 HVR z-scores were derived from Generalized Additive
 Models for Location, Scale, and Shape
 (GAMLSS; @rigby_generalized_2005) fit on UKB data
-(N = 27,434 cognitively healthy adults, age 45--83).
+(N = 27,434 cognitively healthy adults, age 45--82).
 The distribution family was Box-Cox Cole and Green
 (BCCG), which models three distributional
 parameters — location ($\mu$, the conditional
@@ -1086,7 +1085,6 @@ $$
 & + \boldsymbol{X}_i\boldsymbol{\gamma} + \epsilon_{it}
 \end{aligned}
 $$ {#eq-lme}
-
 where the linear block ($\text{YRS} \times \text{CVR}
 \times \text{HVR}$) expands to all lower-order terms
 (YRS×CVR, YRS×HVR, CVR×HVR, and the individual main
@@ -1136,8 +1134,7 @@ y_{it} &= \eta_{0i} + \eta_{1i} \cdot
   \boldsymbol{X}_i \boldsymbol{\gamma}_1 + \zeta_{1i}
 \end{aligned}
 $$ {#eq-lgcm}
-
-  where $y_{it}$ is the observed score (HVR z-score
+where $y_{it}$ is the observed score (HVR z-score
   or cognitive composite) for person $i$ at occasion
   $t$; $\eta_{0i}$ and $\eta_{1i}$ are
   person-specific intercepts and slopes; EDT~it~ is
