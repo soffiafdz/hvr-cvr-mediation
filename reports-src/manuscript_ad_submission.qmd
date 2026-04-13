@@ -1,6 +1,6 @@
 ---
 title: "Age-Adjusted Cardiovascular Risk and Hippocampal-Cognitive Coupling Along the Alzheimer's Disease Continuum"
-subtitle: "Disentangling FRS Age-Weighting from True CVR Effects"
+subtitle: "Disentangling FRS Age-Weighting from True Cardiovascular Risk Effects"
 author:
   - name: Sofia Fernandez-Lozano
     affiliations:
@@ -750,8 +750,8 @@ We specified the CVR~mimic~ latent factor as a
 Multiple Indicators Multiple Causes (MIMIC) model
 [@joreskog_estimation_1975; @muthen_general_1984], in which age is an
 exogenous cause of the latent cardiovascular risk
-factor and the disturbance ζ captures residual CVR
-independent of age [@zhang_bayesian_2024].
+factor and the disturbance ζ captures residual
+cardiovascular risk independent of age [@zhang_bayesian_2024].
 
 #### Model Specification
 
@@ -781,11 +781,13 @@ correlated residuals: SBP ↔ Cholesterol, reflecting
 shared vascular stiffness and lipid metabolism
 pathways whereby arterial compliance links blood
 pressure regulation to lipid profiles beyond the
-general CVR factor; and SBP ↔ Creatinine, reflecting
+general cardiovascular risk factor; and
+SBP ↔ Creatinine, reflecting
 the renal-cardiovascular axis whereby kidney function
 directly influences blood pressure regulation through
 the renin-angiotensin system, partially independent
-of overall CVR. Both modification indices and
+of overall cardiovascular risk. Both modification
+indices and
 substantive physiological reasoning supported these
 specifications.
 
@@ -851,8 +853,8 @@ By construction, *r*(CVR~mimic~, Age) ≈ 0.
 We tested measurement invariance across sex in four
 steps — configural, metric, scalar, and strict —
 using the confirmatory factor analysis (CFA)
-measurement model only (without the Age → CVR
-structural path). Measurement invariance evaluates
+measurement model only (without the Age → cardiovascular risk structural
+path). Measurement invariance evaluates
 whether factor loadings, intercepts, and residual
 variances are equivalent across groups, which is
 required before interpreting sex-stratified analyses.
@@ -1026,7 +1028,8 @@ hippocampal atrophy, assessed via the indirect path
 cardiovascular risk → HVR slope → cognitive slope?
 Comparing FRS
 and CVR~mimic~ across both frameworks isolates the
-role of age-weighting in observed CVR-brain
+role of age-weighting in observed cardiovascular
+risk-brain
 associations.
 
 **Formal predictor comparison.** Because FRS and
@@ -1122,16 +1125,15 @@ $$
 & + \boldsymbol{X}_i\boldsymbol{\gamma} + \epsilon_{it}
 \end{aligned}
 $$ {#eq-lme}
-where the linear block ($\text{YRS} \times \text{CVR}
-\times \text{HVR}$) expands to all lower-order terms
-(YRS×CVR, YRS×HVR, CVR×HVR, and the individual main
-effects) plus the 3-way YRS×CVR×HVR; the quadratic
-block ($\text{YRS}^2 \times \text{CVR} \times
-\text{HVR}$) similarly expands to YRS², YRS²×CVR,
-YRS²×HVR, and YRS²×CVR×HVR. R's `*` formula
-operator generates each product term exactly once —
-two-way terms shared across blocks (e.g., CVR×HVR)
-are not duplicated. The quadratic interaction terms test
+where the linear block (Years × cardiovascular risk
+× HVR) expands to all lower-order terms
+(Years × cardiovascular risk, Years × HVR,
+cardiovascular risk × HVR, and the individual main
+effects) plus the 3-way interaction; the quadratic
+block (Years^2^ × cardiovascular risk × HVR)
+similarly expands. R's `*` formula operator generates
+each product term exactly once — two-way terms shared
+across blocks are not duplicated. The quadratic interaction terms test
 whether cardiovascular risk moderation of the
 HVR-cognition
 relationship accelerates (or decelerates) over
@@ -1146,7 +1148,8 @@ evolves over time; a negative 3-way β means higher
 cardiovascular risk increasingly weakens the
 protective
 HVR-cognition association over follow-up. Inclusion
-of the quadratic time term (YRS²) was evaluated via
+of the quadratic time term (Years²) was evaluated
+via
 likelihood ratio tests comparing nested linear and
 quadratic models across all 12 specifications
 (2 sexes × 2 brain measures × 3 domains); results
@@ -1334,10 +1337,12 @@ raw HC (with intracranial volume covariate) instead
 of UKB z-scored values, to confirm findings are not
 artifacts of the normative transformation. Fourth, for **EDT
 moderation**, we used EDT as a moderator in a 4-way
-interaction (CVR × HVR × EDT × YRS). Note that EDT
-and YRS capture different sources of variation: EDT
+interaction (cardiovascular risk × HVR × EDT ×
+Years). Note that EDT and Years capture different
+sources of variation: EDT
 is a baseline moderator indexing disease stage, while
-YRS is the within-person time metric capturing change
+Years is the within-person time metric capturing
+change
 over follow-up; their inclusion tests whether cardiovascular risk
 effects on brain-cognition coupling vary by disease
 stage. Fifth, for **EDT Early/Middle
@@ -1356,7 +1361,8 @@ cognitively unimpaired (A^--^/CU) participants
 (N = `r aneg_lme.res$sample_info$n_subjects`). Models
 were pooled across sex (with SEX as covariate) given
 the smaller sample. We also fit a linear LGCM mediation
-model (using YRS as the time metric) in this sample;
+model (using years from baseline as the time metric)
+in this sample;
 results are reported in Appendix C.
 
 ## Software
@@ -1504,7 +1510,7 @@ age-free. Factor loadings appear in
 @fig-cvr-validation.
 
 ```{r tbl-mimic-loadings}
-#| tbl-cap: "**CVR MIMIC model factor loadings.** λ = unstandardized factor loading; Std. λ = standardized loading; SE = standard error."
+#| tbl-cap: "**CVR~mimic~ model factor loadings.** λ = unstandardized factor loading; Std. λ = standardized loading; SE = standard error."
 
 stopifnot(!is.null(cvr_model.res))
 require_output(
@@ -1603,7 +1609,7 @@ mi_verdict_text <- if (scalar_fail) {
 `r mi_steps_text`. `r mi_verdict_text`
 
 ```{r fig-cvr-validation}
-#| fig-cap: "**CVR characterization.** (A) FRS distribution by sex; dashed red line marks the 30% risk ceiling. (B) FRS vs Age showing strong positive correlation driven by age-weighting in the FRS formula. (C) CVR~mimic~ vs Age showing near-zero correlation, confirming successful age adjustment; dashed line marks zero."
+#| fig-cap: "**Cardiovascular risk characterization.** (A) FRS distribution by sex; dashed red line marks the 30\\% risk ceiling. (B) FRS vs Age by sex showing strong positive correlation driven by age-weighting in the FRS formula. (C) CVR$_{\\text{mimic}}$ vs Age showing near-zero correlation, confirming successful age adjustment; dashed line marks zero."
 #| fig-width: 6.5
 #| fig-height: 4.5
 
@@ -1671,7 +1677,8 @@ plot_lme_forest_comparison(
 ```
 
 Full covariate effects (Age, Education, APOE ε4,
-CVR main effect, HVR z-score) are reported in
+cardiovascular risk main effect, HVR z-score) are
+reported in
 Appendix B (@tbl-lme-covariates,
 @tbl-cvr-lme-covariates).
 
@@ -1850,7 +1857,7 @@ surviving FDR), consistent with FRS effects being
 primarily driven by age-weighting rather than true
 cardiovascular risk (see @fig-lme-forest).
 
-**Males.** FRS × HVR × YRS was significant for
+**Males.** FRS × HVR × Years was significant for
 Memory (β = `r m_mem_frs_b`, `r m_mem_frs_p`),
 Language (β = `r m_lan_frs_b`, `r m_lan_frs_p`),
 and Executive Function
@@ -2519,7 +2526,8 @@ confirming that hippocampal decline reliably
 predicts cognitive decline regardless of
 cardiovascular risk measure
 [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
-Third, the LME 3-way interaction (FRS × HVR × YRS)
+Third, the LME 3-way interaction (FRS × HVR ×
+Years)
 was significant across
 `r n_of_total.fn(abs_lme$frs_m_sig, 3L)` male and
 `r n_of_total.fn(abs_lme$frs_f_sig, 3L)` female
@@ -2544,7 +2552,8 @@ correlation;
 @fig-cvr-validation C), supporting its use as an
 age-independent cardiovascular risk index for
 disambiguating
-age-driven vs CVR-driven brain effects. The moderate
+age-driven vs cardiovascular risk-driven brain
+effects. The moderate
 CVR~mimic~-FRS correlation reflects shared
 cardiovascular indicators while confirming the
 measures capture distinct constructs — one
@@ -2586,7 +2595,8 @@ statin use in this elderly clinical sample: treated
 individuals have lower cholesterol despite elevated
 underlying cardiovascular risk, inverting the
 expected direction of association with the latent
-CVR factor. Common-sample standardization (z-scoring
+cardiovascular risk factor. Common-sample
+standardization (z-scoring
 both FRS and CVR~mimic~ on the same N with complete
 data for both measures) ensures regression
 coefficients express effects per 1 SD change on an
@@ -2606,15 +2616,18 @@ modelling frameworks test complementary questions.
 The LME 3-way interaction
 (YRS × cardiovascular risk × HVR → Cognition) tests
 moderation:
-does CVR modify how the HVR-cognition relationship
+does cardiovascular risk modify how the
+HVR-cognition relationship
 evolves over time? The LGCM a-path
 (CVR → HVR slope; @fig-mediation) tests mediation:
-does CVR affect cognition through hippocampal
+does cardiovascular risk affect cognition through
+hippocampal
 decline?
 
 A different pattern emerged for CVR~mimic~: the
 LGCM a-path was null across all six models,
-suggesting age-adjusted CVR does not accelerate
+suggesting age-adjusted cardiovascular risk does not
+accelerate
 hippocampal atrophy. Yet the LME 3-way interaction
 was significant in
 `r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
@@ -2644,7 +2657,7 @@ amyloid-driven hippocampal decline in the primary
 A^+^ sample.
 
 The HVR-cognition coupling (b-path) was consistent
-across both CVR predictors, in line with prior LGCM
+across both cardiovascular risk predictors, in line with prior LGCM
 coupling studies
 [@muniz-terrera_latent_2017; @bollen_latent_2006].
 
@@ -2668,7 +2681,8 @@ differences in cardiovascular risk profiles
 [@ferretti_sex_2018; @mielke_consideration_2022],
 differential APOE ε4 effects, and hormonal
 influences on vascular regulation may all contribute
-to the observed sex asymmetry in CVR-brain
+to the observed sex asymmetry in cardiovascular
+risk-brain
 relationships. Covariates (age, education, APOE ε4)
 exhibited expected effects across all models
 (Appendix B, @tbl-lme-covariates and
@@ -2805,7 +2819,8 @@ valid, but absolute z-scores should be interpreted
 cautiously across cohorts. CVR~mimic~ indicators
 were limited to available cardiovascular risk factor
 data; additional
-indicators could improve the latent CVR measure.
+indicators could improve the latent cardiovascular
+risk measure.
 Cardiovascular risk was measured
 cross-sectionally. Although the
 primary analyses focus on amyloid-positive
@@ -2818,7 +2833,8 @@ elderly cohort are compressed into the upper range
 of the scoring algorithm (30% 10-year risk ceiling),
 limiting score variance particularly in females;
 the null CVR~mimic~ findings may therefore partly
-reflect insufficient CVR variance after age removal
+reflect insufficient cardiovascular risk variance
+after age removal
 rather than a true absence of cardiovascular effects
 on the brain.
 
@@ -2881,7 +2897,8 @@ aging cohorts (e.g., WRAP, AIBL), longitudinal
 cardiovascular risk measurement to capture
 within-person cardiovascular risk
 trajectories, and intervention studies testing
-whether CVR reduction preserves the HVR-cognition
+whether cardiovascular risk reduction preserves the
+HVR-cognition
 coupling. Beyond cardiovascular risk, the
 MIMIC-based age-adjustment framework presented here
 applies to any composite score whose constituent
@@ -3068,12 +3085,12 @@ p_dist <- plot_zscore_distribution(
 
 ## CVR~mimic~ Measurement Invariance
 
-Measurement invariance of the CVR MIMIC model was
+Measurement invariance of the CVR~mimic~ model was
 tested across sex in four steps (configural, metric,
 scalar, strict; @tbl-mi).
 
 ```{r tbl-mi}
-#| tbl-cap: "**CVR MIMIC measurement invariance.** Configural = same structure; Metric = equal loadings; Scalar = equal intercepts; Strict = equal residuals. ΔCFI < 0.01 and ΔRMSEA < 0.015 indicate acceptable invariance."
+#| tbl-cap: "**CVR~mimic~ measurement invariance.** Configural = same structure; Metric = equal loadings; Scalar = equal intercepts; Strict = equal residuals. ΔCFI < 0.01 and ΔRMSEA < 0.015 indicate acceptable invariance."
 
 stopifnot(!is.null(cvr_mi.res))
 require_output(
@@ -3415,7 +3432,7 @@ appear in @tbl-hc-comparison, with covariate effects
 in @tbl-hc-covariates and @tbl-hc-covariates-cvr.
 
 ```{r tbl-hc-comparison}
-#| tbl-cap: "**HC z-score sensitivity analysis.** LME 3-way interaction effects (YRS × CVR × HC z-score) for total hippocampal volume. FRS and CVR~mimic~ compared side-by-side. Bold indicates p < 0.05."
+#| tbl-cap: "**HC z-score sensitivity analysis.** LME 3-way interaction effects (Years $\\times$ cardiovascular risk $\\times$ HC z-score) for total hippocampal volume. FRS and CVR$_{\\text{mimic}}$ compared side-by-side. Bold indicates p < 0.05."
 
 require_output(
   create_lme_comparison_table(
@@ -3488,9 +3505,9 @@ cvr_hc_desc <- if (nrow(cvr_hc_sig) > 0) {
 } else "any sex–domain combination"
 hc_interp_text <- sprintf(
   paste0(
-    "The FRS × HC × YRS interaction was",
+    "The FRS × HC × Years interaction was",
     " significant for %s, whereas",
-    " CVR~mimic~ × HC × YRS %s"
+    " CVR~mimic~ × HC × Years %s"
   ),
   frs_hc_desc,
   if (nrow(cvr_hc_sig) > 0) {
@@ -3682,7 +3699,8 @@ if (nrow(frs_row) > 0) {
         " (M = %.2f), consistent with",
         " selective loss of higher-risk",
         " participants — this may",
-        " attenuate observed CVR effects."
+        " attenuate observed cardiovascular",
+    " risk effects."
       ),
       direction, d_mean, c_mean
     )
@@ -3698,7 +3716,7 @@ The LME 3-way interaction was repeated using raw
 (un-normalized) HVR and raw HC (with total
 intracranial volume [TIV] covariate),
 with FRS as predictor, full-sample, no sex
-stratification, and no YRS² term.
+stratification, and no Years² term.
 
 ```{r raw-hvr-inline}
 #| include: false
@@ -3840,8 +3858,10 @@ raw_hc_note <- if (!any(sig_hc)) {
 
 ### EDT Moderation of LME Effects
 
-A 4-way interaction (CVR × HVR × EDT × YRS) tested
-whether CVR effects vary by disease stage.
+A 4-way interaction (cardiovascular risk × HVR ×
+EDT × Years) tested
+whether cardiovascular risk effects vary by disease
+stage.
 
 ```{r edt-moderation-inline}
 #| include: false
@@ -3895,7 +3915,7 @@ edt_mod_text <- paste(
 )
 ```
 
-`r edt_mod_text`. Limited EDT moderation suggests CVR effects on HVR-cognition coupling are relatively stable across disease stages.
+`r edt_mod_text`. Limited EDT moderation suggests cardiovascular risk effects on HVR-cognition coupling are relatively stable across disease stages.
 
 ### EDT Stage Sensitivity
 
@@ -4093,7 +4113,7 @@ significant for `r aneg_b_sig_text``r if (nchar(aneg_b_border_text) > 0) paste0(
 confirming that hippocampal-cognitive coupling
 persists in the absence of amyloid burden. This
 invariance across both A^+^ and A^--^/CU samples
-and across both CVR predictors supports HVR decline
+and across both cardiovascular risk predictors supports HVR decline
 as a general marker of neurodegeneration-cognition
 coupling, independent of AD pathology or
 cardiovascular risk
