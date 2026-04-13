@@ -1069,24 +1069,37 @@ variance to SE² uses this information rather
 than discarding it.
 
 Data were generated from a univariate latent growth
-model with parameters chosen to approximate the
-observed ADNI data characteristics: intercept mean =
-`r simulation.res$true_params$intercept_mean`, slope
-mean = `r simulation.res$true_params$slope_mean` per
-year EDT, intercept variance =
-`r simulation.res$true_params$intercept_var`, slope
-variance = `r simulation.res$true_params$slope_var`,
-HVR → Slope true effect =
-`r simulation.res$true_params$hvr_effect`,
-measurement SE =
-`r simulation.res$true_params$se_true`
-(SD = `r simulation.res$true_params$se_variation`
-across observations), and EDT with mean =
+model with parameters calibrated from the observed
+ADNI LGCM parallel process models (averaged across
+all sex × domain combinations): intercept mean =
+`r simulation.res$true_params$intercept_mean`
+(z-scored composites), slope mean =
+`r simulation.res$true_params$slope_mean` per year
+EDT (population-average cognitive decline rate),
+intercept variance =
+`r simulation.res$true_params$intercept_var`
+(between-person variability in baseline level),
+slope variance =
+`r simulation.res$true_params$slope_var`
+(between-person variability in decline rate), HVR →
+Slope true effect =
+`r simulation.res$true_params$hvr_effect` (mean
+b-path coupling estimate), measurement SE =
+`r simulation.res$true_params$se_true` (median
+ADSP-PHC composite SE, SD =
+`r simulation.res$true_params$se_variation` across
+observations), and EDT with mean =
 `r simulation.res$true_params$edt_mean` years,
 SD = `r simulation.res$true_params$edt_sd`, change =
-`r simulation.res$true_params$edt_change` per visit.
-Two approaches were compared across
-`r simulation.res$config$n_reps` replications at
+`r simulation.res$true_params$edt_change` per visit
+(observed EDT distribution and inter-visit spacing).
+To assess robustness, the two most consequential
+parameters — the HVR effect and slope variance —
+were varied at 0.5×, 1×, and 1.5× their observed
+values, yielding 9 simulation conditions. Two
+approaches were compared across
+`r simulation.res$config$n_reps` replications per
+condition at
 N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`:
 (a) residual variance fixed to SE² (SE-constrained)
 and (b) residual variance freely estimated.
@@ -1648,7 +1661,7 @@ simulation validation are reported in Appendix B
 ### 3-Way Interaction (FRS vs CVR~mimic~)
 
 ```{r fig-lme-forest}
-#| fig-cap: "**LME 3-way interaction forest plot.** FRS vs CVR~mimic~ effects (YRS × CVR × HVR z-score → Cognition) by sex and cognitive domain, with an amyloid-negative cognitively unimpaired (A$^{-}$/CU) control panel (pooled sex). Filled points indicate p < 0.05; white-filled points indicate p ≥ 0.05. Error bars show 95% CI."
+#| fig-cap: "**LME 3-way interaction forest plot.** FRS vs CVR$_{\\text{mimic}}$ effects (YRS $\\times$ cardiovascular risk $\\times$ HVR z-score $\\rightarrow$ Cognition) by sex and cognitive domain, with an amyloid-negative cognitively unimpaired (A$^{-}$/CU) control panel (pooled sex). Filled points indicate p < 0.05; white-filled points indicate p $\\geq$ 0.05. Error bars show 95\\% CI."
 #| fig-width: 6.5
 #| fig-height: 3.0
 
@@ -2547,7 +2560,7 @@ range (see @fig-cvr-validation, panels A-B),
 limiting score variance and statistical sensitivity,
 particularly in females. When age is partialled out
 (CVR~mimic~), the indirect pathway
-(CVR → HVR → Cognition) disappears — the a-path is
+(cardiovascular risk → HVR → Cognition) disappears — the a-path is
 null, suggesting the FRS-hippocampal association in
 this sample is primarily carried by the age component
 of FRS rather than by cardiovascular risk factors
@@ -2591,7 +2604,8 @@ disentangle without age-adjustment.
 As outlined in the analytical roadmap, the two
 modelling frameworks test complementary questions.
 The LME 3-way interaction
-(YRS × CVR × HVR → Cognition) tests moderation:
+(YRS × cardiovascular risk × HVR → Cognition) tests
+moderation:
 does CVR modify how the HVR-cognition relationship
 evolves over time? The LGCM a-path
 (CVR → HVR slope; @fig-mediation) tests mediation:
@@ -3253,58 +3267,83 @@ p_edt <- ggplot(
 p_yrs / p_edt
 ```
 
-## SE-Constrained LGCM Validation
+## Standard Error-Constrained LGCM Validation
 
 A Monte Carlo simulation
-(`r simulation.res$config$n_reps` replications at
+(`r simulation.res$config$n_reps` replications per
+condition at
 N = `r paste(simulation.res$config$sample_sizes, collapse = " and N = ")`)
 compared SE-constrained LGCM (residual variance
-fixed to SE²) against free estimation.
+fixed to SE²) against free estimation. Parameters
+were calibrated from the observed ADNI LGCM results
+(see Methods). To assess robustness, the HVR effect
+and slope variance were varied at 0.5×, 1×, and
+1.5× their observed values, yielding 9 conditions.
 
 ```{r simulation-interpretation}
 #| include: false
 
 stopifnot(!is.null(sim_conv))
-fmt_sci <- function(x) {
-  if (abs(x) < 1e-10) return("0")
-  exp <- floor(log10(abs(x)))
-  mant <- x / 10^exp
-  sprintf("%.1f × 10^%d^", mant, exp)
-}
-sim_text_parts <- vapply(
-  seq_len(nrow(sim_conv)), function(i) {
-    n_reps <- simulation.res$config$n_reps
-    sprintf(
-      paste0(
-        "At N = %d, the SE-constrained",
-        " approach converged in %d of %d",
-        " replications (free estimation:",
-        " %d of %d) with bias = %s",
-        " (free: %s), RMSE = %.3f",
-        " (free: %.3f), and 95%% CI",
-        " coverage = %.1f%%",
-        " (free: %.1f%%)"
-      ),
-      sim_conv$n[i],
-      sim_conv$n_converged_se[i], n_reps,
-      sim_conv$n_converged_free[i], n_reps,
-      fmt_sci(sim_conv$bias_se[i]),
-      fmt_sci(sim_conv$bias_free[i]),
-      sim_conv$rmse_se[i],
-      sim_conv$rmse_free[i],
-      sim_conv$coverage_se[i] * 100,
-      sim_conv$coverage_free[i] * 100
-    )
-  }, character(1)
+stopifnot(!is.null(sim_conv_full))
+
+n_reps <- simulation.res$config$n_reps
+
+# Base condition (1x/1x) summary
+base_n200 <- sim_conv[n == 200]
+base_n500 <- sim_conv[n == 500]
+
+# Grid-wide summary
+cov_range_se <- range(
+  sim_conv_full$coverage_se * 100
 )
-sim_text <- paste(
-  sim_text_parts, collapse = ". "
+cov_range_free <- range(
+  sim_conv_full$coverage_free * 100
+)
+max_bias <- max(
+  abs(sim_conv_full$bias_se),
+  abs(sim_conv_full$bias_free)
 )
 ```
 
-`r sim_text`. Both approaches showed comparable
-performance, validating the SE-constrained
-specification used in the primary analyses.
+At the base condition (observed ADNI parameters),
+the SE-constrained approach converged in
+`r base_n200$n_converged_se` of `r n_reps`
+replications at N = 200 (free: `r base_n200$n_converged_free` of `r n_reps`)
+with bias =
+`r sprintf("%.1e", base_n200$bias_se)`
+(free: `r sprintf("%.1e", base_n200$bias_free)`),
+RMSE = `r sprintf("%.4f", base_n200$rmse_se)`
+(free: `r sprintf("%.4f", base_n200$rmse_free)`),
+and 95% CI coverage =
+`r sprintf("%.1f", base_n200$coverage_se * 100)`%
+(free:
+`r sprintf("%.1f", base_n200$coverage_free * 100)`%).
+At N = 500, bias was
+`r sprintf("%.1e", base_n500$bias_se)`
+(free: `r sprintf("%.1e", base_n500$bias_free)`),
+RMSE = `r sprintf("%.4f", base_n500$rmse_se)`
+(free: `r sprintf("%.4f", base_n500$rmse_free)`),
+and coverage =
+`r sprintf("%.1f", base_n500$coverage_se * 100)`%
+(free:
+`r sprintf("%.1f", base_n500$coverage_free * 100)`%).
+
+Across all 9 grid conditions, maximum absolute bias
+was `r sprintf("%.1e", max_bias)`, coverage ranged
+from `r sprintf("%.1f", cov_range_se[1])`% to
+`r sprintf("%.1f", cov_range_se[2])`% for
+SE-constrained and
+`r sprintf("%.1f", cov_range_free[1])`% to
+`r sprintf("%.1f", cov_range_free[2])`% for free
+estimation. Both approaches showed comparable
+performance across all realistic parameter
+combinations, validating the SE-constrained
+specification used in the primary analyses. The
+equivalence between methods under ADNI-calibrated
+conditions confirms that fixing residual variance to
+SE² neither introduces bias nor distorts inference,
+while incorporating known measurement information
+from the ADSP-PHC scoring model.
 
 ## LME Covariate Effects
 
