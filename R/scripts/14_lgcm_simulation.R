@@ -91,30 +91,59 @@ if (!FORCE_REGENERATE && file.exists(output_path)) {
 # =============================================================================
 log_section("Setting True Parameters")
 
-# True population parameters
-TRUE_PARAMS <- list(
-  # Growth factor means
+# True population parameters — calibrated from
+# ADNI LGCM parallel process model estimates
+# (averaged across 6 sex × domain models).
+#
+# Derivation:
+#   intercept_mean: ~0 (z-scored composites)
+#   slope_mean: -0.19 (mean cognitive decline
+#     per EDT year across domains)
+#   intercept_var: 0.17 (mean latent intercept
+#     variance from parallel process models)
+#   slope_var: 0.002 (mean latent slope variance;
+#     GRID CENTER — varied at 0.5x/1x/1.5x)
+#   intercept_slope_cov: 0.0004 (mean i-s cov)
+#   hvr_effect: 0.12 (mean b-path coupling;
+#     GRID CENTER — varied at 0.5x/1x/1.5x)
+#   se_true: 0.29 (mean ADSP-PHC composite SE)
+#   se_variation: 0.10 (SD of SEs across obs)
+#   edt_mean/sd: 8.5/5.0 (observed EDT dist)
+#   edt_change: -1 (approx inter-visit spacing)
+
+# Base (ADNI-calibrated) parameters
+BASE_PARAMS <- list(
   intercept_mean = 0,
-  slope_mean = -0.1,  # Cognitive decline per year of EDT
-
-  # Growth factor variances
-  intercept_var = 1,
-  slope_var = 0.04,
-  intercept_slope_cov = -0.05,
-
-  # Covariate effect (HVR -> Slope)
-  hvr_effect = 0.15,  # True effect of interest
-
-  # Measurement error (SE)
-  se_true = 0.3,      # True measurement error SE
-  se_variation = 0.1, # SD of SE across observations
-
-
-  # EDT parameters (years to dementia)
-  edt_mean = 5,       # Mean EDT at baseline
-  edt_sd = 3,         # SD of EDT
-  edt_change = -1     # EDT decreases by 1 year per visit (approaching dementia)
+  slope_mean = -0.19,
+  intercept_var = 0.17,
+  slope_var = 0.002,
+  intercept_slope_cov = 0.0004,
+  hvr_effect = 0.12,
+  se_true = 0.29,
+  se_variation = 0.10,
+  edt_mean = 8.5,
+  edt_sd = 5.0,
+  edt_change = -1
 )
+
+# Parameter grid: vary hvr_effect and slope_var
+# at 0.5x, 1x, 1.5x observed values to show
+# robustness across realistic conditions
+GRID_MULTIPLIERS <- c(0.5, 1.0, 1.5)
+param_grid.dt <- CJ(
+  hvr_mult = GRID_MULTIPLIERS,
+  sv_mult = GRID_MULTIPLIERS
+)
+param_grid.dt[, grid_id := .I]
+
+log_info(
+  "Parameter grid: %d conditions",
+  nrow(param_grid.dt)
+)
+
+# For backward compatibility with single-run code,
+# set TRUE_PARAMS to the base (1x/1x) condition
+TRUE_PARAMS <- BASE_PARAMS
 
 log_info("True parameters:")
 log_info("  Intercept mean: %.2f", TRUE_PARAMS$intercept_mean)
@@ -368,16 +397,48 @@ log_section("Running Simulation Study")
 
 all_results <- list()
 
-for (n in SAMPLE_SIZES) {
-  log_info("Sample size N = %d (%d replications)", n, N_REPS)
+for (gi in seq_len(nrow(param_grid.dt))) {
+  hm <- param_grid.dt$hvr_mult[gi]
+  sm <- param_grid.dt$sv_mult[gi]
+  gid <- param_grid.dt$grid_id[gi]
 
-  # Run replications
-  results_n <- lapply(seq_len(N_REPS), function(rep) {
-    if (rep %% 50 == 0) log_info("  Replication %d/%d", rep, N_REPS)
-    fit_one_replication(n, N_TIMEPOINTS, TRUE_PARAMS, rep)
-  })
+  # Build condition-specific params
+  cond_params <- BASE_PARAMS
+  cond_params$hvr_effect <-
+    BASE_PARAMS$hvr_effect * hm
+  cond_params$slope_var <-
+    BASE_PARAMS$slope_var * sm
 
-  all_results[[as.character(n)]] <- rbindlist(results_n, fill = TRUE)
+  log_info(
+    "Grid %d/%d: hvr=%.3f (%.1fx), sv=%.4f (%.1fx)",
+    gi, nrow(param_grid.dt),
+    cond_params$hvr_effect, hm,
+    cond_params$slope_var, sm
+  )
+
+  for (n in SAMPLE_SIZES) {
+    log_info(
+      "  N = %d (%d reps)", n, N_REPS
+    )
+    results_n <- lapply(
+      seq_len(N_REPS), function(rep) {
+        if (rep %% 100 == 0) {
+          log_info("    Rep %d/%d", rep, N_REPS)
+        }
+        fit_one_replication(
+          n, N_TIMEPOINTS, cond_params, rep
+        )
+      }
+    )
+    res.dt <- rbindlist(results_n, fill = TRUE)
+    res.dt[, grid_id := gid]
+    res.dt[, hvr_mult := hm]
+    res.dt[, sv_mult := sm]
+    res.dt[, true_hvr := cond_params$hvr_effect]
+    res.dt[, true_sv := cond_params$slope_var]
+    all_results[[paste(gid, n, sep = "_")]] <-
+      res.dt
+  }
 }
 
 results.dt <- rbindlist(all_results, fill = TRUE)
@@ -387,42 +448,69 @@ results.dt <- rbindlist(all_results, fill = TRUE)
 # =============================================================================
 log_section("Computing Summary Statistics")
 
-true_value <- TRUE_PARAMS$hvr_effect
-
-summary_stats <- results.dt[, .(
-  n_converged_se = sum(se_converged, na.rm = TRUE),
-  n_converged_free = sum(free_converged, na.rm = TRUE),
-
-  # Bias
-  bias_se = mean(se_est - true_value, na.rm = TRUE),
-  bias_free = mean(free_est - true_value, na.rm = TRUE),
-
-  # RMSE
-  rmse_se = sqrt(mean((se_est - true_value)^2, na.rm = TRUE)),
-  rmse_free = sqrt(mean((free_est - true_value)^2, na.rm = TRUE)),
-
-  # Average SE
-  avg_se_se = mean(se_se, na.rm = TRUE),
-  avg_se_free = mean(free_se, na.rm = TRUE),
-
-  # Coverage
-  coverage_se = mean(se_ci_lower <= true_value & se_ci_upper >= true_value,
-                     na.rm = TRUE),
-  coverage_free = mean(free_ci_lower <= true_value &
-                        free_ci_upper >= true_value, na.rm = TRUE)
-), by = n]
+summary_stats <- results.dt[, {
+  tv <- true_hvr[1]
+  .(
+    true_hvr = tv,
+    true_sv = true_sv[1],
+    hvr_mult = hvr_mult[1],
+    sv_mult = sv_mult[1],
+    n_converged_se = sum(
+      se_converged, na.rm = TRUE
+    ),
+    n_converged_free = sum(
+      free_converged, na.rm = TRUE
+    ),
+    bias_se = mean(
+      se_est - tv, na.rm = TRUE
+    ),
+    bias_free = mean(
+      free_est - tv, na.rm = TRUE
+    ),
+    rmse_se = sqrt(mean(
+      (se_est - tv)^2, na.rm = TRUE
+    )),
+    rmse_free = sqrt(mean(
+      (free_est - tv)^2, na.rm = TRUE
+    )),
+    avg_se_se = mean(se_se, na.rm = TRUE),
+    avg_se_free = mean(
+      free_se, na.rm = TRUE
+    ),
+    coverage_se = mean(
+      se_ci_lower <= tv &
+        se_ci_upper >= tv,
+      na.rm = TRUE
+    ),
+    coverage_free = mean(
+      free_ci_lower <= tv &
+        free_ci_upper >= tv,
+      na.rm = TRUE
+    )
+  )
+}, by = .(grid_id, n)]
 
 log_info("")
-log_info("SIMULATION RESULTS (True HVR effect = %.2f):", true_value)
+log_info("SIMULATION RESULTS (Grid)")
 log_info("")
 
 for (i in seq_len(nrow(summary_stats))) {
   row <- summary_stats[i]
-  log_info("N = %d:", row$n)
-  log_info("  SE-Constrained: Bias=%.4f, RMSE=%.4f, Coverage=%.1f%%",
-           row$bias_se, row$rmse_se, row$coverage_se * 100)
-  log_info("  Free:           Bias=%.4f, RMSE=%.4f, Coverage=%.1f%%",
-           row$bias_free, row$rmse_free, row$coverage_free * 100)
+  log_info(
+    "Grid %d, N=%d (hvr=%.3f, sv=%.4f):",
+    row$grid_id, row$n,
+    row$true_hvr, row$true_sv
+  )
+  log_info(
+    "  SE-Con: Bias=%.5f RMSE=%.4f Cov=%.1f%%",
+    row$bias_se, row$rmse_se,
+    row$coverage_se * 100
+  )
+  log_info(
+    "  Free:   Bias=%.5f RMSE=%.4f Cov=%.1f%%",
+    row$bias_free, row$rmse_free,
+    row$coverage_free * 100
+  )
 }
 
 # =============================================================================
@@ -433,11 +521,13 @@ log_section("Saving Results")
 output <- list(
   raw_results = results.dt,
   summary = summary_stats,
-  true_params = TRUE_PARAMS,
+  true_params = BASE_PARAMS,
+  param_grid = param_grid.dt,
   config = list(
     n_reps = N_REPS,
     sample_sizes = SAMPLE_SIZES,
     n_timepoints = N_TIMEPOINTS,
+    grid_multipliers = GRID_MULTIPLIERS,
     methodology = "OpenMx with EDT (ITVS)"
   )
 )

@@ -193,7 +193,8 @@ generate_consort_tikz <- function(
     "process", "db", cx, y_db,
     paste0(
       "ADSP-PHC Database\\\\[2pt]",
-      "\\textbf{N\\,=\\,", fmt(n_database), "}"
+      "\\textbf{N\\,=\\,", fmt(n_database),
+      " subjects}"
     )
   ))
 

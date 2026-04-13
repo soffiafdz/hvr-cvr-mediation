@@ -350,11 +350,13 @@ cvr_frs_cor <- cor(
   merged_cvr$CVR_mimic, merged_cvr$FRS,
   use = "complete.obs"
 )
+# Use z-standardized CVR_mimic from cohort.dt
+# (not raw zeta from cvr_scores)
 cvr_mean <- mean(
-  cvr_scores$CVR_mimic, na.rm = TRUE
+  cohort.dt$CVR_mimic, na.rm = TRUE
 )
 cvr_sd <- sd(
-  cvr_scores$CVR_mimic, na.rm = TRUE
+  cohort.dt$CVR_mimic, na.rm = TRUE
 )
 
 # ---------------------------------------------------------
@@ -381,9 +383,15 @@ frs_partial_r <-
 frs_var_decomp <-
   frs_problem.res$variance_decomposition
 
-# Simulation convergence
+# Simulation convergence (grid results)
 stopifnot(!is.null(simulation.res$summary))
-sim_conv <- simulation.res$summary
+sim_conv_full <- as.data.table(
+  simulation.res$summary
+)
+# Base condition (1x/1x) for inline text
+sim_conv <- sim_conv_full[
+  hvr_mult == 1.0 & sv_mult == 1.0
+]
 
 # Common sample N for standardization
 stopifnot(
@@ -1171,6 +1179,7 @@ env.lst <- list(
   frs_partial_r = frs_partial_r,
   frs_var_decomp = frs_var_decomp,
   sim_conv = sim_conv,
+  sim_conv_full = sim_conv_full,
   common_n = common_n,
 
   # Sample info

@@ -2225,18 +2225,36 @@ plot_frs_validation <- function(data.dt,
     )
   }
 
+  # Sex factor for coloring
+  baseline.dt[, SEX := factor(
+    SEX,
+    levels = c("Female", "Male"),
+    labels = c("Females", "Males")
+  )]
+
   ggplot(
-    baseline.dt, aes(x = AGE, y = FRS_pct)
+    baseline.dt, aes(
+      x = AGE, y = FRS_pct, color = SEX
+    )
   ) +
     geom_point(
-      shape = 1, alpha = 0.3, size = 1,
-      color = colors$frs_pred
+      shape = 1, alpha = 0.3, size = 1
     ) +
     geom_smooth(
       method = "lm", se = TRUE,
-      color = colors$frs_pred,
-      fill = colors$frs_pred,
       alpha = 0.15, linewidth = 0.8
+    ) +
+    scale_color_manual(
+      values = c(
+        Males = colors$male,
+        Females = colors$female
+      )
+    ) +
+    scale_fill_manual(
+      values = c(
+        Males = colors$male,
+        Females = colors$female
+      )
     ) +
     annotate(
       "label",
@@ -2251,9 +2269,14 @@ plot_frs_validation <- function(data.dt,
     ) +
     labs(
       x = "Age (years)",
-      y = "Framingham Risk Score (%)"
+      y = "Framingham Risk Score (%)",
+      color = "Sex"
     ) +
-    theme_publication(base_size = 10)
+    theme_publication(base_size = 10) +
+    theme(
+      legend.position = "bottom",
+      legend.text = element_text(size = 7)
+    )
 }
 
 #' Plot FRS vs CVR_mimic comparison forest plot
@@ -2819,7 +2842,12 @@ plot_lme_forest_comparison <- function(
     theme_publication(base_size = 10) +
     theme(
       legend.position = "bottom",
-      strip.text = element_text(size = 9)
+      strip.text = element_text(size = 9),
+      panel.spacing.x = if (has_aneg) {
+        unit(c(0.3, 0.8), "lines")
+      } else {
+        unit(0.3, "lines")
+      }
     )
 }
 
@@ -3793,7 +3821,7 @@ plot_mediation_panel.fn <- function(
   COL_F <- "darkred"
   A_SIG <- 1.0
   A_NS <- 0.55
-  SZ <- 1.5
+  SZ <- 2.0
 
   get_alpha.fn <- function(lo, hi) {
     if (is_sig.fn(lo, hi)) A_SIG else A_NS
