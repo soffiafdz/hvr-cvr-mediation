@@ -1,0 +1,10 @@
+---
+title: "Highlights"
+format: docx
+---
+
+- Age-adjusted cardiovascular risk does not accelerate hippocampal atrophy
+- Hippocampal-cognitive coupling persists regardless of how risk is measured
+- FRS-brain associations in elderly samples primarily reflect age-weighting
+- A reverse pattern in amyloid-negative controls supports a cognitive reserve effect
+- MIMIC-based age-adjustment generalizes to any age-confounded composite score

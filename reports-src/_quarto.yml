@@ -4,6 +4,8 @@ project:
   execute-dir: project
   render:
     - "manuscript_ad_submission.qmd"
+    - "manuscript_ad_supplementary.qmd"
+    - "highlights.qmd"
 
 # Common format options
 format:
