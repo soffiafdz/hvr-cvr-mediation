@@ -1,0 +1,43 @@
+=== LRT: HVR residual structure ===
+Timestamp: 2026-05-19 17:19:10 
+Cell: Male, MEM, CVR_mimic
+
+Loaded male sample: N = 507 
+After EDT extrapolation, remaining NAs: 0 
+EDT centering mean (male-only, for LRT internal consistency): 9.106 
+APOE4 available: TRUE 
+
+
+--- Fitting variant: homoscedastic ---
+Beginning initial fit attemptFit attempt 0, fit=34646.1584885215, new current best! (was 40639.9548852052)                                                                               status: 0, time: 54.1s
+
+--- Fitting variant: heteroscedastic ---
+Beginning initial fit attemptFit attempt 0, fit=34611.1766165064, new current best! (was 40639.9548852052)                                                                               status: 0, time: 64.0s
+
+========================================
+LRT RESULTS
+========================================
+Homoscedastic  -2LL = 34646.158  (n_param = 31)
+Heteroscedastic -2LL = 34611.177  (n_param = 36)
+Chi-square diff = 34.982, df = 5, p = 1.517e-06
+dAIC (homo - hete) = 24.982
+dBIC (homo - hete) = 3.839
+Decision: Heteroscedastic preferred (constraint rejected)
+
+--- Path estimates: homoscedastic ---
+       Estimate   Std.Error
+2 -0.0004150439 0.006726998
+    Estimate  Std.Error
+17 0.1528066 0.03525875
+     Estimate   Std.Error
+4 0.002203199 0.003584029
+
+--- Path estimates: heteroscedastic ---
+       Estimate   Std.Error
+2 -0.0001152276 0.006776181
+    Estimate  Std.Error
+17 0.1712657 0.03600763
+     Estimate   Std.Error
+4 0.002217889 0.003569132
+
+Saved: /ipl/ipl27/sfernandez/hvr_cvr_mediation/docs/openmx_audit/lrt_Male_MEM_CVR_mimic.rds 
