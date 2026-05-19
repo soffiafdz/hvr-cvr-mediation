@@ -8,6 +8,9 @@ outputs/
 logs/
 !logs/.gitkeep
 
+# Frozen result snapshots for diffing across pipeline revisions
+archive/
+
 # R session artifacts
 .RData
 .RDataTmp
@@ -44,7 +47,3 @@ _freeze/
 # Environment overrides
 .envrc
 .Renviron
-
-# Local editor/tool config
-CLAUDE.md
-.claude/
