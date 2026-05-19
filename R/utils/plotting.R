@@ -3794,7 +3794,8 @@ plot_mediation_panel.fn <- function(
   # "c': 0.032\n[0.01, 0.05]*"
   fmt_ci.fn <- function(
       sx, path, est,
-      lo, hi, dig = 4L) {
+      lo, hi, dig = 4L,
+      single_line = FALSE) {
     if (is.null(lo) || is.na(lo)) {
       return(sprintf(
         "%s: %s", path,
@@ -3808,10 +3809,12 @@ plot_mediation_panel.fn <- function(
         x, format = "f", digits = dig
       )
     }
+    sep <- if (single_line) " " else "\n"
     sprintf(
-      "%s: %s\n[%s, %s]%s",
+      "%s: %s%s[%s, %s]%s",
       path,
-      d.fn(est), d.fn(lo), d.fn(hi),
+      d.fn(est), sep,
+      d.fn(lo), d.fn(hi),
       sig_star.fn(lo, hi)
     )
   }
@@ -3907,28 +3910,32 @@ plot_mediation_panel.fn <- function(
     f$b$boot_ci_upper
   )
 
-  # Path c' (est + CI + star)
+  # Path c' (est + CI + star, single line)
   m_cp <- fmt_ci.fn(
     "M", "c'", m$cprime$est,
     m$cprime$boot_ci_lower,
-    m$cprime$boot_ci_upper
+    m$cprime$boot_ci_upper,
+    single_line = TRUE
   )
   f_cp <- fmt_ci.fn(
     "F", "c'", f$cprime$est,
     f$cprime$boot_ci_lower,
-    f$cprime$boot_ci_upper
+    f$cprime$boot_ci_upper,
+    single_line = TRUE
   )
 
-  # Indirect ab (est + CI + star via CI)
+  # Indirect ab (est + CI + star, single line)
   m_ab <- fmt_ci.fn(
     "M", "ab", m$indirect$est,
     m$indirect$boot_ci_lower,
-    m$indirect$boot_ci_upper
+    m$indirect$boot_ci_upper,
+    single_line = TRUE
   )
   f_ab <- fmt_ci.fn(
     "F", "ab", f$indirect$est,
     f$indirect$boot_ci_lower,
-    f$indirect$boot_ci_upper
+    f$indirect$boot_ci_upper,
+    single_line = TRUE
   )
 
   # -- build ggplot --
