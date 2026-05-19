@@ -20,7 +20,7 @@ author:
       - ref: bbme
     email: louis.collins@mcgill.ca
     corresponding: true
-  - name: for the Alzheimer's Disease Neuroimaging Initiative
+  - name: "for the Alzheimer's Disease Neuroimaging Initiative*"
     affiliations: []
 affiliations:
   - id: bic
@@ -77,6 +77,8 @@ format:
         \usepackage{authblk}
         \renewcommand\Authfont{\normalsize}
         \renewcommand\Affilfont{\small\itshape}
+        \renewcommand\Authands{, }
+        \renewcommand\Authand{, }
         \providecommand{\orcidlink}[1]{\href{https://orcid.org/#1}{\textsuperscript{\textsf{\scriptsize iD}}}}
         \usepackage{booktabs}
         \usepackage{longtable}
@@ -337,7 +339,7 @@ fmt_crossformat <- function(gt_tbl, columns, rows = everything()) {
 
 **INTRODUCTION:**
 The Framingham Risk Score (FRS) indexes
-cardiovascular risk, but its age-weighting may
+cardiovascular risk (CVR), but age-weighting may
 confound associations with brain and cognitive
 outcomes.
 
@@ -372,7 +374,7 @@ CVR~mimic~ models.
 **DISCUSSION:**
 FRS "effects" on hippocampal-cognitive decline
 largely reflect age-related variance. Age-adjusted
-measures complement FRS when the goal is to isolate
+measures complement FRS by isolating
 cardiovascular effects from aging.
 
 **Keywords:** Cardiovascular risk, Framingham Risk
@@ -420,7 +422,7 @@ endpoints rather than FRS.
 
 # Background
 
-Cardiovascular risk factors are increasingly
+Cardiovascular risk (CVR) factors are increasingly
 recognized as modifiable contributors to cognitive
 decline and dementia risk
 [@livingston_dementia_2017; @livingston_dementia_2024; @ouldred_vascular_2010;
@@ -505,7 +507,7 @@ HVR decline should likewise be null. Third, even
 when mediation is absent, CVR~mimic~ may still
 moderate the brain-cognition relationship via a
 three-way interaction (years from baseline [YRS]
-× cardiovascular risk [either FRS or CVR~mimic~]
+× CVR [either FRS or CVR~mimic~]
 × HVR) in linear mixed-effects (LME) models,
 reflecting a
 reserve-like mechanism whereby cardiovascular burden
@@ -534,7 +536,9 @@ positron emission tomography (PET), other biological
 markers, and clinical and neuropsychological
 assessment can be combined to measure the progression
 of mild cognitive impairment (MCI) and early
-Alzheimer's disease (AD).
+Alzheimer's disease (AD). ADNI data were downloaded
+from the LONI-IDA portal between December 2025 and
+February 2026 (latest download: 10 February 2026).
 
 Data were drawn from ADNI phases 1, GO, 2, and 3.
 We included only amyloid-positive participants,
@@ -575,7 +579,13 @@ amyloid testing; the normative GAMLSS (Generalized
 Additive Models for Location, Scale, and Shape)
 models
 therefore reflect the general population rather than
-a confirmed amyloid-negative sample.
+a confirmed amyloid-negative sample. The UKB
+normative reference is sex-imbalanced (56.2%
+female), reflecting the source imaging cohort and
+quality-control filtering
+[@fernandez-lozano_hippocampal_2026]; sex-stratified
+GAMLSS fitting ensures within-sex z-score
+calibration is unaffected by this imbalance.
 
 ```{r fig-consort}
 #| output: asis
@@ -654,9 +664,9 @@ where hippocampal atrophy is accompanied by
 compensatory expansion of the temporal horns
 (i.e., ex vacuo dilation). HVR approaches 1.0 when
 hippocampal volume is large relative to the
-ventricles (preserved structure) and approaches 0.0
+temporal horns (preserved structure) and approaches 0.0
 when the hippocampus is small relative to the
-ventricles (atrophy with ventricular expansion). The
+temporal horns (atrophy with ventricular expansion). The
 ratio inherently normalizes for head size without
 requiring intracranial volume (ICV) correction, as
 both numerator and denominator scale proportionally
@@ -969,9 +979,9 @@ measured.
 
 All models were sex-stratified (each sex analyzed
 separately),
-following the National Institutes of Health (NIH)
+following the National Institutes of Health
 policy on Sex as a Biological
-Variable (SABV; @clayton_policy_2014). Sex
+Variable @clayton_policy_2014. Sex
 differences in AD pathophysiology, cardiovascular
 risk profiles, and brain aging trajectories motivate
 stratification rather than inclusion of sex as a
@@ -1010,8 +1020,7 @@ address distinct questions. The LME tests
 *moderation*: does cardiovascular risk change the
 HVR-cognition
 coupling over time, assessed via the 3-way
-YRS (years from baseline) × cardiovascular risk
-× HVR interaction? The LGCM tests
+YRS (years from baseline) × CVR × HVR interaction? The LGCM tests
 *mediation*: does cardiovascular risk drive cognitive
 decline through
 hippocampal atrophy, assessed via the indirect path
@@ -1115,13 +1124,11 @@ $$
 & + \boldsymbol{X}_i\boldsymbol{\gamma} + \epsilon_{it}
 \end{aligned}
 $$ {#eq-lme}
-where the linear block (Years × cardiovascular risk
-× HVR) expands to all lower-order terms
-(Years × cardiovascular risk, Years × HVR,
-cardiovascular risk × HVR, and the individual main
-effects) plus the 3-way interaction; the quadratic
-block (Years^2^ × cardiovascular risk × HVR)
-similarly expands. R's `*` formula operator generates
+where the linear block (YRS × CVR × HVR) expands
+to all lower-order terms (YRS × CVR, YRS × HVR,
+CVR × HVR, and the individual main effects) plus
+the 3-way interaction; the quadratic block
+(YRS^2^ × CVR × HVR) similarly expands. R's `*` formula operator generates
 each product term exactly once — two-way terms shared
 across blocks are not duplicated. The quadratic interaction terms test
 whether cardiovascular risk moderation of the
@@ -1138,7 +1145,7 @@ evolves over time; a negative 3-way β means higher
 cardiovascular risk increasingly weakens the
 protective
 HVR-cognition association over follow-up. Inclusion
-of the quadratic time term (Years²) was evaluated
+of the quadratic time term (YRS²) was evaluated
 via
 likelihood ratio tests comparing nested linear and
 quadratic models across all 12 specifications
@@ -1327,11 +1334,11 @@ raw HC (with intracranial volume covariate) instead
 of UKB z-scored values, to confirm findings are not
 artifacts of the normative transformation. Fourth, for **EDT
 moderation**, we used EDT as a moderator in a 4-way
-interaction (cardiovascular risk × HVR × EDT ×
-Years). Note that EDT and Years capture different
+interaction (CVR × HVR × EDT × YRS). Note that
+EDT and YRS capture different
 sources of variation: EDT
 is a baseline moderator indexing disease stage, while
-Years is the within-person time metric capturing
+YRS is the within-person time metric capturing
 change
 over follow-up; their inclusion tests whether cardiovascular risk
 effects on brain-cognition coupling vary by disease
@@ -1657,7 +1664,7 @@ simulation validation are reported in Appendix B
 ### 3-Way Interaction (FRS vs CVR~mimic~)
 
 ```{r fig-lme-forest}
-#| fig-cap: "**LME 3-way interaction forest plot.** FRS vs CVR$_{\\text{mimic}}$ effects (YRS $\\times$ cardiovascular risk $\\times$ HVR z-score $\\rightarrow$ Cognition) by sex and cognitive domain, with an amyloid-negative cognitively unimpaired (A$^{-}$/CU) control panel (pooled sex). Filled points indicate p < 0.05; white-filled points indicate p $\\geq$ 0.05. Error bars show 95\\% CI."
+#| fig-cap: "**LME 3-way interaction forest plot.** FRS vs CVR$_{\\text{mimic}}$ effects (YRS $\\times$ CVR $\\times$ HVR z-score $\\rightarrow$ Cognition) by sex and cognitive domain, with an amyloid-negative cognitively unimpaired (A$^{-}$/CU) control panel (pooled sex). Filled points indicate p < 0.05; white-filled points indicate p $\\geq$ 0.05. Error bars show 95\\% CI."
 #| fig-width: 6.5
 #| fig-height: 3.0
 
@@ -1833,7 +1840,7 @@ if (length(frs_sig) > 0) {
 ```
 
 **Key pattern.** FRS produced significant 3-way
-interactions (YRS × cardiovascular risk × HVR) in
+interactions (YRS × CVR × HVR) in
 males
 (`r lme_male_detail`) and females
 (`r lme_female_detail`) —
@@ -1846,7 +1853,7 @@ surviving FDR), consistent with FRS effects being
 primarily driven by age-weighting rather than true
 cardiovascular risk (see @fig-lme-forest).
 
-**Males.** FRS × HVR × Years was significant for
+**Males.** FRS × HVR × YRS was significant for
 Memory (β = `r m_mem_frs_b`, `r m_mem_frs_p`),
 Language (β = `r m_lan_frs_b`, `r m_lan_frs_p`),
 and Executive Function
@@ -2508,10 +2515,10 @@ significant for both FRS
 (`r n_of_total.fn(abs_stats$frs_b_sig, 6L)`) and
 CVR~mimic~
 (`r n_of_total.fn(abs_stats$cvr_b_sig, 6L)`), so
-hippocampal decline predicts cognitive decline
-regardless of how cardiovascular risk is measured
+hippocampal atrophy predicts cognitive decline
+regardless of CVR measurement
 [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
-The LME 3-way interaction (FRS × HVR × Years) was
+The LME 3-way interaction (FRS × HVR × YRS) was
 significant across
 `r n_of_total.fn(abs_lme$frs_m_sig, 3L)` male and
 `r n_of_total.fn(abs_lme$frs_f_sig, 3L)` female
@@ -2523,18 +2530,16 @@ domains
 and
 `r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male,
 suggesting residual cardiovascular burden may
-modulate the HVR-cognition relationship through
-pathways
-independent of accelerated atrophy.
+modulate HVR-cognition independently of
+accelerated atrophy.
 
 ## FRS Age-Confounding and CVR~mimic~
 
 CVR~mimic~ successfully removes the age component
 from cardiovascular risk (near-zero age correlation;
 @fig-cvr-validation C), supporting its use as an
-age-independent index. Its moderate correlation with
-FRS reflects shared cardiovascular indicators while
-confirming the two measures capture distinct
+age-independent index. Its moderate FRS correlation reflects shared
+cardiovascular indicators while confirming distinct
 constructs: one age-confounded, one age-orthogonal.
 
 The FRS formula heavily weights age
@@ -2547,8 +2552,7 @@ score variance and statistical sensitivity,
 particularly in females. When age is partialled out
 (CVR~mimic~), the indirect pathway disappears: the
 a-path becomes null, suggesting the FRS-hippocampal
-association in this sample is primarily carried by
-the age component of FRS. This does not invalidate
+association is primarily age-driven. This does not invalidate
 FRS clinically; age is itself a potent marker of
 cumulative vascular exposure
 [@villeneuve_impact_2009]. However, FRS was
@@ -2574,7 +2578,7 @@ disentangle without age-adjustment.
 
 The two modelling frameworks test complementary
 questions. The LME 3-way interaction
-(YRS × cardiovascular risk × HVR → Cognition) tests
+(YRS × CVR × HVR → Cognition) tests
 moderation: does cardiovascular risk modify
 HVR-cognition over time? The LGCM a-path
 (CVR → HVR slope; @fig-mediation) tests mediation:
@@ -2695,9 +2699,8 @@ average rates of change. This makes the a-path null
 finding conservative: any individual-level
 non-linear CVR~mimic~ effects on hippocampal
 trajectories would require a fully random quadratic
-model to detect, further strengthening the
-conclusion that the FRS a-path reflects
-age-weighting.
+model to detect, further strengthening the FRS
+age-weighting interpretation.
 
 EDT linearity tests confirmed non-linear
 trajectories (Appendix B, Table B2),
@@ -2821,53 +2824,20 @@ from all participants.
 
 # Author Contributions {.unnumbered}
 
-S.F-L. conceived the study, developed the analysis
-pipeline, performed all analyses, and wrote the
-manuscript. S.V. provided critical review of the
-study design and interpretation. D.L.C. supervised
-the project, provided critical review, and approved
-the final manuscript.
+**S.F-L.**: Conceptualization, Methodology, Software,
+Formal analysis, Investigation, Data curation,
+Visualization, Writing -- original draft.
+**S.V.**: Conceptualization, Writing -- review & editing.
+**D.L.C.**: Supervision, Project administration,
+Writing -- review & editing. All authors read and
+approved the final manuscript.
 
 # Acknowledgments {.unnumbered}
 
-Data collection and sharing for this project was
-funded by the Alzheimer's Disease Neuroimaging
-Initiative (ADNI) (National Institutes of Health
-Grant U01 AG024904) and DOD ADNI (Department of
-Defense award number W81XWH-12-2-0012). ADNI is
-funded by the National Institute on Aging, the
-National Institute of Biomedical Imaging and
-Bioengineering, and through generous contributions
-from the following: Alzheimer's Association;
-Alzheimer's Drug Discovery Foundation; Araclon
-Biotech; BioClinica, Inc.; Biogen Idec Inc.;
-Bristol-Myers Squibb Company; Eisai Inc.; Elan
-Pharmaceuticals, Inc.; Eli Lilly and Company;
-EuroImmun; F. Hoffmann-La Roche Ltd and its
-affiliated company Genentech, Inc.; Fujirebio; GE
-Healthcare; IXICO Ltd.; Janssen Alzheimer
-Immunotherapy Research & Development, LLC.; Johnson &
-Johnson Pharmaceutical Research & Development LLC.;
-Medpace, Inc.; Merck & Co., Inc.; Meso Scale
-Diagnostics, LLC.; NeuroRx Research; Neurotrack
-Technologies; Novartis Pharmaceuticals Corporation;
-Pfizer Inc.; Piramal Imaging; Servier; Synarc Inc.;
-and Takeda Pharmaceutical Company. The Canadian
-Institutes of Health Research is providing funds to
-support ADNI clinical sites in Canada. Private sector
-contributions are facilitated by the Foundation for
-the National Institutes of Health (www.fnih.org). The
-grantee organization is the Northern California
-Institute for Research and Education, and the study
-is coordinated by the Alzheimer's Disease Cooperative
-Study at the University of California, San Diego.
-ADNI data are disseminated by the Laboratory for
-Neuro Imaging at the University of Southern
-California.
-
 *Data used in preparation of this article were
-obtained from the ADNI database
-(adni.loni.usc.edu). As such, the investigators
+obtained from the Alzheimer's Disease Neuroimaging
+Initiative (ADNI) database (adni.loni.usc.edu). As
+such, the investigators
 within the ADNI contributed to the design and
 implementation of ADNI and/or provided data but did
 not participate in analysis or writing of this
@@ -2875,9 +2845,48 @@ report. A complete listing of ADNI investigators can
 be found at:
 http://adni.loni.usc.edu/wp-content/uploads/how_to_apply/ADNI_Acknowledgement_List.pdf*
 
-# Conflict of Interest Statement {.unnumbered}
+# Sources of Funding {.unnumbered}
 
-The authors declare no conflicts of interest.
+This work was supported by the Brain Canada
+Foundation, through the Canada Brain Research Fund,
+with the financial support of Health Canada; the
+Canadian Institutes of Health Research (CIHR)
+[Project Grant FRN 205819]; and La Fondation Famille
+Louise & André Charron. The funders had no role in
+study design, data collection and analysis, decision
+to publish, or preparation of the manuscript.
+
+Data collection and sharing for the Alzheimer's
+Disease Neuroimaging Initiative (ADNI) is funded by
+the National Institute on Aging (National Institutes
+of Health Grant U19 AG024904). The grantee
+organization is the Northern California Institute for
+Research and Education. In the past, ADNI has also
+received funding from the National Institute of
+Biomedical Imaging and Bioengineering, the Canadian
+Institutes of Health Research, and private sector
+contributions through the Foundation for the National
+Institutes of Health (FNIH) including generous
+contributions from the following: AbbVie, Alzheimer's
+Association; Alzheimer's Drug Discovery Foundation;
+Araclon Biotech; BioClinica, Inc.; Biogen;
+Bristol-Myers Squibb Company; CereSpir, Inc.;
+Cogstate; Eisai Inc.; Elan Pharmaceuticals, Inc.; Eli
+Lilly and Company; EuroImmun; F. Hoffmann-La Roche
+Ltd and its affiliated company Genentech, Inc.;
+Fujirebio; GE Healthcare; IXICO Ltd.; Janssen
+Alzheimer Immunotherapy Research & Development, LLC.;
+Johnson & Johnson Pharmaceutical Research &
+Development LLC.; Lumosity; Lundbeck; Merck & Co.,
+Inc.; Meso Scale Diagnostics, LLC.; NeuroRx Research;
+Neurotrack Technologies; Novartis Pharmaceuticals
+Corporation; Pfizer Inc.; Piramal Imaging; Servier;
+Takeda Pharmaceutical Company; and Transition
+Therapeutics.
+
+# Disclosures {.unnumbered}
+
+Declarations of interest: None.
 
 # Data Availability Statement {.unnumbered}
 
