@@ -2470,21 +2470,22 @@ and Executive Function
 (Δ~a~ = `r m_exf_da`, 95% CI `r m_exf_da_ci`) —
 confirming a consistent FRS advantage.
 
-**Females.** Δ~a~ was significantly positive for
-Language
-(Δ~a~ = `r f_lan_da`, 95% CI `r f_lan_da_ci`);
-Memory
-(Δ~a~ = `r f_mem_da`, 95% CI `r f_mem_da_ci`) and
-Executive Function
-(Δ~a~ = `r f_exf_da`, 95% CI `r f_exf_da_ci`)
-CIs narrowly included zero.
+**Females.** Δ~a~ was positive across all three
+domains
+(Memory Δ~a~ = `r f_mem_da`,
+95% CI `r f_mem_da_ci`;
+Language Δ~a~ = `r f_lan_da`,
+95% CI `r f_lan_da_ci`;
+Executive Function Δ~a~ = `r f_exf_da`,
+95% CI `r f_exf_da_ci`), but all three 95% BC CIs
+narrowly included zero.
 
 Paired bootstrap confirmed the a-path dissociation
 in `r n_of_total.fn(n_da_sig, 6L)` sex × domain
 models: Δ~a~
 (FRS − CVR~mimic~) was positive in every case, with
-95% BC CIs excluding zero in all but Female Memory
-and Female Executive Function.
+95% BC CIs excluding zero across all three male
+domains; no female domain reached significance.
 Male Δ~a~ estimates were consistent across domains
 (mean Δ~a~ = `r sprintf("%.4f", m_da_mean)`),
 indicating
