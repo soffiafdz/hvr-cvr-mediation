@@ -86,7 +86,6 @@ source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
 source(here("R/utils/validation.R"))
 source(here("R/utils/disease_time.R"))
-source(here("R/utils/openmx_helpers.R"))
 
 log_script_start("12_lgcm_parallel.R")
 config <- load_config()

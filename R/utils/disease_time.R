@@ -543,6 +543,23 @@ extrapolate_edt_hybrid <- function(dt,
     }
   }
 
+  # Subjects with zero observed EDT values fall through both branches
+  # and remain all-NA. OpenMx errors out if a definition variable column
+  # contains NA, so flag these explicitly rather than letting the fit
+  # fail with an opaque message downstream.
+  all_na.v <- rowSums(is.na(as.matrix(dt[, ..edt_cols.v]))) ==
+    length(edt_cols.v)
+  n_all_na <- sum(all_na.v)
+  if (n_all_na > 0) {
+    stop(sprintf(
+      paste0("extrapolate_edt_hybrid(): %d subject(s) have zero ",
+             "observed EDT values and cannot be extrapolated. OpenMx ",
+             "does not accept NA in definition-variable columns; ",
+             "drop these rows upstream before fitting LGCMs."),
+      n_all_na
+    ))
+  }
+
   list(
     data = dt,
     pop_rate = pop_rate,
