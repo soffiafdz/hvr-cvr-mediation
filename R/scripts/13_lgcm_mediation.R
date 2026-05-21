@@ -663,11 +663,15 @@ build_mediation.fn <- function(cog_vars, hvr_vars,
   # the b path (hvr_s -> cog_s) captures the slope
   # relationship. Including both would be redundant.
 
-  # Residuals
+  # HVR residuals: occasion-specific (matches script 12 and the
+  # ε_{it} notation in the manuscript methods). Rejected as
+  # equality-constrained by LRT (Δχ²=35.0, df=5, p<1e-5; see
+  # docs/openmx_audit/).
+  tp_labels <- sub("^.*_(T\\d+)$", "\\1", hvr_vars)
   hvr_resid <- mxPath(
     from = hvr_vars, arrows = 2,
     free = TRUE, values = 0.5,
-    labels = "hvr_resid"
+    labels = paste0("hvr_resid_", tp_labels)
   )
 
   # Cognitive residuals: fix to SE² from CFA
@@ -899,11 +903,15 @@ build_mimic_mediation.fn <- function(
     labels = "cov_hvr_i_cog_i"
   )
 
-  # Residuals
+  # HVR residuals: occasion-specific (matches script 12 and the
+  # ε_{it} notation in the manuscript methods). Rejected as
+  # equality-constrained by LRT (Δχ²=35.0, df=5, p<1e-5; see
+  # docs/openmx_audit/).
+  tp_labels <- sub("^.*_(T\\d+)$", "\\1", hvr_vars)
   hvr_resid <- mxPath(
     from = hvr_vars, arrows = 2,
     free = TRUE, values = 0.5,
-    labels = "hvr_resid"
+    labels = paste0("hvr_resid_", tp_labels)
   )
 
   # Cognitive residuals: fix to SE² from CFA

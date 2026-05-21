@@ -4820,7 +4820,7 @@ create_aneg_lme_table <- function(summary_lst) {
 create_aneg_lgcm_table <- function(summary_lst) {
   tbl.dt <- copy(summary_lst$tbl)
   path_labels <- c(
-    a = "a (CVR \u2192 HVR slope)",
+    a = "a (cardiovascular risk \u2192 HVR slope)",
     b = "b (HVR \u2192 Cog slope)",
     ab = "Indirect (a \u00d7 b)"
   )
