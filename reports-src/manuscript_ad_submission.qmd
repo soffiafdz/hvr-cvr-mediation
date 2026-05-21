@@ -1195,7 +1195,16 @@ the ADSP-PHC CFA scoring model, embedding known
 heteroscedastic measurement error directly rather
 than estimating it as a free parameter; this yields
 more precise latent slope estimates by separating
-true variance from measurement noise.
+true variance from measurement noise. For HVR,
+occasion-specific residual variances were freely
+estimated; a likelihood ratio test against an
+equality-constrained alternative (single residual
+variance pooled across timepoints) rejected the
+constraint ($\Delta\chi^2 = 35.0$, df = 5,
+$p < 10^{-5}$; Male × Memory × CVR~mimic~ cell),
+consistent with the biologically expected
+heteroscedasticity of brain atrophy variance over
+disease time [@grimm_residual_2010].
 
 We first attempted fully random quadratic models
 (6 latent factors per domain); when these did not
