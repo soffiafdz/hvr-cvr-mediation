@@ -2855,6 +2855,13 @@ report. A complete listing of ADNI investigators can
 be found at:
 http://adni.loni.usc.edu/wp-content/uploads/how_to_apply/ADNI_Acknowledgement_List.pdf*
 
+The authors used Claude (Anthropic) for language
+editing of the manuscript text. The tool was not
+used for data collection, statistical analysis,
+scientific interpretation, or generation of figures.
+The authors are solely responsible for the design,
+analysis, and conclusions of this work.
+
 # Sources of Funding {.unnumbered}
 
 This work was supported by the Brain Canada
