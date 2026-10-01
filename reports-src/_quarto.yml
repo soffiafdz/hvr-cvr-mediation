@@ -6,6 +6,7 @@ project:
     - "manuscript_ad_submission.qmd"
     - "manuscript_ad_supplementary.qmd"
     - "highlights.qmd"
+    - "research_in_context.qmd"
 
 # Common format options
 format:
