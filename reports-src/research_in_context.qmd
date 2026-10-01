@@ -1,0 +1,52 @@
+---
+title: "Research in Context"
+format: docx
+bibliography: references.bib
+csl: elsevier-vancouver.csl
+---
+
+<!--
+Standalone copy of the Research in Context section for upload as a
+"Supporting File" in Editorial Manager, as required by the journal.
+Keep the wording synchronised with the section of the same name in
+manuscript_ad_submission.qmd.
+-->
+
+**Systematic Review:**
+The Framingham Risk Score (FRS) predicts brain
+atrophy and cognitive decline across cohorts
+[@zsoldos_association_2020; @seshadri_stroke_2004;
+@song_associations_2020; @meusel_cardiovascular_2019].
+Yet age dominates the FRS
+[@dagostino_general_2008; @koller_development_2012]
+and accounts for most of its predictive value in
+older adults
+[@pencina_quantifying_2019; @ko_calibration_2020],
+suggesting these associations may reflect age
+confounding. No prior study has compared FRS against
+an age-adjusted latent measure.
+
+**Interpretation:**
+FRS indirect effects on cognitive decline via
+hippocampal atrophy primarily reflect age-weighting;
+age is itself a legitimate vascular proxy
+[@villeneuve_impact_2009]. Partialling out age
+(CVR~mimic~) nullified the
+cardiovascular-risk-to-hippocampal pathway, while
+HVR-cognitive coupling persisted, indicating
+coupling reflects neurodegeneration. Prior FRS-brain
+reports likely conflate age-driven and
+cardiovascular effects.
+
+**Future Directions:**
+Replication in independent aging cohorts with
+longitudinal cardiovascular measurement is needed.
+The MIMIC age-adjustment framework can be
+applied to any composite risk score where age
+confounding is a concern. Intervention trials should
+test whether cardiovascular management preserves
+hippocampal-cognitive coupling using age-adjusted
+endpoints rather than FRS.
+
+::: {#refs}
+:::
