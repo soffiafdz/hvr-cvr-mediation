@@ -66,6 +66,10 @@ format:
     number-sections: true
     documentclass: article
     pdf-engine: xelatex
+    # A&D: double-spaced, 12-point Times/Arial (TeX Gyre Termes is a
+    # metric-compatible Times clone; Times New Roman is not installed here)
+    fontsize: 12pt
+    mainfont: "TeX Gyre Termes"
     geometry:
       - margin=1in
     template-partials:
@@ -90,6 +94,13 @@ format:
         \usepackage{placeins}
         \usepackage{setspace}
         \doublespacing
+        % Unnumbered footnote, for the first-page abbreviation list
+        \newcommand\blfootnote[1]{%
+          \begingroup
+          \renewcommand\thefootnote{}\footnote{#1}%
+          \addtocounter{footnote}{-1}%
+          \endgroup
+        }
         \usepackage[mathlines]{lineno}
         \linenumbers
         \usepackage{textcomp}
@@ -325,6 +336,32 @@ fmt_crossformat <- function(gt_tbl, columns, rows = everything()) {
 
 ---
 
+```{=latex}
+\blfootnote{\footnotesize\textbf{Abbreviations:}
+A$^{+}$/A$^{-}$, amyloid-positive/negative;
+AD, Alzheimer's disease;
+ADNI, Alzheimer's Disease Neuroimaging Initiative;
+ADSP-PHC, Alzheimer's Disease Sequencing Project
+Phenotype Harmonization Consortium;
+CU, cognitively unimpaired;
+CVR, cardiovascular risk;
+CVR\textsubscript{mimic}, MIMIC-derived age-adjusted
+cardiovascular risk score;
+EDT, estimated disease time;
+FDR, false discovery rate;
+FRS, Framingham Risk Score;
+GAMLSS, generalized additive models for location,
+scale and shape;
+HC, hippocampal volume;
+HVR, hippocampal-to-ventricle ratio;
+LGCM, latent growth curve model;
+LME, linear mixed-effects;
+LV, temporal horn of the lateral ventricle;
+MCI, mild cognitive impairment;
+MIMIC, multiple indicators multiple causes;
+UKB, UK Biobank.}
+```
+
 # Highlights {.unnumbered}
 
 - Age-adjusted cardiovascular risk does not accelerate hippocampal atrophy
@@ -541,7 +578,10 @@ from the LONI-IDA portal between December 2025 and
 February 2026 (latest download: 10 February 2026).
 
 Data were drawn from ADNI phases 1, GO, 2, and 3.
-We included only amyloid-positive participants,
+Because this study characterizes cardiovascular
+risk, hippocampal structure, and cognitive decline
+along the Alzheimer's disease continuum, we included
+only amyloid-positive participants,
 defined by PET Centiloid > 25
 [@klunk_centiloid_2015] across florbetapir (FBP),
 florbetaben (FBB), and Pittsburgh Compound B (PIB)
@@ -568,6 +608,38 @@ disease dementia (AD). Participant inclusion and
 exclusion flow is shown in
 Figure \ref{fig-consort}.
 
+### Disease and Population Heterogeneity
+
+The design addresses disease heterogeneity in three
+ways. First, retaining the full CU--MCI--AD spectrum
+rather than a single diagnostic group lets
+cardiovascular risk, hippocampal structure, and
+cognition be modeled continuously along the AD
+continuum, with disease stage carried by the
+estimated disease time (EDT) metric rather than by
+categorical diagnosis. Second, all primary models are
+sex-stratified, since cardiovascular risk profiles,
+hippocampal aging, and AD incidence all differ by
+sex. Third, an amyloid-negative cognitively
+unimpaired control group tests whether the findings
+are specific to the AD continuum or reflect
+non-specific aging.
+
+Heterogeneity of the at-risk population is more
+limited. The analysis cohort is
+`r sprintf("%.1f", pct_white)`% White and
+`r sprintf("%.1f", pct_black)`% Black, with
+`r sprintf("%.1f", pct_hispanic)`% reporting Hispanic
+or Latino ethnicity, and a mean of
+`r sprintf("%.1f", educ_mean)` years of education
+(`r sprintf("%.0f", pct_college)`% college graduates
+or above), consistent with enrollment in ADNI more
+broadly. Because cardiovascular risk burden
+and its treatment differ substantially across racial
+and ethnic groups, this composition constrains
+generalizability; we return to this in the
+Limitations.
+
 A separate normative comparison sample of
 amyloid-negative, cognitively unimpaired ADNI
 participants with structural MRI within the UK
@@ -586,6 +658,14 @@ quality-control filtering
 [@fernandez-lozano_hippocampal_2026]; sex-stratified
 GAMLSS fitting ensures within-sex z-score
 calibration is unaffected by this imbalance.
+
+Amyloid-negative, cognitively unimpaired
+participants additionally served as a control group
+in a falsification analysis testing whether the
+primary cardiovascular-risk associations are
+specific to the amyloid-positive (AD-continuum)
+sample rather than reflecting non-specific aging
+(see the Amyloid-Negative CU Control analysis).
 
 ```{r fig-consort}
 #| output: asis
@@ -638,12 +718,10 @@ echo (MPRAGE) sequences were acquired on 1.5T
 and 3T scanners across ADNI sites using standardized
 acquisition protocols
 [@jack_alzheimers_2008]. Hippocampal (HC) and temporal
-horn of the lateral ventricle (VC) volumes were
+horn of the lateral ventricle (LV) volumes were
 obtained using a convolutional neural network (CNN)
 trained on manual labels
-[@fernandez-lozano_enhanced_2025], which demonstrated
-low failure rates in ADNI compared to multi-atlas
-and patch-based alternatives. Volumes were provided
+[@fernandez-lozano_enhanced_2025]. Volumes were provided
 in stereotaxic space (mm$^3$) and converted to
 native space via subject-specific scale factors.
 
@@ -654,7 +732,7 @@ $$
 \text{HVR} = \frac{
   \text{HC}_L + \text{HC}_R}{
   \text{HC}_L + \text{HC}_R +
-  \text{VC}_L + \text{VC}_R}
+  \text{LV}_L + \text{LV}_R}
 $$ {#eq-hvr}
 computed on bilateral summed native-space volumes
 [@schoemaker_hippocampal_ventricle_2019]. This ratio
@@ -676,20 +754,23 @@ with head size
 HVR z-scores were derived from Generalized Additive
 Models for Location, Scale, and Shape
 (GAMLSS; @rigby_generalized_2005) fit on UKB data
-(N = 27,434 cognitively healthy adults, age 45--82).
+(N = 27,434 cognitively healthy adults, age 45--82)
+[@fernandez-lozano_hippocampal_2026].
 The distribution family was Box-Cox Cole and Green
 (BCCG), which models three distributional
 parameters — location ($\mu$, the conditional
 median), scale ($\sigma$, the coefficient of
 variation), and skewness ($\nu$, the Box-Cox power) — as smooth
 functions of covariates: age (penalized cubic
-spline), education (linear), and intracranial cavity
-volume (ICC), with separate models fit for each sex.
+spline) and education (linear), with separate models
+fit for each sex. Consistent with HVR's
+self-normalizing property, no intracranial-volume
+term was included.
 The resulting z-score quantifies how many standard
 deviations an individual's observed HVR deviates
 from the conditional median predicted by the GAMLSS
-model given their age, sex, education, and head
-size. Negative z-scores indicate disproportionate
+model given their age, sex, and education.
+Negative z-scores indicate disproportionate
 hippocampal volume loss relative to the normative
 reference population. These are cross-sectional
 deviation scores, not measures of longitudinal
@@ -804,10 +885,9 @@ hypertension, glucose, and cholesterol were modeled,
 indicating its cardiovascular risk variance is fully
 captured by the other retained indicators. Diabetes, heart
 disease, and stroke (ADSP-PHC binary medical history
-flags) showed near-perfect tetrachoric correlations
-due to a harmonization artifact in how self-reported
-conditions were coded across ADNI phases, rendering
-them empirically indistinguishable. Smoking status
+flags) were so strongly intercorrelated that they
+were statistically redundant and could not be
+modeled as separate indicators. Smoking status
 had a non-significant factor loading, likely
 reflecting survivorship bias in an elderly cohort.
 Blood pressure medication showed near-complete
@@ -1882,9 +1962,11 @@ Function
 
 FRS β values were on average
 `r sprintf("%.1f", beta_ratio)`-fold larger in
-absolute magnitude than CVR~mimic~ β values,
-consistent with age-weighting amplifying apparent
-FRS effects. `r worked_text`
+absolute magnitude than CVR~mimic~ β values. Because
+the FRS is heavily age-weighted, it absorbs the
+age-driven variance in cognitive decline that the
+age-adjusted CVR~mimic~ removes, inflating the
+apparent FRS association. `r worked_text`
 
 ```{r lme-fdr-note}
 #| include: false
@@ -1903,21 +1985,33 @@ fdr_note_text <- if (
     " either cardiovascular risk measure."
   )
 } else if (!frs_changed && cvr_changed) {
-  sprintf(
+  cvr_n_sig <- fdr_summary.lst$cvr_n_sig
+  cvr_n_fdr <- fdr_summary.lst$cvr_n_fdr
+  cvr_clause <- if (cvr_n_fdr == 0L && cvr_n_sig == 1L) {
     paste0(
-      "FDR correction did not change FRS",
-      " conclusions. For CVR~mimic~, %d of",
-      " %d uncorrected effects survived FDR."
-    ),
-    fdr_summary.lst$cvr_n_fdr,
-    fdr_summary.lst$cvr_n_sig
+      "its single nominally significant effect did",
+      " not survive FDR correction"
+    )
+  } else {
+    sprintf(
+      paste0(
+        "%s nominally significant effects remained",
+        " significant after FDR correction"
+      ),
+      n_of_total.fn(cvr_n_fdr, cvr_n_sig)
+    )
+  }
+  paste0(
+    "FDR correction did not change FRS",
+    " conclusions. For CVR~mimic~, ",
+    cvr_clause, "."
   )
 } else {
   sprintf(
     paste0(
-      "After FDR correction, %s FRS and",
-      " %s CVR~mimic~ uncorrected effects",
-      " remained significant."
+      "%s FRS and %s CVR~mimic~ effects",
+      " remained significant after FDR",
+      " correction."
     ),
     n_of_total.fn(
       fdr_summary.lst$frs_n_fdr,
@@ -2529,27 +2623,25 @@ hippocampal atrophy predicts cognitive decline
 regardless of CVR measurement
 [@kramer_longitudinal_2007; @oschwald_brain_2020; @anblagan_coupled_2018].
 The LME 3-way interaction (FRS × HVR × YRS) was
-significant across
+significant in
 `r n_of_total.fn(abs_lme$frs_m_sig, 3L)` male and
 `r n_of_total.fn(abs_lme$frs_f_sig, 3L)` female
-domains (all surviving FDR), while CVR~mimic~
-reached significance only in
+domains (all surviving FDR), versus
 `r n_of_total.fn(abs_lme$cvr_f_sig, 3L)` female
-domains
-`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s only)", abs_lme$cvr_f_sig_doms) else ""`
+`r if(nchar(abs_lme$cvr_f_sig_doms) > 0) sprintf("(%s)", abs_lme$cvr_f_sig_doms) else ""`
 and
-`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male,
-suggesting residual cardiovascular burden may
-modulate HVR-cognition independently of
+`r n_of_total.fn(abs_lme$cvr_m_sig, 3L)` male for
+CVR~mimic~, suggesting residual cardiovascular
+burden may modulate HVR-cognition independently of
 accelerated atrophy.
 
 ## FRS Age-Confounding and CVR~mimic~
 
-CVR~mimic~ successfully removes the age component
-from cardiovascular risk (near-zero age correlation;
+CVR~mimic~ removes the age component from
+cardiovascular risk (near-zero age correlation;
 @fig-cvr-validation C), supporting its use as an
-age-independent index. Its moderate FRS correlation reflects shared
-cardiovascular indicators while confirming distinct
+age-independent index. Its moderate FRS correlation
+reflects shared indicators while confirming distinct
 constructs: one age-confounded, one age-orthogonal.
 
 The FRS formula heavily weights age
@@ -2566,18 +2658,17 @@ association is primarily age-driven. This does not invalidate
 FRS clinically; age is itself a potent marker of
 cumulative vascular exposure
 [@villeneuve_impact_2009]. However, FRS was
-originally validated for adults aged 30–74
+validated for adults aged 30–74
 [@dagostino_general_2008], and ADNI participants
-substantially exceed this range and often have
-prevalent cardiovascular disease, raising questions
-about FRS validity in this population.
+exceed this range and often have prevalent
+cardiovascular disease, questioning FRS validity
+here.
 
 The negative total cholesterol loading
-(@tbl-mimic-loadings) likely reflects widespread
-statin use in this elderly clinical sample: treated
-individuals have lower cholesterol despite elevated
-underlying risk, inverting the expected loading
-direction. Prior FRS-brain reports in elderly
+(@tbl-mimic-loadings) likely reflects statin use:
+treated individuals have lower cholesterol despite
+elevated underlying risk, inverting the expected
+loading direction. Prior FRS-brain reports in elderly
 samples
 [@zsoldos_association_2020; @seshadri_stroke_2004; @song_associations_2020; @meusel_cardiovascular_2019]
 therefore likely conflate age-driven and
@@ -2586,14 +2677,12 @@ disentangle without age-adjustment.
 
 ## Dissociating Moderation from Mediation
 
-The two modelling frameworks test complementary
-questions. The LME 3-way interaction
-(YRS × CVR × HVR → Cognition) tests
-moderation: does cardiovascular risk modify
+The two frameworks test complementary questions. The
+LME 3-way interaction (YRS × CVR × HVR → Cognition)
+tests moderation: does cardiovascular risk modify
 HVR-cognition over time? The LGCM a-path
 (CVR → HVR slope; @fig-mediation) tests mediation:
-does cardiovascular risk affect cognition through
-hippocampal decline?
+does it affect cognition through hippocampal decline?
 
 For CVR~mimic~, the LGCM a-path was null across all
 six models, suggesting age-adjusted cardiovascular
@@ -2646,25 +2735,20 @@ education, APOE ε4) appear in Appendix B
 (Appendix B, Tables B3 and B4).
 
 The sex asymmetry extended to the age covariate.
-Despite GAMLSS age-normalization of HVR z-scores,
-age → HVR intercept and slope paths remained
-significant in all six male mediation models
-(intercept `r age_cov.lst$m_hvr_i_range`, all
-*p* < `r age_cov.lst$m_hvr_i_max_p`; slope all
-*p* < `r age_cov.lst$m_hvr_s_max_p`), indicating
-that UKB-trained normative models did not fully
-absorb age effects in older ADNI males (consistent
-with the transfer offset in Appendix A). Female age
-effects on HVR were uniformly non-significant (all
-*p* > `r age_cov.lst$f_hvr_i_min_p`). Male age
-coefficients were larger in FRS models (mean
+Despite GAMLSS normalization, age → HVR intercept
+and slope paths stayed significant in all six male
+mediation models (intercept
+`r age_cov.lst$m_hvr_i_range`, all
+*p* < `r age_cov.lst$m_hvr_i_max_p`; slope
+*p* < `r age_cov.lst$m_hvr_s_max_p`) but in no
+female model (all
+*p* > `r age_cov.lst$f_hvr_i_min_p`), indicating
+UKB-trained models did not fully absorb age effects
+in older ADNI males (Appendix A). Male age
+coefficients were larger under FRS (mean
 |β| = `r age_cov.lst$m_frs_mag`) than CVR~mimic~
-models (`r age_cov.lst$m_cvr_mag`), consistent with
-FRS and age competing for shared variance. Baseline
-age also predicted the cognitive intercept in all
-twelve models (all
-*p* < `r age_cov.lst$cog_i_max_p`), justifying its
-retention as a covariate.
+(`r age_cov.lst$m_cvr_mag`), consistent with FRS and
+age competing for shared variance.
 
 ## HVR-Cognitive Coupling
 
@@ -2685,32 +2769,28 @@ volume [@schoemaker_hippocampal_ventricle_2019;
 
 Parallel process coupling showed a complementary
 pattern: significant in all three male models but
-only Executive Function in females (one of three).
-This sex asymmetry likely reflects lower power in
-the smaller female subsample, since mediation
-b-paths (which condition on a predictor) were
-significant in
+only Executive Function in females. This asymmetry
+likely reflects lower power in the smaller female
+subsample, since mediation b-paths (which condition
+on a predictor) were significant in
 `r n_of_total.fn(abs_stats$frs_b_sig, 6L)` models
-for both sexes. Language mediation b-paths were
-non-significant for both sexes; parallel process
-coupling reached Language significance in males but
-not females, consistent with later-declining domains
-showing less variance at this disease stage. The
-hippocampal-cognitive coupling is not an artifact of
-cardiovascular risk measurement; it persists across
-predictor specifications and analysis frameworks.
+for both sexes. Language coupling reached
+significance in males but not females, consistent
+with later-declining domains showing less variance
+at this disease stage. The coupling is thus not an
+artifact of cardiovascular risk measurement; it
+persists across predictor specifications and
+analysis frameworks.
 
 ## Methodological Considerations
 
 The fixed-quadratic LGCM captures population-level
 curvature but constrains individual quadratic
-variation, so slope estimates primarily reflect
-average rates of change. This makes the a-path null
-finding conservative: any individual-level
-non-linear CVR~mimic~ effects on hippocampal
-trajectories would require a fully random quadratic
-model to detect, further strengthening the FRS
-age-weighting interpretation.
+variation, so slopes reflect average rates of
+change. This makes the null a-path conservative:
+detecting individual-level non-linear CVR~mimic~
+effects would require a fully random quadratic
+model.
 
 EDT linearity tests confirmed non-linear
 trajectories (Appendix B, Table B2),
@@ -2722,12 +2802,11 @@ disease progression but is sensitive to the disease
 model's assumptions
 [@raket_statistical_2020].
 
-Sensitivity analyses (Appendix C) showed HC z-score
-effects were weaker than HVR effects
-(Appendix C, Table C1), attrition patterns suggest
-observed effects may underestimate true relationships
-(Appendix C, Table C4), and raw-volume results
-were concordant with z-scored analyses.
+Sensitivity analyses (Appendix C) showed weaker HC
+than HVR effects (Table C1), attrition patterns
+suggesting observed effects understate true
+relationships (Table C4), and raw-volume results
+concordant with z-scored analyses.
 
 ## Clinical Implications
 
@@ -2752,44 +2831,65 @@ before clinical interpretation.
 ## Limitations
 
 This study used a single cohort (ADNI), and
-replication in other aging samples is needed.
-UKB-trained GAMLSS normative models showed a
-systematic negative z-score offset in the ADNI
-comparable subsample due to age distribution
-mismatch; within-ADNI relative comparisons remain
-valid, but absolute z-scores should be interpreted
+replication in other aging samples is needed. That
+cohort is `r sprintf("%.0f", pct_white)`% White and
+predominantly college-educated, while cardiovascular
+risk burden falls hardest on the Black and Hispanic
+populations that are barely represented here; whether
+age-adjustment behaves the same way where that burden
+is heavier remains untested.
+UKB-trained GAMLSS models showed a negative z-score
+offset in the comparable ADNI subsample due to
+age-distribution mismatch; within-ADNI comparisons
+remain valid, but absolute z-scores should be read
 cautiously across cohorts. CVR~mimic~ indicators
 were limited to available cardiovascular risk factor
 data and measured cross-sectionally; richer or
 longitudinal indicators could refine the construct.
-FRS values in this elderly cohort cluster near the
-30% 10-year ceiling, particularly in females, so
-null CVR~mimic~ findings may partly reflect
-insufficient variance after age removal rather than
-a true absence of cardiovascular effects.
+Beyond age handling, the two cardiovascular measures
+also differ in composition: the Framingham score
+incorporates BMI, smoking, diabetes, and
+blood-pressure medication, whereas the MIMIC factor
+is built from systolic blood pressure, hypertension,
+fasting glucose, total cholesterol, and serum
+creatinine, with only systolic blood pressure shared
+directly. Age-weighting and predictor composition
+are therefore not fully separable, and part of the
+FRS/CVR~mimic~ divergence could reflect these
+differing inputs rather than age alone. Several
+observations nonetheless favor age-weighting as the
+dominant driver: the FRS is age-dominated by
+construction, its standardized effects were markedly
+larger than those of the age-adjusted CVR~mimic~,
+and its indirect effects on cognition attenuated
+once age was removed. A cleaner isolation of the age
+contribution would fit the same indicator set with
+and without age.
+FRS values cluster near the 30% 10-year ceiling,
+especially in females, so null CVR~mimic~ findings
+may reflect insufficient variance after age removal
+rather than truly absent cardiovascular effects.
 The A^--^/CU control analysis showed a reversed
 FRS/CVR~mimic~ pattern, suggesting generalizability
 beyond the AD continuum, but the smaller pooled-sex
 subsample limits this inference.
 
 ADAS-13 and MMSE items contribute to both EDT and
-the Memory/Language composites; this overlap is
-mitigated by (1) the bifactor CFA extracting
-domain-specific variance, diluting any single shared
-item's contribution, and (2) EDT entering as a time
-metric rather than an outcome. Executive Function
-has minimal item overlap (Appendix B, Figure B1).
+the Memory/Language composites; the bifactor CFA
+extracts domain-specific variance and EDT enters as
+a time metric rather than an outcome, mitigating
+this overlap. Executive Function has minimal item
+overlap (Appendix B, Figure B1).
 
 Coefficient-comparison tests share the resampling
 framework of mediation inference, without
 independent validation. Individually-varying time
-scores preclude CFI/TLI/RMSEA; model adequacy was
-assessed via information criteria and nested LRTs.
-The MIMIC model used 5 indicators; richer models may
-yield different CVR~mimic~ values. Bootstrap
+scores preclude CFI/TLI/RMSEA, so model adequacy
+rested on information criteria and nested LRTs. The
+MIMIC model used 5 indicators, and bootstrap
 mediation CIs (N = `r med_n.lst$Male` males,
-`r med_n.lst$Female` females) may be liberal with
-these modest sample sizes.
+`r med_n.lst$Female` females) may be liberal at
+these sample sizes.
 
 ## Conclusions
 
@@ -2809,11 +2909,11 @@ Hippocampal-cognitive coupling persists across both
 measures, supporting HVR as a reliable biomarker
 target.
 
-Future directions include replication in independent
-aging cohorts, longitudinal cardiovascular
-measurement, and intervention trials. The MIMIC age-adjustment
-framework also applies to composite scores where a
-constituent independently predicts the outcome.
+Future work should replicate this in independent
+aging cohorts with longitudinal cardiovascular
+measurement. The MIMIC age-adjustment framework also
+applies to composite scores where a constituent
+independently predicts the outcome.
 
 ---
 
@@ -2829,8 +2929,13 @@ constituent independently predicts the outcome.
 Data used in preparation of this article were
 obtained from the ADNI database. ADNI was approved by
 the Institutional Review Boards of all participating
-institutions. Written informed consent was obtained
-from all participants.
+institutions, and written informed consent was
+obtained from all participants at each site in
+accordance with the ethical standards laid down in
+the 1964 Declaration of Helsinki and its later
+amendments. The present work is a secondary analysis
+of de-identified data and required no additional
+ethics approval.
 
 # Author Contributions {.unnumbered}
 
