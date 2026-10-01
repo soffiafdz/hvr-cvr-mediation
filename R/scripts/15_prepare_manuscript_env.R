@@ -275,6 +275,36 @@ n_cu <- dx_counts[DX == "CU", N]
 n_mci <- dx_counts[DX == "MCI", N]
 n_ad <- dx_counts[DX == "AD", N]
 
+# ---------------------------------------------------------
+# Cohort diversity (race/ethnicity/education)
+# ---------------------------------------------------------
+# A&D requires human-subjects papers to discuss how the
+# study addresses heterogeneity of the disease and of
+# at-risk populations. Race/ethnicity are not carried in
+# the analysis derivatives, so pull them from ADNIMERGE.
+if (!requireNamespace("ADNIMERGE", quietly = TRUE)) {
+  stop("ADNIMERGE required for cohort diversity stats")
+}
+demog.dt <- unique(
+  as.data.table(ADNIMERGE::adnimerge)[
+    PTID %in% baseline.dt$PTID & !is.na(PTRACCAT),
+    .(PTID, PTRACCAT, PTETHCAT)
+  ],
+  by = "PTID"
+)
+stopifnot(nrow(demog.dt) == n_subjects)
+race.v <- as.character(demog.dt$PTRACCAT)
+eth.v <- as.character(demog.dt$PTETHCAT)
+pct_white <- 100 * mean(race.v == "White")
+pct_nonwhite <- 100 - pct_white
+pct_black <- 100 * mean(race.v == "Black")
+pct_hispanic <- 100 * mean(eth.v == "Hisp/Latino")
+# educ_mean/educ_sd are computed below with the other
+# cohort scalars; only the college-completion share is new.
+pct_college <- 100 * mean(
+  baseline.dt$EDUC >= 16, na.rm = TRUE
+)
+
 # Visit counts
 visits_per_subj <- cohort.dt[, .N, by = PTID]
 median_visits <- median(visits_per_subj$N)
@@ -1157,6 +1187,11 @@ env.lst <- list(
   age_max = age_max,
   educ_mean = educ_mean,
   educ_sd = educ_sd,
+  pct_white = pct_white,
+  pct_nonwhite = pct_nonwhite,
+  pct_black = pct_black,
+  pct_hispanic = pct_hispanic,
+  pct_college = pct_college,
   pct_apoe4 = pct_apoe4,
   fu_mean = fu_mean,
   fu_max = fu_max,
