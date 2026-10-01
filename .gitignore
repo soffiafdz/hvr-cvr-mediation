@@ -11,6 +11,10 @@ logs/
 # Frozen result snapshots for diffing across pipeline revisions
 archive/
 
+# Assembled journal submission package (copies of outputs/reports/;
+# rebuild with reports-src/build_docx.py plus the quarto renders)
+submission/
+
 # R session artifacts
 .RData
 .RDataTmp
