@@ -15,6 +15,12 @@ archive/
 # rebuild with reports-src/build_docx.py plus the quarto renders)
 submission/
 
+# Posters, conference material and screenshots (not pipeline outputs)
+/*.pdf
+/*.png
+/*.svg
+/poster_examples/
+
 # R session artifacts
 .RData
 .RDataTmp
