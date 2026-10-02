@@ -12,6 +12,7 @@ library(patchwork)
 
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
+source(here("R/utils/frs.R"))
 source(here("R/utils/plotting.R"))
 source(here("R/utils/consort_diagram.R"))
 
@@ -95,12 +96,7 @@ cat("  [2/6] fig-cvr-validation ...\n")
 
 stopifnot(!is.null(cvr_scores), !is.null(cohort.dt))
 
-frs_raw_col <- get_parameter("frs", "column")
-cvrf_raw.dt <- fread(
-  get_data_path("raw", "adsp_phc_cvrf"),
-  select = c("PTID", frs_raw_col)
-)
-setnames(cvrf_raw.dt, frs_raw_col, "FRS_pct")
+cvrf_raw.dt <- load_frs.fn()[, .(PTID, FRS_pct = FRS)]
 
 baseline_merged.dt <- cohort.dt[, .(
   AGE = AGE[1], SEX = SEX[1]

@@ -41,6 +41,7 @@ source(here("R/utils/logging.R"))
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
 source(here("R/utils/validation.R"))
+source(here("R/utils/frs.R"))
 
 log_script_start("10b_lme_amyloid_negative.R")
 config <- load_config()
@@ -209,15 +210,8 @@ log_info(
 )
 
 # --- FRS (raw from CVRF, then z-score) ---
-frs.dt <- fread(cvrf_file, select = c(
-  "PTID",
-  "PHC_ASCVD_10y_FRS_Simple_Ageover30"
-))
+frs.dt <- load_frs.fn(cvrf_file)[, .(PTID, FRS_raw = FRS)]
 frs.dt <- frs.dt[, .SD[1], by = PTID]
-setnames(frs.dt,
-  "PHC_ASCVD_10y_FRS_Simple_Ageover30",
-  "FRS_raw"
-)
 cohort.dt <- merge(
   cohort.dt, frs.dt, by = "PTID", all.x = TRUE
 )

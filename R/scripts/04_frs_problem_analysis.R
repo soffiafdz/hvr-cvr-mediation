@@ -30,6 +30,7 @@ suppressPackageStartupMessages({
 source(here("R/utils/logging.R"))
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
+source(here("R/utils/frs.R"))
 
 log_script_start("04_frs_problem_analysis.R")
 config <- load_config()
@@ -91,9 +92,7 @@ cvrf.dt[, SEX := factor(
   ifelse(PHC_Sex == 1, "Male", "Female"),
   levels = c("Male", "Female")
 )]
-cvrf.dt[
-  , FRS := PHC_ASCVD_10y_FRS_Simple_Ageover30
-]
+cvrf.dt[, FRS := frs_from_cvrf.fn(cvrf.dt)]
 cvrf.dt[, AGE := PHC_Age_CardiovascularRisk]
 
 # --- 1a. Ceiling effect ---

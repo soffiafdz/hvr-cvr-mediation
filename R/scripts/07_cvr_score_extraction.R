@@ -72,6 +72,7 @@ suppressPackageStartupMessages({
 source(here("R/utils/logging.R"))
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
+source(here("R/utils/frs.R"))
 
 log_script_start("07_cvr_score_extraction.R")
 config <- load_config()
@@ -145,7 +146,7 @@ mod.dt <- data.table(
     analysis.dt$PHC_Sex == 1, "Male", "Female"
   ),
   AGE_raw = analysis.dt$PHC_Age_CardiovascularRisk,
-  FRS = analysis.dt$PHC_ASCVD_10y_FRS_Simple_Ageover30,
+  FRS = frs_from_cvrf.fn(analysis.dt),
   SBP_z = as.numeric(scale(analysis.dt$PHC_SBP)),
   HTN = as.numeric(analysis.dt$PHC_Hypertension),
   GLUCOSE_z = as.numeric(

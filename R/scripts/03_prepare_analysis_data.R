@@ -32,6 +32,7 @@ source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
 source(here("R/utils/validation.R"))
 source(here("R/utils/disease_time.R"))
+source(here("R/utils/frs.R"))
 
 # Initialize
 log_script_start("03_prepare_analysis_data.R")
@@ -265,16 +266,17 @@ log_info("Cognition: %d observations, %d subjects",
          nrow(cog.dt), n_cog_database)
 
 # CVRF (Framingham Risk Score and PC1)
-FRS_COLUMN <- get_parameter("frs", "column")
 PC1_COLUMN <- get_parameter("cvrf_pc1", "column")
 cvrf_file <- get_data_path("raw", "adsp_phc_cvrf")
 check_files_exist(cvrf_file)
 cvrf.dt <- read_csv_safe(cvrf_file,
-  select = c("RID", "PTID", FRS_COLUMN, PC1_COLUMN),
+  select = c("RID", "PTID", PC1_COLUMN),
   description = "CVRF"
 )
+cvrf.dt <- merge(load_frs.fn(cvrf_file), cvrf.dt, by = c("RID", "PTID"))
 setkey(cvrf.dt, PTID)
-setnames(cvrf.dt, c(FRS_COLUMN, PC1_COLUMN), c("FRS", "CVRF_PC1"))
+setnames(cvrf.dt, PC1_COLUMN, "CVRF_PC1")
+log_info("CVRF (FRS): source = %s", get_parameter("frs", "source"))
 cvrf.dt <- cvrf.dt[!is.na(FRS)]  # Keep if FRS available (PC1 may have some NA)
 log_info("CVRF (FRS): %d subjects with FRS data", nrow(cvrf.dt))
 log_info("CVRF (PC1): %d subjects with PC1 data", sum(!is.na(cvrf.dt$CVRF_PC1)))

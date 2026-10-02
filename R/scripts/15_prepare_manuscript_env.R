@@ -13,6 +13,7 @@ library(data.table)
 
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
+source(here("R/utils/frs.R"))
 source(here("R/utils/tables.R"))
 
 config <- load_config()
@@ -243,13 +244,8 @@ pct_male <- 100 * sum(
   baseline.dt$SEX == "Male"
 ) / n_subjects
 
-# Raw FRS percentage from source CVRF file
-frs_raw_col <- get_parameter("frs", "column")
-cvrf_raw.dt <- fread(
-  get_data_path("raw", "adsp_phc_cvrf"),
-  select = c("PTID", frs_raw_col)
-)
-setnames(cvrf_raw.dt, frs_raw_col, "FRS_pct")
+# Raw FRS percentage (source set in config: frs$source)
+cvrf_raw.dt <- load_frs.fn()[, .(PTID, FRS_pct = FRS)]
 bl_frs <- merge(
   baseline.dt[, .(PTID, SEX)],
   cvrf_raw.dt, by = "PTID"
@@ -856,15 +852,7 @@ cohort_bl <- merge(
   hvr_bl[, .(PTID, HVR_vol = VAL)],
   by = "PTID", all.x = TRUE
 )
-frs_col <- get_parameter("frs", "column")
-cvrf_file <- get_data_path(
-  "raw", "adsp_phc_cvrf"
-)
-cvrf.dt <- fread(
-  cvrf_file,
-  select = c("PTID", frs_col)
-)
-setnames(cvrf.dt, frs_col, "FRS_pct")
+cvrf.dt <- load_frs.fn()[, .(PTID, FRS_pct = FRS)]
 
 cohort_for_tbl.dt <- copy(cohort.dt)
 cohort_for_tbl.dt <- merge(

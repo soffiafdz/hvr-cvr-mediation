@@ -175,6 +175,11 @@ parameters:
   # Cardiovascular risk
   frs:
     column: PHC_ASCVD_10y_FRS_Simple_Ageover30
+    # corrected: recompute from the ADSP-PHC inputs with the correct sex
+    #   (R/utils/frs.R); the published column used the opposite sex's
+    #   equation (docs/frs_sex_swap_audit.md)
+    # published: use the column above as released
+    source: corrected
     # Age range for FRS validity (30-62 years)
     valid_age_min: 30
     valid_age_max: 62
