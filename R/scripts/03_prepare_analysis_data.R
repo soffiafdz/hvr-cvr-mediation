@@ -281,7 +281,7 @@ cvrf.dt <- cvrf.dt[!is.na(FRS)]  # Keep if FRS available (PC1 may have some NA)
 log_info("CVRF (FRS): %d subjects with FRS data", nrow(cvrf.dt))
 log_info("CVRF (PC1): %d subjects with PC1 data", sum(!is.na(cvrf.dt$CVRF_PC1)))
 
-# IMPORTANT: FRS was validated for ages 30-62 (D'Agostino et al., 2008)
+# IMPORTANT: FRS was derived in ages 30-74 (D'Agostino et al., 2008)
 # ADNI participants are typically older. Log this limitation.
 # Age check will be done after merge with cognition data (which has AGE)
 
@@ -356,10 +356,10 @@ log_info("After Aβ+ filter: %d observations, %d subjects",
          nrow(cog.dt), cog.dt[, uniqueN(PTID)])
 
 # FRS age validity assessment
-# Framingham Risk Score validated for ages 30-62 (D'Agostino et al., 2008)
+# Framingham Risk Score derived in ages 30-74 (D'Agostino et al., 2008)
 # Record statistics for Limitations section of manuscript
-FRS_MIN_AGE <- 30
-FRS_MAX_AGE <- 62
+FRS_MIN_AGE <- get_parameter("frs", "valid_age_min")
+FRS_MAX_AGE <- get_parameter("frs", "valid_age_max")
 
 frs_validity <- list()
 if ("AGE" %in% names(cog.dt)) {
@@ -372,7 +372,7 @@ if ("AGE" %in% names(cog.dt)) {
     n_total = .N,
     n_subjects = uniqueN(PTID),
     n_below_30 = sum(AGE < FRS_MIN_AGE, na.rm = TRUE),
-    n_above_62 = sum(AGE > FRS_MAX_AGE, na.rm = TRUE),
+    n_above_max = sum(AGE > FRS_MAX_AGE, na.rm = TRUE),
     n_outside_range = sum(is_outside_range(AGE), na.rm = TRUE),
     pct_outside = 100 * sum(is_outside_range(AGE), na.rm = TRUE) / .N,
     mean_age = mean(AGE, na.rm = TRUE),
