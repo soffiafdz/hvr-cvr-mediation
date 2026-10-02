@@ -163,6 +163,7 @@ library(patchwork)
 
 source(here("R/utils/config.R"))
 source(here("R/utils/data_io.R"))
+source(here("R/utils/frs.R"))
 source(here("R/utils/tables.R"))
 source(here("R/utils/plotting.R"))
 source(here("R/utils/consort_diagram.R"))
@@ -1700,13 +1701,8 @@ mi_verdict_text <- if (scalar_fail) {
 #| fig-height: 4.5
 
 stopifnot(!is.null(cvr_scores), !is.null(cohort.dt))
-  # Baseline with raw FRS percentage
-  frs_raw_col <- get_parameter("frs", "column")
-  cvrf_raw.dt <- fread(
-    get_data_path("raw", "adsp_phc_cvrf"),
-    select = c("PTID", frs_raw_col)
-  )
-  setnames(cvrf_raw.dt, frs_raw_col, "FRS_pct")
+  # Baseline with raw FRS percentage (source set in config: frs$source)
+  cvrf_raw.dt <- load_frs.fn()[, .(PTID, FRS_pct = FRS)]
 
   baseline_merged.dt <- cohort.dt[, .(
     AGE = AGE[1], SEX = SEX[1]
