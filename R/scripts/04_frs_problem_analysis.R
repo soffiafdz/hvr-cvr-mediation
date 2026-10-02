@@ -97,7 +97,7 @@ cvrf.dt[, AGE := PHC_Age_CardiovascularRisk]
 
 # --- 1a. Ceiling effect ---
 frs_valid.dt <- cvrf.dt[!is.na(FRS)]
-CEILING <- 0.30
+CEILING <- 30  # FRS is in percent
 at_ceiling <- sum(
   abs(frs_valid.dt$FRS - CEILING) < 0.001
 )
