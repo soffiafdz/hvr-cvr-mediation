@@ -378,11 +378,17 @@ log_info(
 log_info("")
 log_info("Standardizing on common sample:")
 
-# FRS
-frs_mean <- mean(cohort.dt$FRS, na.rm = TRUE)
-frs_sd <- sd(cohort.dt$FRS, na.rm = TRUE)
-cohort.dt[, FRS_raw := FRS]
-cohort.dt[, FRS := (FRS - frs_mean) / frs_sd]
+# FRS: standardize from the percent scale. FRS_raw already exists if 07
+# has been run on this cohort before, in which case FRS is a z-score.
+if (!"FRS_raw" %in% names(cohort.dt)) {
+  cohort.dt[, FRS_raw := FRS]
+}
+stopifnot(all(
+  cohort.dt$FRS_raw >= 1 & cohort.dt$FRS_raw <= 30, na.rm = TRUE
+))
+frs_mean <- mean(cohort.dt$FRS_raw, na.rm = TRUE)
+frs_sd <- sd(cohort.dt$FRS_raw, na.rm = TRUE)
+cohort.dt[, FRS := (FRS_raw - frs_mean) / frs_sd]
 log_info(
   "  FRS: M=%.2f SD=%.2f -> z-scored",
   frs_mean, frs_sd
