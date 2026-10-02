@@ -1,7 +1,7 @@
-# Handoff: Move UKB Sex-Balance Audit Upstream
+# Move UKB Sex-Balance Audit Upstream
 
 **Target repo:** `/data/ipl/ipl27/sfernandez/headsize_sexeffects_ukb/`
-**Reason for handoff:** The sex imbalance originates in the upstream UKB
+**Reason:** The sex imbalance originates in the upstream UKB
 normative pipeline (QC + ICD-10 filtering on the UKB imaging cohort).
 That manuscript already documents the 56% female sample and the
 PRISMA-style flow diagram. A by-sex breakdown of the flow belongs there,
@@ -20,7 +20,7 @@ and reportable in the source paper.
 `R/scripts/audit_ukb_sex_balance.R`. Two adaptations:
 
 1. Replace the absolute-path constants at the top with the upstream
-   project's path helpers — the upstream project uses `here()` plus
+   project's path helpers. The upstream project uses `here()` plus
    `get_data_path()` from `R/utils/config.R`:
 
    ```r
@@ -76,7 +76,7 @@ Near the existing ICD-10 paragraph (around line 162), add ~2 sentences:
 > motion-sensitive automated QC rather than diagnostic exclusions."
 
 (Adjust "motion-sensitive" if the DARQ paper does not support that
-attribution — see Caveats below.)
+attribution; see Caveats below.)
 
 ### 2c. Supplementary table
 
@@ -142,7 +142,7 @@ From this project, the upstream team needs:
 - `docs/audit_ukb_sex_balance.md` (narrative; can become the
   supplementary table caption + Methods note seed)
 
-Nothing else from this project needs to move upstream — the AD-mediation
+Nothing else from this project needs to move upstream; the AD-mediation
 manuscript only cites the upstream paper for sample composition.
 
 ---
