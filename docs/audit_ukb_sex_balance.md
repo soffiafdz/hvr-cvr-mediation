@@ -93,5 +93,5 @@ Output: `outputs/audit/ukb_sex_balance.rds` and a console summary.
 
 ## Upstream transfer
 
-See `docs/upstream_ukb_audit_handoff.md` for the plan to move this audit
+See `docs/audit_ukb_sex_balance_upstream.md` for the plan to move this audit
 into the upstream UKB-paper repository, where it is a more natural fit.
