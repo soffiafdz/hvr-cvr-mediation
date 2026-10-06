@@ -224,6 +224,58 @@ if (HAS_APOE4) {
   log_warn("  APOE4 not available")
 }
 
+# -----------------------------------------------------------------------------
+# 1e. Center All Exogenous Predictors (within each sample)
+# -----------------------------------------------------------------------------
+# Latent intercept and slope means then refer to a participant with the
+# sample's average age, education, APOE4 status and FRS, rather than to
+# age 0 with 0 years of education. With every predictor at mean 0, the
+# factor-score levels of hvr_i, hvr_s and cog_i also match the
+# model-implied means (docs/lgcm_exogenous_predictors_audit.md).
+full.dt[, AGE_c := AGE_bl - mean(AGE_bl, na.rm = TRUE)]
+male.dt[, AGE_c := AGE_bl - mean(AGE_bl, na.rm = TRUE)]
+female.dt[, AGE_c := AGE_bl - mean(AGE_bl, na.rm = TRUE)]
+full.dt[, EDUC_c := EDUC - mean(EDUC, na.rm = TRUE)]
+male.dt[, EDUC_c := EDUC - mean(EDUC, na.rm = TRUE)]
+female.dt[, EDUC_c := EDUC - mean(EDUC, na.rm = TRUE)]
+full.dt[, FRS_c := FRS_sex_centered - mean(FRS_sex_centered, na.rm = TRUE)]
+male.dt[, FRS_c := FRS_sex_centered - mean(FRS_sex_centered, na.rm = TRUE)]
+female.dt[
+  , FRS_c := FRS_sex_centered - mean(FRS_sex_centered, na.rm = TRUE)
+]
+if (HAS_APOE4) {
+  full.dt[, APOE4_c := APOE4_num - mean(APOE4_num, na.rm = TRUE)]
+  male.dt[, APOE4_c := APOE4_num - mean(APOE4_num, na.rm = TRUE)]
+  female.dt[, APOE4_c := APOE4_num - mean(APOE4_num, na.rm = TRUE)]
+}
+log_info(
+  "  Predictors centered within sample (AGE_c, EDUC_c, FRS_c, APOE4_c)"
+)
+
+#' Exogenous predictor moments fixed at their sample values
+#'
+#' Equivalent to lavaan's fixed.x = TRUE. Fixing them to mean 0 and
+#' variance 1 instead adds a large constant to -2LL and degrades the
+#' Hessian (docs/lgcm_exogenous_predictors_audit.md).
+#'
+#' @param data Data frame or data.table used for the model
+#' @param vars.v Exogenous predictor names
+#' @return List with `var` (variances and covariances) and `mean` paths
+exo_moments.fn <- function(data, vars.v) {
+  x.df <- as.data.frame(data)[, vars.v, drop = FALSE]
+  s.mat <- cov(x.df, use = "pairwise.complete.obs")
+  list(
+    var = mxPath(
+      from = vars.v, arrows = 2, connect = "unique.pairs",
+      free = FALSE, values = s.mat[lower.tri(s.mat, diag = TRUE)]
+    ),
+    mean = mxPath(
+      from = "one", to = vars.v, free = FALSE,
+      values = colMeans(x.df, na.rm = TRUE)
+    )
+  )
+}
+
 # =============================================================================
 # PART 2: ATTEMPT QUADRATIC PARALLEL PROCESS (IDEAL MODEL)
 # =============================================================================
@@ -250,8 +302,8 @@ create_quadratic_parallel.fn <- function(data, domain, has_apoe = FALSE) {
   hvr_vars.v <- paste0("HVR_Z_", VALID_TIMEPOINTS)
 
   manifests.v <- c(cog_vars.v, hvr_vars.v)
-  covariate_vars.v <- c("AGE_bl", "EDUC")
-  if (has_apoe) covariate_vars.v <- c(covariate_vars.v, "APOE4_num")
+  covariate_vars.v <- c("AGE_c", "EDUC_c")
+  if (has_apoe) covariate_vars.v <- c(covariate_vars.v, "APOE4_c")
   manifests.v <- c(manifests.v, covariate_vars.v)
 
   latents.v <- c("hvr_i", "hvr_s", "hvr_q", "cog_i", "cog_s", "cog_q")
@@ -317,18 +369,17 @@ create_quadratic_parallel.fn <- function(data, domain, has_apoe = FALSE) {
                        free = TRUE, values = 0, labels = "cov_hvr_q_cog_q")
 
   # Covariates -> factor means (simplified: only to intercepts)
-  age_paths <- mxPath(from = "AGE_bl", to = c("hvr_i", "cog_i"),
+  age_paths <- mxPath(from = "AGE_c", to = c("hvr_i", "cog_i"),
                       free = TRUE, values = 0,
                       labels = c("age_hvr_i", "age_cog_i"))
-  educ_paths <- mxPath(from = "EDUC", to = c("hvr_i", "cog_i"),
+  educ_paths <- mxPath(from = "EDUC_c", to = c("hvr_i", "cog_i"),
                        free = TRUE, values = 0,
                        labels = c("educ_hvr_i", "educ_cog_i"))
 
   # Covariate variances/means
-  pred_var <- mxPath(from = covariate_vars.v, arrows = 2,
-                     free = FALSE, values = rep(1, length(covariate_vars.v)))
-  pred_means <- mxPath(from = "one", to = covariate_vars.v,
-                       free = FALSE, values = rep(0, length(covariate_vars.v)))
+  exo.lst <- exo_moments.fn(data, covariate_vars.v)
+  pred_var <- exo.lst$var
+  pred_means <- exo.lst$mean
 
   # Build model
   paths.lst <- list(
@@ -342,7 +393,7 @@ create_quadratic_parallel.fn <- function(data, domain, has_apoe = FALSE) {
   )
 
   if (has_apoe) {
-    apoe_paths <- mxPath(from = "APOE4_num", to = c("hvr_i", "cog_i"),
+    apoe_paths <- mxPath(from = "APOE4_c", to = c("hvr_i", "cog_i"),
                          free = TRUE, values = 0,
                          labels = c("apoe_hvr_i", "apoe_cog_i"))
     paths.lst <- c(paths.lst, list(apoe_paths))
@@ -600,9 +651,9 @@ log_info(
   "  Cross: hvr_i~~cog_i, hvr_s~~cog_s"
 )
 log_info(
-  "  Covariates: FRS, HVR_Z_T0, AGE,"
+  "  Covariates: FRS, HVR_Z_T0, AGE_c,"
 )
-log_info("    EDUC, APOE4")
+log_info("    EDUC_c, APOE4 (moments fixed at sample values)")
 log_info("")
 
 #' Extract fit indices from a converged OpenMx model
@@ -684,7 +735,7 @@ nested_lrt.fn <- function(
 #' Standard 4-factor parallel process model with EDT-based ITVS.
 create_linear_parallel.fn <- function(
     data, domain,
-    cvr_var = "FRS_sex_centered",
+    cvr_var = "FRS_c",
     cvr_label = "frs",
     has_apoe = FALSE) {
 
@@ -699,9 +750,9 @@ create_linear_parallel.fn <- function(
 
   manifests.v <- c(cog_vars.v, hvr_vars.v)
   predictor_vars.v <- c(
-    cvr_var, "AGE_bl", "EDUC"
+    cvr_var, "AGE_c", "EDUC_c"
   )
-  if (has_apoe) predictor_vars.v <- c(predictor_vars.v, "APOE4_num")
+  if (has_apoe) predictor_vars.v <- c(predictor_vars.v, "APOE4_c")
   manifests.v <- c(manifests.v, predictor_vars.v)
 
   latents.v <- c("hvr_i", "hvr_s", "cog_i", "cog_s")
@@ -752,15 +803,14 @@ create_linear_parallel.fn <- function(
                          labels = paste0("mean_", latents.v))
 
   # Predictors
-  pred_var <- mxPath(from = predictor_vars.v, arrows = 2,
-                     free = FALSE, values = rep(1, length(predictor_vars.v)))
-  pred_means <- mxPath(from = "one", to = predictor_vars.v,
-                       free = FALSE, values = rep(0, length(predictor_vars.v)))
+  exo.lst <- exo_moments.fn(data, predictor_vars.v)
+  pred_var <- exo.lst$var
+  pred_means <- exo.lst$mean
 
-  age_paths <- mxPath(from = "AGE_bl", to = latents.v,
+  age_paths <- mxPath(from = "AGE_c", to = latents.v,
                       free = TRUE, values = rep(0, 4),
                       labels = paste0("age_", latents.v))
-  educ_paths <- mxPath(from = "EDUC", to = latents.v,
+  educ_paths <- mxPath(from = "EDUC_c", to = latents.v,
                        free = TRUE, values = rep(0, 4),
                        labels = paste0("educ_", latents.v))
 
@@ -795,7 +845,7 @@ create_linear_parallel.fn <- function(
   )
 
   if (has_apoe) {
-    apoe_paths <- mxPath(from = "APOE4_num", to = latents.v,
+    apoe_paths <- mxPath(from = "APOE4_c", to = latents.v,
                          free = TRUE, values = rep(0, 4),
                          labels = paste0("apoe_", latents.v))
     paths.lst <- c(paths.lst, list(apoe_paths))
@@ -832,7 +882,7 @@ create_linear_parallel.fn <- function(
 #' @return OpenMx RAM model
 create_fixedquad_parallel.fn <- function(
     data, domain,
-    cvr_var = "FRS_sex_centered",
+    cvr_var = "FRS_c",
     cvr_label = "frs",
     has_apoe = FALSE) {
 
@@ -899,6 +949,81 @@ create_fixedquad_parallel.fn <- function(
   return(model)
 }
 
+#' Fit a fixed-quadratic model from two starts and keep the better optimum
+#'
+#' mxTryHard stops at the first acceptable solution, which can be a local
+#' optimum (Male EXF, 2026-10-05: conditional -2LL 54.5 above the best
+#' known fit). The model is fitted from its default starting values and
+#' from the estimates of its linear version (quadratic means fixed at 0);
+#' the converged fit with the lower -2LL is returned.
+#'
+#' @param fq_model Model from create_fixedquad_parallel.fn
+#' @param extra_tries extraTries passed to mxTryHard
+#' @return Best fitted model (the default-start fit if neither converged)
+fit_fixedquad.fn <- function(fq_model, extra_tries = 5) {
+  default.fit <- mxTryHard(
+    fq_model, silent = TRUE, extraTries = extra_tries
+  )
+  lin.fit <- tryCatch(
+    mxTryHard(
+      omxSetParameters(
+        fq_model, labels = c("mean_hvr_q", "mean_cog_q"),
+        free = FALSE, values = 0
+      ),
+      silent = TRUE, extraTries = extra_tries
+    ),
+    error = function(e) NULL
+  )
+  if (is.null(lin.fit)) return(default.fit)
+  lin_start.fit <- tryCatch(
+    mxTryHard(
+      omxSetParameters(
+        fq_model, labels = names(coef(lin.fit)),
+        values = coef(lin.fit)
+      ),
+      silent = TRUE, extraTries = extra_tries
+    ),
+    error = function(e) NULL
+  )
+  fits.lst <- Filter(
+    function(f) !is.null(f) && f$output$status$code == 0,
+    list(default = default.fit, linear_start = lin_start.fit)
+  )
+  if (length(fits.lst) == 0) return(default.fit)
+  m2ll.v <- vapply(fits.lst, function(f) f$output$fit, numeric(1))
+  log_info(
+    "    -2LL by start: %s",
+    paste(sprintf("%s %.2f", names(m2ll.v), m2ll.v), collapse = ", ")
+  )
+  fits.lst[[which.min(m2ll.v)]]
+}
+
+#' Model-implied latent means for a sample-average participant
+#'
+#' E[latent] = its mean parameter + the sum, over observed variables with a
+#' path into it (the centred predictors and baseline HVR), of path x
+#' sample mean. Used for population mean curves: averaged factor scores
+#' are not a reliable estimate of this level (cog_s, which baseline HVR
+#' predicts, is off by about 0.01). The models have no latent-on-latent
+#' regressions, so no matrix inversion is needed.
+#'
+#' @param fit Fitted RAM model
+#' @param data Data the model was fitted to
+#' @return Named list of latent means
+implied_latent_means.fn <- function(fit, data) {
+  lat.v <- fit@latentVars
+  man.v <- fit@manifestVars
+  a.mat <- fit$A$values
+  stopifnot(all(a.mat[lat.v, lat.v] == 0))
+  src.v <- man.v[colSums(a.mat[lat.v, man.v, drop = FALSE] != 0) > 0]
+  x_bar.v <- colMeans(
+    as.data.frame(data)[, src.v, drop = FALSE], na.rm = TRUE
+  )
+  means.v <- fit$M$values[1, lat.v] +
+    drop(a.mat[lat.v, src.v, drop = FALSE] %*% x_bar.v)
+  as.list(means.v)
+}
+
 #' Create parallel process LGCM with embedded MIMIC
 #'
 #' Builds a parallel process model where CVR is a
@@ -921,10 +1046,10 @@ create_mimic_parallel.fn <- function(
   )
 
   # Manifests: outcomes + indicators + covariates
-  covariate_vars.v <- c("AGE_bl", "EDUC")
+  covariate_vars.v <- c("AGE_c", "EDUC_c")
   if (has_apoe) {
     covariate_vars.v <- c(
-      covariate_vars.v, "APOE4_num"
+      covariate_vars.v, "APOE4_c"
     )
   }
   manifests.v <- c(
@@ -1008,7 +1133,7 @@ create_mimic_parallel.fn <- function(
 
   # CAUSE: Age -> CVR
   age_cvr <- mxPath(
-    from = "AGE_bl", to = "CVR",
+    from = "AGE_c", to = "CVR",
     free = TRUE, values = 0.1,
     labels = "gamma_age"
   )
@@ -1114,27 +1239,16 @@ create_mimic_parallel.fn <- function(
   )
 
   # --- Covariates ---
-  pred_var <- mxPath(
-    from = covariate_vars.v, arrows = 2,
-    free = FALSE,
-    values = rep(
-      1, length(covariate_vars.v)
-    )
-  )
-  pred_means <- mxPath(
-    from = "one", to = covariate_vars.v,
-    free = FALSE,
-    values = rep(
-      0, length(covariate_vars.v)
-    )
-  )
+  exo.lst <- exo_moments.fn(data, covariate_vars.v)
+  pred_var <- exo.lst$var
+  pred_means <- exo.lst$mean
   age_paths <- mxPath(
-    from = "AGE_bl", to = growth_latents,
+    from = "AGE_c", to = growth_latents,
     free = TRUE, values = rep(0, 4),
     labels = paste0("age_", growth_latents)
   )
   educ_paths <- mxPath(
-    from = "EDUC", to = growth_latents,
+    from = "EDUC_c", to = growth_latents,
     free = TRUE, values = rep(0, 4),
     labels = paste0(
       "educ_", growth_latents
@@ -1162,7 +1276,7 @@ create_mimic_parallel.fn <- function(
 
   if (has_apoe) {
     apoe_paths <- mxPath(
-      from = "APOE4_num",
+      from = "APOE4_c",
       to = growth_latents,
       free = TRUE, values = rep(0, 4),
       labels = paste0(
@@ -1239,10 +1353,7 @@ for (sample_name in c("Male", "Female")) {
         data, domain,
         has_apoe = HAS_APOE4
       )
-      fq_fit <- mxTryHard(
-        fq_model, silent = TRUE,
-        extraTries = 5
-      )
+      fq_fit <- fit_fixedquad.fn(fq_model)
 
       if (fq_fit$output$status$code != 0) {
         log_warn("    Did not converge")
@@ -1267,6 +1378,9 @@ for (sample_name in c("Male", "Female")) {
         NULL
       }
       result$params <- params
+
+      # --- Model-implied latent means (for population curves) ---
+      result$implied_means <- implied_latent_means.fn(fq_fit, data)
 
       # --- Quadratic means ---
       if (!is.null(params)) {
