@@ -4293,20 +4293,21 @@ plot_coupling_figure <- function(
   for (sx in SEX_FROM) {
     key <- paste0(sx, "_MEM")
     r <- lr[[key]]
-    fs <- r$factor_scores
+    # Population curve from model-implied latent means (script 12),
+    # not averaged factor scores, whose level is not reliable
+    im <- require_output(r$implied_means, paste(key, "implied_means"))
     ec <- edt_seq - edt_mean
     hq <- if (!is.null(
       r$quad_means
     )) r$quad_means$hvr_q else 0
-    raw_vals <- mean(fs$hvr_i) +
-      mean(fs$hvr_s) * ec + hq * ec^2
+    raw_vals <- im$hvr_i + im$hvr_s * ec + hq * ec^2
     hvr_mean.lst[[sx]] <- data.table(
       Sex = sx,
       Measure = "HVR",
       EDT = edt_seq,
       value = clip_quad_curve.fn(
         edt_seq, raw_vals,
-        mean(fs$hvr_s), hq, edt_mean
+        im$hvr_s, hq, edt_mean
       )
     )
   }
@@ -4348,13 +4349,15 @@ plot_coupling_figure <- function(
       key <- paste0(sx, "_", d)
       r <- lr[[key]]
       fs <- r$factor_scores
+      im <- require_output(
+        r$implied_means, paste(key, "implied_means")
+      )
       ec <- edt_seq - edt_mean
       cq <- if (!is.null(
         r$quad_means
       )) r$quad_means$cog_q else 0
 
-      raw_cog <- mean(fs$cog_i) +
-        mean(fs$cog_s) * ec + cq * ec^2
+      raw_cog <- im$cog_i + im$cog_s * ec + cq * ec^2
       cog_mean.lst[[key]] <-
         data.table(
           Sex = sx,
@@ -4362,7 +4365,7 @@ plot_coupling_figure <- function(
           EDT = edt_seq,
           value = clip_quad_curve.fn(
             edt_seq, raw_cog,
-            mean(fs$cog_s), cq,
+            im$cog_s, cq,
             edt_mean
           )
         )
