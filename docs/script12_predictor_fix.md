@@ -162,7 +162,7 @@ No reported result changes; the coupling inference becomes sturdier, and the gro
 
 ## Status
 
-Done and committed on 6 October on branch `fix/frs-sex-swap` (`0b7de98` script 12, `12189b8` figure). The all-predictor re-run of scripts 12 and 15 finished at 15:45, and `outputs/manuscript_env.rds` now matches the committed code.
+Done and committed on 6 October on branch `fix/frs-sex-swap` (`62ca45c` script 12, `170b20c` figure). The all-predictor re-run of scripts 12 and 15 finished at 15:45, and `outputs/manuscript_env.rds` now matches the committed code.
 
 The re-run passed every check:
 
