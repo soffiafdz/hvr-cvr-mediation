@@ -1,0 +1,303 @@
+/*-- scss:defaults --*/
+// Slide theme for revealjs (docs/STYLE.md). Brand colours are for the frame
+// of the slides (labels, bars, rules); data colours from manuscript_colors()
+// are for figures and for cards that stand for a group. Neither is used for
+// the other.
+
+// Neutrals
+$ink: #1A1A1A;
+$ink-soft: #4A4A4A;
+$ink-muted: #5C5C5C;
+$rule: #D9D9D9;
+$panel: #F5F5F5;
+
+// Brand: McGill red leads; the Douglas Research Centre and the StoP-AD
+// Centre supply the secondary colours (from douglas.research.mcgill.ca and
+// centre-stopad.com, October 2026). Another affiliation changes these
+// variables and the files in logos/, nothing else.
+$mcgill-red: #ED1B2F;
+$douglas-blue: #177DB3;   // site, --douglas-secondary
+$stopad-teal: #1A6C7A;    // site theme colour
+// 4.9 from the male colour of manuscript_colors() (#191970; OKLab x 100),
+// so kept out of the slides; listed for figures that need a brand navy
+$douglas-navy: #102E71;   // logo
+$douglas-deep: #003E62;   // site, --douglas-secondary2
+
+$accent: $mcgill-red;
+// StoP-AD teal is 8.9 from the CVR_mimic blue (#4477AA), so the second
+// accent is ink here (docs/STYLE.md in the template). McGill red is 13.8 from
+// the FRS orange (#EE7733): slides with FRS cards use no .red cards and no
+// .accent.
+$secondary: $ink;
+
+$body-bg: #ffffff;
+$body-color: $ink;
+$link-color: $douglas-blue;
+$code-color: $ink-soft;
+// Source Sans Pro comes with Quarto's default revealjs theme and is
+// embedded in the deck
+$font-family-sans-serif: "Source Sans Pro", "Helvetica Neue", Helvetica,
+  Arial, sans-serif;
+$presentation-font-size-root: 34px;
+$presentation-heading-font: $font-family-sans-serif;
+$presentation-heading-color: $ink;
+$presentation-heading-font-weight: 700;
+$presentation-heading-text-transform: none;
+$presentation-heading-line-height: 1.15;
+$presentation-h2-font-size: 1.45em;
+
+/*-- scss:rules --*/
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal h2 {
+  margin: 0 0 0.6em;
+  text-wrap: balance;
+}
+
+// Eyebrow: a short red label above the title, set on the heading:
+// ## Title {data-eyebrow="Results"}
+.reveal .slides section[data-eyebrow]::before {
+  content: attr(data-eyebrow);
+}
+.reveal .slides section[data-eyebrow]::before,
+.reveal .eyebrow {
+  display: block;
+  font-size: 0.5em;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: $accent;
+  margin-bottom: 0.5em;
+}
+
+.reveal strong {
+  color: $ink;
+}
+
+// At most one phrase per slide in the accent colour
+.reveal .accent {
+  color: $accent;
+  font-weight: 600;
+}
+
+.reveal ul li,
+.reveal ol li {
+  margin-bottom: 0.45em;
+}
+
+// The slide's question or claim, under the title
+.reveal .lead {
+  display: block;
+  font-size: 1.1em;
+  line-height: 1.35;
+  color: $ink-soft;
+  margin-bottom: 0.9em;
+}
+
+// --- Title page and closing slide -------------------------------------------
+// ## {.title-page}, then ::: {.title-block} (eyebrow, title, subtitle,
+// byline) and ::: {.logos}
+.reveal .slides section.title-page {
+  height: 100%;
+}
+.reveal .slides section.title-page > h2 {
+  display: none;
+}
+.reveal .title-block {
+  border-left: 5px solid $accent;
+  padding-left: 34px;
+  margin-top: 7em;
+}
+.reveal .title-block .title,
+.reveal .title-block .subtitle,
+.reveal .title-block .byline {
+  display: block;
+}
+.reveal .title-block .title {
+  font-size: 2.1em;
+  font-weight: 700;
+  line-height: 1.1;
+  color: $ink;
+  text-wrap: balance;
+}
+.reveal .title-block .subtitle {
+  font-size: 1em;
+  line-height: 1.35;
+  color: $ink-soft;
+  margin-top: 0.5em;
+  text-wrap: balance;
+}
+.reveal .title-block .byline {
+  font-size: 0.72em;
+  color: $ink-muted;
+  margin-top: 1.4em;
+}
+.reveal .title-block p {
+  margin: 0;
+}
+
+// Logos along the bottom edge. The McGill file is the reversed (white)
+// wordmark, so it sits on a red box as on McGill's own pages
+.reveal .logos {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.8em;
+}
+.reveal .logos p {
+  display: contents;
+}
+.reveal .logos img {
+  height: 84px;
+  width: auto;
+  max-height: none;
+  margin: 0;
+}
+.reveal .logos img.mcgill {
+  height: 60px;
+  background: $mcgill-red;
+  padding: 10px 16px;
+  border-radius: 6px;
+}
+
+// --- Section dividers: ## Title {.divider data-eyebrow="Part 2"} ----------
+// The red bar is drawn on each child, so it stops at the last line
+.reveal .slides section.divider {
+  padding-top: 5em;
+}
+.reveal .slides section.divider::before,
+.reveal .slides section.divider > * {
+  border-left: 5px solid $accent;
+  padding-left: 34px;
+  margin: 0;
+}
+.reveal .slides section.divider::before {
+  padding-bottom: 0.5em;
+}
+.reveal .slides section.divider h2 {
+  font-size: 2.1em;
+  padding-bottom: 0.3em;
+}
+.reveal .slides section.divider p {
+  color: $ink-soft;
+}
+
+// --- Number cards ------------------------------------------------------------
+// Grey panel, coloured top bar, bold title, large value, muted unit. The
+// rows are a subgrid, so titles, values and details line up across a row of
+// cards even when one title wraps. A card holds at most four paragraphs.
+.cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(4, auto);
+  column-gap: 1.1em;
+  margin: 0.4em 0 1em;
+}
+.cards > .card {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+}
+.card {
+  background: $panel;
+  border-top: 5px solid $rule;
+  border-radius: 3px;
+  padding: 0.6em 0.8em 0.7em;
+  font-size: 0.85em;
+  line-height: 1.35;
+}
+.card p {
+  margin: 0;
+}
+.card p + p {
+  margin-top: 0.3em;
+}
+.card .big {
+  display: block;
+  font-size: 2.2em;
+  font-weight: 700;
+  line-height: 1.05;
+  color: $ink;
+  white-space: nowrap;
+}
+.card .unit {
+  display: block;
+  color: $ink-muted;
+}
+// Colour rule (docs/STYLE.md): a card standing for a group in the figures
+// takes that group's colour, through one .card.<group> rule per group in the
+// project's copy of this file. Other cards are .red; .teal marks the second
+// of two kinds being contrasted on a slide without group cards.
+.card.red { border-top-color: $accent; }
+.card.teal { border-top-color: $secondary; }
+
+.note {
+  background: $panel;
+  border-left: 5px solid $secondary;
+  border-radius: 3px;
+  padding: 0.5em 0.9em;
+  font-size: 0.85em;
+}
+.note p {
+  margin: 0;
+}
+
+// --- Tables: centred, row labels left, values centred -----------------------
+.reveal table {
+  font-size: 0.85em;
+  margin: 0.5em auto 0.9em;
+  border-collapse: collapse;
+}
+.reveal table th {
+  border-bottom: 2px solid $accent;
+  text-align: center;
+}
+.reveal table td {
+  text-align: center;
+}
+.reveal table th:first-child,
+.reveal table td:first-child {
+  text-align: left;
+}
+.reveal table td,
+.reveal table th {
+  padding: 0.35em 1.1em;
+}
+.reveal table td {
+  border-bottom: 1px solid $rule;
+}
+
+// One muted line under a figure or a table
+.reveal figcaption,
+.reveal .caption,
+.reveal .small {
+  display: block;
+  text-align: center;
+  font-size: 0.65em;
+  color: $ink-muted;
+}
+
+.reveal .slide-number {
+  font-size: 18px;
+  color: $ink-muted;
+}
+.reveal .progress {
+  color: $accent;
+}
+
+// Groups, as in the figures (manuscript_colors(); released FRS is the grey
+// of the correction figures, build_frs_correction_env.R)
+.card.male { border-top-color: #191970; }
+.card.female { border-top-color: #8B0000; }
+.card.frs { border-top-color: #EE7733; }
+.card.cvr { border-top-color: #4477AA; }
+.card.released { border-top-color: #8C8C8C; }
