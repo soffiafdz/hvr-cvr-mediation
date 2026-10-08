@@ -325,14 +325,14 @@ print(summ_hete$a); print(summ_hete$b); print(summ_hete$cprime)
 # -----------------------------------------------------------------------------
 # Save
 # -----------------------------------------------------------------------------
+# Summaries only: OpenMx fit objects embed the participant-level data
+# (@data@observed), which the ADNI DUA forbids redistributing.
 saveRDS(list(
   cell = "Male_MEM_CVR_mimic",
   homoscedastic = summ_homo,
   heteroscedastic = summ_hete,
   lrt = list(chi_diff = chi_diff, df = df_diff, p = p_value,
              aic_diff = aic_diff, bic_diff = bic_diff),
-  fit_homo = fit_homo,
-  fit_hete = fit_hete,
   timestamp = Sys.time()
 ), OUT_FILE)
 cat("\nSaved:", OUT_FILE, "\n")
