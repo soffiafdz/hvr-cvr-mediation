@@ -2102,62 +2102,56 @@ sex and cognitive domain.
 stopifnot(!is.null(lgcm_parallel$linear_results))
 domains <- c("MEM", "LAN", "EXF")
 
+# Model-implied latent slope means at the sample means of the
+# predictors; with EDT centred, this is the slope at mean EDT
+sign_word.fn <- function(x.v) {
+  if (all(x.v < 0)) {
+    "negative"
+  } else if (all(x.v > 0)) {
+    "positive"
+  } else {
+    "mixed in sign"
+  }
+}
+range_txt.fn <- function(x.v) {
+  lo <- sprintf("%.3f", min(x.v))
+  hi <- sprintf("%.3f", max(x.v))
+  if (lo == hi) lo else paste(lo, "to", hi)
+}
 lgcm_growth_text.lst <- list()
 for (sx in c("Male", "Female")) {
-  hvr_slopes <- c()
-  cog_slopes <- c()
-  for (d in domains) {
-    k <- paste0(sx, "_", d)
-    lr <- lgcm_parallel$linear_results[[k]]
-    if (is.null(lr)) next
-    s <- lr$summary
-    if (is.null(s)) next
-    hvr_s <- s[
-      s$label == "hvr_slope_mean" |
-      grepl("hvr.*slope.*mean", s$label,
-        ignore.case = TRUE), ]
-    cog_s <- s[
-      s$label == "cog_slope_mean" |
-      grepl("cog.*slope.*mean", s$label,
-        ignore.case = TRUE), ]
-    if (nrow(hvr_s) > 0) {
-      hvr_slopes <- c(
-        hvr_slopes, hvr_s$Estimate[1]
-      )
-    }
-    if (nrow(cog_s) > 0) {
-      cog_slopes <- c(
-        cog_slopes, cog_s$Estimate[1]
-      )
-    }
+  im.lst <- lapply(paste0(sx, "_", domains), function(k) {
+    lgcm_parallel$linear_results[[k]]$implied_means
+  })
+  im.lst <- Filter(Negate(is.null), im.lst)
+  if (length(im.lst) == 0) {
+    lgcm_growth_text.lst[[sx]] <- ""
+    next
   }
-  lgcm_growth_text.lst[[sx]] <- if (
-    length(hvr_slopes) > 0 &&
-    length(cog_slopes) > 0
-  ) {
-    sprintf(
-      paste0(
-        "In %ss, mean HVR slopes were negative",
-        " across all domains (range: %.4f to",
-        " %.4f); cognitive slopes were also",
-        " negative (range: %.4f to %.4f),",
-        " confirming progressive decline in",
-        " both processes."
-      ),
-      tolower(sx),
-      min(hvr_slopes), max(hvr_slopes),
-      min(cog_slopes), max(cog_slopes)
-    )
-  } else ""
+  hvr_s.v <- vapply(im.lst, function(m) m$hvr_s, numeric(1))
+  cog_s.v <- vapply(im.lst, function(m) m$cog_s, numeric(1))
+  both_neg <- all(hvr_s.v < 0) && all(cog_s.v < 0)
+  lgcm_growth_text.lst[[sx]] <- sprintf(
+    paste0(
+      "In %ss, model-implied mean slopes at the sample's mean",
+      " EDT were %s for HVR (%s z-units per EDT year across",
+      " the %d domain models) and %s for cognition",
+      " (%s per EDT year)%s"
+    ),
+    tolower(sx),
+    sign_word.fn(hvr_s.v), range_txt.fn(hvr_s.v), length(im.lst),
+    sign_word.fn(cog_s.v), range_txt.fn(cog_s.v),
+    if (both_neg) ", so both were declining at that point." else "."
+  )
 }
 ```
 
 `r lgcm_growth_text.lst$Male`
 `r lgcm_growth_text.lst$Female`
-Model fit appears in @tbl-mediation-fit; standard
-fit indices (CFI, TLI, RMSEA) are not computable
-with individually-varying time scores, so adequacy
-was assessed via −2LL, AIC, BIC, and nested LRTs.
+Standard fit indices (CFI, TLI, RMSEA) are not
+computable with individually-varying time scores,
+so nested models were compared with likelihood
+ratio tests.
 
 ### Slope Coupling {#sec-slope-coupling}
 
