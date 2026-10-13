@@ -1335,7 +1335,12 @@ We regressed all covariates on both the latent
 intercept and latent slope factors for each process
 (HVR and cognitive) and fit the same models with FRS
 and CVR~mimic~ for direct comparison of predictive
-utility. Although HVR z-scores are age-normalized
+utility. Covariate means, variances and covariances
+were fixed rather than estimated, which gives the
+same path estimates as `fixed.x = TRUE` in lavaan
+[@rosseel_lavaan_2012]: each path is a partial
+coefficient conditional on the other covariates.
+Although HVR z-scores are age-normalized
 via GAMLSS and CVR~mimic~ is age-orthogonal by
 construction, baseline age was retained as a
 covariate because cognitive composites are not
@@ -1348,10 +1353,15 @@ applied to a demographically different sample
 
 Missing data were handled via full information
 maximum likelihood (FIML), which uses all available
-observations without listwise deletion. We assessed
-model fit via −2 log-likelihood (−2LL), Akaike
-information criterion (AIC), and Bayesian information
-criterion (BIC). For bootstrap inference, we used
+observations without listwise deletion. The fixed
+covariate moments add a constant to the
+log-likelihood that differs between covariate sets,
+so absolute −2 log-likelihood values and the
+information criteria derived from them are not
+comparable between FRS and CVR~mimic~ models; we
+compared only nested models with the same covariates,
+using likelihood ratio tests. For bootstrap
+inference, we used
 case resampling with
 n = `r format(lgcm_results$bootstrap$n_boot, big.mark = ",")`
 iterations for all mediation paths (a, b, c',
@@ -2261,18 +2271,6 @@ cognitive decline operate through hippocampal
 atrophy, comparing FRS and CVR~mimic~ as predictors
 (see @fig-mediation).
 
-```{r tbl-mediation-fit}
-#| tbl-cap: "**LGCM mediation model fit indices.** Sex-stratified. -2LL = -2 log-likelihood; AIC = Akaike information criterion; BIC = Bayesian information criterion."
-
-require_output(
-  create_mediation_fit_table(
-    lgcm_results,
-    title = "Mediation Model Fit"
-  ),
-  "tbl-mediation-fit"
-)
-```
-
 Mediation path diagrams showing a-, b-, c'-path
 estimates and bootstrap CIs appear in
 @fig-mediation.
@@ -2881,7 +2879,7 @@ Coefficient-comparison tests share the resampling
 framework of mediation inference, without
 independent validation. Individually-varying time
 scores preclude CFI/TLI/RMSEA, so model adequacy
-rested on information criteria and nested LRTs. The
+rested on nested LRTs. The
 MIMIC model used 5 indicators, and bootstrap
 mediation CIs (N = `r med_n.lst$Male` males,
 `r med_n.lst$Female` females) may be liberal at
