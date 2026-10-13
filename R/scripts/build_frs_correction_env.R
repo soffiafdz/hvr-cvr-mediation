@@ -419,8 +419,11 @@ SERIES_COLORS <- c(
   "FRS, corrected" = COLORS$frs_pred,
   "CVR_mimic" = COLORS$cvr_pred
 )
+# Named, because what "sans" resolves to differs between R sessions
+SLIDE_FONT <- "Noto Sans"
 slide_theme <- theme_publication(base_size = 20) +
-  theme(legend.position = "top", legend.title = element_blank(),
+  theme(text = element_text(family = SLIDE_FONT),
+        legend.position = "top", legend.title = element_blank(),
         strip.background = element_blank(),
         strip.text = element_text(face = "bold", size = 20))
 
@@ -437,7 +440,7 @@ ceiling.plt <- ggplot(cap.dt, aes(version, pct, fill = group)) +
   geom_col(position = position_dodge(width = 0.75), width = 0.7) +
   geom_text(aes(label = sprintf("%.1f%%", pct)),
             position = position_dodge(width = 0.75), vjust = -0.4,
-            size = 7) +
+            size = 7, family = SLIDE_FONT) +
   scale_fill_manual(values = c(Men = COLORS$male, Women = COLORS$female)) +
   scale_x_discrete(labels = c(Released = "Released score",
                               Corrected = "Corrected score")) +
@@ -454,13 +457,16 @@ forest_data.fn <- function(d.dt) {
     domain_lab = factor(DOMAIN_LABELS[domain], levels = rev(DOMAIN_LABELS)),
     sex_lab = factor(sex, levels = SEXES, labels = c("Men", "Women"))
   )]
-  d.dt[, series := factor(series, levels = names(SERIES_COLORS))]
+  d.dt[, series := factor(
+    series, levels = intersect(names(SERIES_COLORS), unique(series))
+  )]
   # Significant estimates are filled with the series colour, others white
   d.dt[, point_fill := fifelse(sig, as.character(series), "Not significant")]
   d.dt
 }
 forest.fn <- function(d.dt, x_lab) {
   dodge <- position_dodge(width = 0.6, orientation = "y", reverse = TRUE)
+  colors.v <- SERIES_COLORS[levels(d.dt$series)]
   ggplot(d.dt, aes(est, domain_lab, colour = series, group = series)) +
     geom_vline(xintercept = 0, colour = "grey40", linewidth = 0.6) +
     geom_errorbar(aes(xmin = lower, xmax = upper), orientation = "y",
@@ -468,11 +474,11 @@ forest.fn <- function(d.dt, x_lab) {
     geom_point(aes(fill = point_fill), shape = 21, size = 4.5, stroke = 1.6,
                position = dodge) +
     facet_wrap(~sex_lab, nrow = 1) +
-    scale_colour_manual(values = SERIES_COLORS, drop = FALSE) +
-    scale_fill_manual(values = c(SERIES_COLORS, "Not significant" = "white"),
+    scale_colour_manual(values = colors.v) +
+    scale_fill_manual(values = c(colors.v, "Not significant" = "white"),
                       guide = "none") +
     guides(colour = guide_legend(
-      override.aes = list(fill = unname(SERIES_COLORS))
+      override.aes = list(fill = unname(colors.v))
     )) +
     scale_x_continuous(
       labels = scales::label_number(style_negative = "minus")
@@ -480,7 +486,8 @@ forest.fn <- function(d.dt, x_lab) {
     labs(x = x_lab, y = NULL) +
     slide_theme
 }
-apath_plot.dt <- forest_data.fn(copy(apath.dt))
+# FRS only: its a-paths are per percentage point, CVR_mimic's per SD
+apath_plot.dt <- forest_data.fn(copy(apath.dt)[predictor == "FRS"])
 apath.plt <- forest.fn(apath_plot.dt, "a-path: risk \u2192 HVR slope")
 lme_plot.dt <- forest_data.fn(copy(lme.dt)[, `:=`(
   est = beta, lower = beta - 1.96 * se, upper = beta + 1.96 * se,
