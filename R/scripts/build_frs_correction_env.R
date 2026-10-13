@@ -114,9 +114,16 @@ log_info(
   detection.lst$n_match_other, detection.lst$n_scored
 )
 
-# Worked example: the first participant in the release (RID removed)
+# Worked example: a made-up man, not a participant (participant-level
+# values must not appear on slides). Part 1 shows that the release equals
+# the opposite sex's equation for every participant, so for a man the
+# released derivation gives the women's equation.
+EXAMPLE <- data.table(
+  PHC_Age_CardiovascularRisk = 76, PHC_BMI = 27, PHC_SBP = 140,
+  PHC_BP_Med = 0, PHC_Smoker = 0, PHC_Diabetes = 0
+)
 #' Framingham risk (%) before rounding and the 1-30 clamp
-#' @param row.dt One CVRF row
+#' @param row.dt One row with the CVRF input columns
 #' @param sex_lab "Male" or "Female"
 #' @return Numeric risk in percent
 unclamped_risk.fn <- function(row.dt, sex_lab) {
@@ -129,23 +136,24 @@ unclamped_risk.fn <- function(row.dt, sex_lab) {
     k.dt$smoker * row.dt$PHC_Smoker + k.dt$diabetes * row.dt$PHC_Diabetes
   100 * (1 - k.dt$baseline_survival^exp(sum_x - k.dt$group_mean))
 }
-ex.dt <- cvrf.dt[RID == REMOVED_ID]
-stopifnot(nrow(ex.dt) == 1, ex.dt$sex == "Male")
+example_eq.fn <- function(sex_lab) {
+  EXAMPLE[, compute_frs.fn(
+    sex_lab, PHC_Age_CardiovascularRisk, PHC_BMI, PHC_SBP, PHC_BP_Med,
+    PHC_Smoker, PHC_Diabetes
+  )]
+}
 example.lst <- list(
-  rid = ex.dt$RID,
-  sex = ex.dt$sex,
-  age = ex.dt$PHC_Age_CardiovascularRisk,
-  bmi = ex.dt$PHC_BMI,
-  sbp = ex.dt$PHC_SBP,
-  bp_med = ex.dt$PHC_BP_Med,
-  smoker = ex.dt$PHC_Smoker,
-  diabetes = ex.dt$PHC_Diabetes,
-  published = ex.dt$published,
-  female_eq = ex.dt$other_eq,
-  male_eq = ex.dt$own_eq,
-  male_eq_unclamped = unclamped_risk.fn(ex.dt, "Male")
+  sex = "Male",
+  age = EXAMPLE$PHC_Age_CardiovascularRisk,
+  bmi = EXAMPLE$PHC_BMI,
+  sbp = EXAMPLE$PHC_SBP,
+  bp_med = EXAMPLE$PHC_BP_Med,
+  smoker = EXAMPLE$PHC_Smoker,
+  diabetes = EXAMPLE$PHC_Diabetes,
+  female_eq = example_eq.fn("Female"),
+  male_eq = example_eq.fn("Male"),
+  male_eq_unclamped = unclamped_risk.fn(EXAMPLE, "Male")
 )
-stopifnot(abs(example.lst$female_eq - example.lst$published) <= 0.01)
 
 coef.dt <- FRS_COEF[, .(
   SEX, ln_age, ln_bmi, ln_sbp_untreated, ln_sbp_treated, smoker, diabetes,
