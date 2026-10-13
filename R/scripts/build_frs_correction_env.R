@@ -407,7 +407,8 @@ rerun.lst <- list(
   lme_archived = chk_count.fn(
     path_join(ARCHIVE, "models_results/lme/lme_boot_checkpoints")
   ),
-  n_lgcm = sapply(new_env.lst$med_n.lst, identity)
+  n_lgcm = sapply(new_env.lst$med_n.lst, identity),
+  n_lgcm_old = sapply(old_env.lst$med_n.lst, identity)
 )
 
 # -----------------------------------------------------------------------------
