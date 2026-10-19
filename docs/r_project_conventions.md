@@ -4,7 +4,7 @@ Reference implementation: `/ipl/ipl27/sfernandez/hvr_cvr_mediation` (ADNI and
 ADSP-PHC data; linear mixed-effects and OpenMx latent growth curve models; Quarto
 manuscript for *Alzheimer's & Dementia*). Start every new R analysis project from
 this setup. Where a new project needs to differ, make the change deliberately and
-write it down in that project's `CLAUDE.md` or README.
+write it down in that project's README.
 
 Sections 1 and 12 are rules. The rest describes how the reference project is built
 and what to copy.
@@ -65,8 +65,8 @@ project/
 ├── .envrc                    # (gitignored) direnv: activate the conda env
 ├── environment.yml           # conda env export
 ├── renv.lock, renv/
-├── CLAUDE.md                 # project rules for agents (copy §1, §6, §8, §11)
-├── README.md                 # overview, data access, setup, pipeline order
+├── README.md                 # overview, data access, setup, pipeline order,
+│                             # project rules (copy §1, §6, §8, §11)
 ├── config/pipeline_config.yaml
 ├── R/
 │   ├── scripts/              # NN_verb_object.R, run in numeric order
@@ -454,7 +454,7 @@ log_script_end("NN_verb_object.R", success = TRUE)
    `data`, `parameters`, `output`, `scripts.force_regenerate` and `packages`.
 4. Add `.here`, `.Rprofile`, `.lintr` and `.gitignore` (copy them), plus `data/`,
    `models/`, `outputs/` and `logs/` with `.gitkeep`.
-5. Write `CLAUDE.md` with §1, §6, §8 (captions and prose) and §11 of this document.
+5. Put §1, §6, §8 (captions and prose) and §11 of this document in the README.
 6. Build the numbered scripts from the template in §7. The last one writes
    `outputs/<document>_env.rds`, which the `.qmd` loads.
 7. Set up `reports-src/` with `_quarto.yml`, `references.bib`, a CSL file and
