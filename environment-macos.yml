@@ -1,0 +1,13 @@
+# Tools for running this project on an Apple Silicon Mac with micromamba.
+# R itself is not here: install CRAN's R 4.5.1 and restore packages with renv.
+#   micromamba create -n ukb_adni_lgcm -f environment-macos.yml
+name: ukb_adni_lgcm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10        # reports-src/build_docx.py (standard library only)
+  - quarto=1.7.33      # same version that rendered the manuscript on Linux
+  - pandoc=3.6.3
+  - poppler            # pdftocairo, used by build_docx.py
+  - imagemagick        # convert, used by export_submission_figures.R
+  - radian
