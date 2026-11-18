@@ -404,7 +404,7 @@ log_script_end("NN_verb_object.R", success = TRUE)
   repository (a submitted paper, a preprint, a data provider) stay on an unpushed
   local branch until their disclosure is decided.
 - Commit and push only when asked.
-- No "handoff", "Claude" or similar in file names or document text that others
+- No working notes or tool names in file names or document text that others
   will see.
 
 ---
@@ -416,7 +416,7 @@ log_script_end("NN_verb_object.R", success = TRUE)
 - **Confirm first** before anything outward-facing (push, publish) or
   destructive.
 - **Deletions.** Agent auto mode blocks `rm` on outputs. Give the exact command and
-  let the user run it (prefix `!` in Claude Code).
+  let the user run it.
 - **Report faithfully,** with numbers, including failures and checks that did not
   pass. Correct earlier statements explicitly when new evidence contradicts them.
 - **Results feed other work.** Grant proposals (`/ipl/ipl27/sfernandez/grants`,
